@@ -19,7 +19,7 @@ PLANT_ID = 00000
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.01'
+VERSAO = '0.02'
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'HASS.hoymiles'
 TOKEN = ''

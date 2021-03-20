@@ -1,0 +1,34 @@
+{
+  "name": "Hoymiles Hass Add-on",
+  "version": "0.02",
+  "slug": "hassio_sms_ups",
+  "description": "Hoymiles Home Assistant Add-on - Read hoymiles solar data",
+  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "url": "https://github.com/dmslabsbr/hoymiles",
+  "startup": "application",
+  "boot": "auto",
+  "ports": {
+    "8000/tcp": 8000
+  },
+  "ports_description": {
+    "3493/tcp": "Web Interface - Not working yet!"
+  },
+  "hassio_api": true,
+  "homeassistant_api": true,
+  "hassio_role": "manager",
+  "devicetree": true,
+  "webui": "[PROTO:use_ssl]://[HOST]:[PORT:8000]/",
+  "panel_icon": "mdi:cloud",
+  "panel_title": "HoyMiles Solar Data",
+  "panel_admin": true,
+  "options": {
+    "USER": "daniel",
+    "PASS": "mqtt_pass",
+    "ID": "01"
+  },
+  "schema": {
+    "USER": "str",
+    "PASS": "password",
+    "ID": "str"
+  }
+}
