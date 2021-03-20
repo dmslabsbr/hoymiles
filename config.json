@@ -22,13 +22,19 @@
   "panel_title": "HoyMiles Solar Data",
   "panel_admin": true,
   "options": {
-    "USER": "daniel",
-    "PASS": "mqtt_pass",
-    "ID": "01"
+    "HOYMILES_USER": "HOYMILES_USER",
+    "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
+    "HOYMILES_PLANT_ID": "01",
+    "MQTT_HOST": "127.0.0.1",
+    "MQTT_USER": "MQTT_USER",
+    "MQTT_PASSWORD": "MQTT_PASSWORD"
   },
   "schema": {
-    "USER": "str",
-    "PASS": "password",
-    "ID": "str"
+    "HOYMILES_USER": "str",
+    "HOYMILES_PASSWORD": "password",
+    "HOYMILES_PLANT_ID": "str",
+    "MQTT_HOST": "str",
+    "MQTT_USER": "str",
+    "MQTT_PASSWORD": "password"
   }
 }

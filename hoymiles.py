@@ -8,14 +8,25 @@ from string import Template
 import json
 import configparser
 import logging
-import dmslibs
-from dmslibs import *
+import dmslibs as dl
+from dmslibs import Color, mostraErro, log, pega_url, pega_url2
 from datetime import datetime, timedelta
+import paho.mqtt.client as mqtt
+from paho.mqtt import client
+import uuid
+import time
+
 
 # CONFIG Secrets
-USER = "user"
-PASSWORD = "pass"
-PLANT_ID = 00000
+HOYMILES_USER = "user"
+HOYMILES_PASSWORD = "pass"
+HOYMILES_PLANT_ID = 00000
+MQTT_HOST = "mqtt.eclipse.org" 
+MQTT_USERNAME  = ""
+MQTT_PASSWORD  = ""
+INTERVALO_MQTT = 240   #   How often to send data to the MQTT server?
+INTERVALO_HASS = 1200   # How often to send device information in a format compatible with Home Asssistant MQTT discovery?
+INTERVALO_GETDATA = 600 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
@@ -27,6 +38,15 @@ COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
 COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP"
 URL1 = "https://global.hoymiles.com/platform/api/gateway/iam/auth_login"
 URL2 = "https://global.hoymiles.com/platform/api/gateway/pvm-data/data_count_station_real_data"
+URL3 = 'https://global.hoymiles.com/platform/api/gateway/iam/user_me'
+URL4 = 'https://global.hoymiles.com/platform/api/gateway/pvm/statistics_count_station_state'
+URL5 = 'https://global.hoymiles.com/platform/api/gateway/pvm/station_select_by_page'
+URL6 = 'https://global.hoymiles.com/platform/api/gateway/pvm/station_find'
+UUID = str(uuid.uuid1())
+MQTT_PUB = "home/solar"
+MQTT_HASS = "homeassistant"
+DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
+
 
 PAYLOAD_T1= '''
    {
@@ -71,39 +91,18 @@ headers_h2 = {
 
 # # GLOBAL VARS
 token = ""
+status = {"ip":"?",
+          "mqtt": False}
 
+gDevices_enviados = { 'b': False, 't':datetime.now() }  # Global - Controla quando enviar novamente o cabeçalho para autodiscovery
+gMqttEnviado = { 'b': False, 't':datetime.now() }  # Global - Controla quando publicar novamente
 
-def pega_url(url, payload, headers):
-    print("Loading: " + url)
-    response = requests.request("POST", url, headers=headers, data = payload)
-    ret = ""
-    if response.status_code != 200:
-        print ("erro ao acessar: " + url)
-    else:
-        ret = response.content
-    print("status_code: " + str(response.status_code))
-    print("content: " + str(response.content))
-    # print("utf8: " + str(response.text.encode('utf8')))
-    return ret, response.status_code
+statusLast = status.copy()
+gDadosSolar = dict()
+gConnected = False #global variable for the state of the connection
 
-def pega_url2(url, payload, headers):
-    # não está funcionando , 
-    print("Loading: " + url)
-    s = Session()
-    req = Request('POST', url, data = payload, headers=headers)
-    prepped = req.prepare()
-    print (prepped.headers)
-    #response = requests.request("POST", url, headers=headers, data = payload)
-    response = s.send(prepped)
-    ret = ""
-    if response.status_code != 200:
-        print ("erro ao acessar: " + url)
-    else:
-        ret = response.content
-    print("status_code: " + str(response.status_code))
-    print("content: " + str(response.content))
-    # print("utf8: " + str(response.text.encode('utf8')))
-    return ret, response.status_code
+sensor_dic = dict() # {}
+
 
 def pega_url_jsonDic(url, payload, headers, qualPega):
     # recebe o dic da url
@@ -121,13 +120,15 @@ def pega_token():
    # pega o token
    global token
    global TOKEN
+   global HOYMILES_PASSWORD
+   global HOYMILES_USER
 
-   pass_hash = hashlib.md5(PASSWORD.encode()) # b'GeeksforGeeks' 
+   pass_hash = hashlib.md5(HOYMILES_PASSWORD.encode()) # b'GeeksforGeeks' 
    pass_hex = pass_hash.hexdigest()
    print(pass_hex) 
    ret = False
    T1 = Template(PAYLOAD_T1)
-   payload_T1 = T1.substitute(user = USER, password = pass_hex)
+   payload_T1 = T1.substitute(user = HOYMILES_USER, password = pass_hex)
    print(payload_T1)
    header = headers_h1
    header['Cookie'] = "'" + COOKIE_UID + "; " + COOKIE_EGG_SESS + "'"
@@ -150,9 +151,12 @@ def pega_solar(uid):
     T2 = Template(PAYLOAD_T2)
     payload_t2 = T2.substitute(sid = uid)
     header = headers_h2
-    header['Cookie'] = COOKIE_UID + "; " + COOKIE_EGG_SESS + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
+    # header['Cookie'] = COOKIE_UID + "; " + COOKIE_EGG_SESS + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
+    header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
     solar = pega_url_jsonDic(URL2, payload_t2, header, 2)
-    if solar['status'] != 0:
+    if solar['status'] == "0":
+        ret = solar.copy()
+    if solar['status'] != "0":
         ret = solar['status']
     if solar['status'] == "100":
         # erro no token
@@ -164,29 +168,249 @@ def pega_solar(uid):
 
 def get_secrets():
     ''' GET configuration data '''
-    global USER
-    global PASSWORD
-    global PLANT_ID
+    global HOYMILES_USER
+    global HOYMILES_PASSWORD
+    global HOYMILES_PLANT_ID
+    global MQTT_HOST
+    global MQTT_PASSWORD
+    global MQTT_USERNAME
 
-    config = getConfigParser(SECRETS)
+    config = dl.getConfigParser(SECRETS)
 
     print ("Reading secrets.ini")
 
     # le os dados
-    USER  = get_config(config, 'secrets', 'MQTT_USER', USER)
-    PASSWORD = get_config(config, 'secrets', 'MQTT_PASS', PASSWORD)
-    PLANT_ID = get_config(config, 'config','INTERVALO_MQTT', PLANT_ID, getInt=True)
-   
+    HOYMILES_USER  = dl.get_config(config, 'secrets', 'HOYMILES_USER', HOYMILES_USER)
+    HOYMILES_PASSWORD = dl.get_config(config, 'secrets', 'HOYMILES_PASSWORD', HOYMILES_PASSWORD)
+    HOYMILES_PLANT_ID = dl.get_config(config, 'secrets','HOYMILES_PLANT_ID', HOYMILES_PLANT_ID, getInt=True)
+    MQTT_PASSWORD = dl.get_config(config, 'secrets', 'MQTT_PASS', MQTT_PASSWORD)
+    MQTT_USERNAME  = dl.get_config(config, 'secrets', 'MQTT_USER', MQTT_USERNAME)
+    MQTT_HOST = dl.get_config(config, 'secrets', 'MQTT_HOST', MQTT_HOST)
+
+
+def mqttStart():
+    ''' Start MQTT '''
+    global client
+    global clientOk
+    # MQTT Start
+    client = mqtt.Client()
+    log().info("Starting MQTT " + MQTT_HOST)
+    log().debug("mqttStart MQTT_PASSWORD: " + str(MQTT_PASSWORD))
+    client.username_pw_set(username=MQTT_USERNAME, password=MQTT_PASSWORD)
+    client.on_connect = on_connect
+    # client.on_message = on_message
+    client.on_disconnect = on_disconnect
+    client.on_publish = on_publish
+    try:
+        clientOk = True
+        rc = client.connect(MQTT_HOST, 1883, 60)
+
+    except Exception as e:  # OSError
+        if e.__class__.__name__ == 'OSError':
+            clientOk = False
+            log().warning("Can't start MQTT")
+            print (Color.F_Red + "Can't start MQTT" + Color.F_Default)  # e.errno = 51 -  'Network is unreachable'
+            mostraErro(e,20, "MQTT Start")
+        else:
+            clientOk = False
+            mostraErro(e,30, "MQTT Start")
+    if clientOk:  client.loop_start()  # start the loop
+
+
+# The callback for when the client receives a CONNACK response from the server.
+def on_connect(client, userdata, flags, rc):
+    global gConnected
+    global status
+    if rc == 0:
+        cor = Color.F_Blue 
+    else:
+        cor = Color.F_Red
+    print(cor + "MQTT connected with result code " + str(rc) + Color.F_Default)
+    log().debug("MQTT connected with result code " + str(rc))
+    if rc == 0:
+        print ("Connected to " + MQTT_HOST)
+        gConnected = True
+        status['mqtt'] = "on"
+        client.connected_flag = True
+        # Mostra clientes
+        status['publish_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+        send_clients_status()
+    else:
+        tp_c = {0: "Connection successful",
+                1: "Connection refused – incorrect protocol version",
+                2: "Connection refused – invalid client identifier",
+                3: "Connection refused – server unavailable",
+                4: "Connection refused – bad username or password",
+                5: "Connection refused – not authorised",
+                100: "Connection refused - other things"
+        }
+        gConnected = False
+        status['mqtt'] = "off"
+        if rc>5: rc=100
+        print (str(rc) + str(tp_c[rc]))
+        log().error(str(rc) + str(tp_c[rc]))
+        # tratar quando for 3 e outros
+
+def on_publish(client, userdata, mid):
+    # fazer o que aqui? 
+    # fazer uma pilha para ver se foi publicado ou não
+    # aparentemente só vem aqui, se foi publicado.
+    if 1==2:
+        print("Published mid: " + str(mid), "last: " + str(gLastMidMqtt))
+        if gLastMidMqtt-1 != mid:
+            print ("Erro mid:" + str(mid) + " não publicado.")
+
+def on_disconnect(client, userdata, rc):
+    global gConnected
+    global gDevices_enviados
+    global status
+    gConnected = False
+    log().info("disconnecting reason  "  +str(rc))
+    print("disconnecting reason  "  +str(rc))
+    client.connected_flag=False
+    client.disconnect_flag=True
+    gDevices_enviados['b'] = False # Force sending again
+    status['mqtt'] = "off"
+    # mostra cliente desconectado
+    try:
+        send_clients_status()
+    except Exception as e:
+        mostraErro(e, 30, "on_disconnect")
+
+def send_clients_status():
+    ''' send connected clients status '''
+    global status
+    dadosEnviar = status.copy()
+    mqtt_topic = MQTT_PUB + "/clients/" + status['ip']
+    dadosEnviar.pop('ip')
+    dadosEnviar['UUID'] = UUID
+    dadosEnviar['version'] = VERSAO
+    dadosEnviar['plant_id'] = HOYMILES_PLANT_ID
+    dadosEnviar['inHass'] = dl.IN_HASSIO()
+    jsonStatus = json.dumps(dadosEnviar)
+    (rc, mid) = publicaMqtt(mqtt_topic, jsonStatus)
+    return rc
+
+def publicaMqtt(topic, payload):
+    "Publica no MQTT atual"
+    global gLastMidMqtt
+    (rc, mid) = client.publish(topic, payload)
+    # print (Color.F_Cyan, topic, Color.F_Default)
+    # print (Color.F_Blue, payload, Color.F_Default)
+    gLastMidMqtt = mid
+    if rc == mqtt.MQTT_ERR_NO_CONN:
+        print ("mqtt.MQTT_ERR_NO_CONN")
+    if rc == mqtt.MQTT_ERR_SUCCESS:
+        # certo, sem erro.
+        #print ("mqtt.MQTT_ERR_SUCCESS")
+        gLastMidMqtt = mid
+    if rc == mqtt.MQTT_ERR_QUEUE_SIZE:
+        print ("mqtt.MQTT_ERR_QUEUE_SIZE")
+    return rc, mid
+
+def send_hass():
+    ''' Envia parametros para incluir device no hass.io '''
+    global sensor_dic
+    global gDevices_enviados
+
+    # var comuns
+    varComuns = {'sw_version': VERSAO,
+                 'model': "noBreakInfo['info']",
+                 'manufacturer': MANUFACTURER,
+                 'device_name': "noBreakInfo['name']",
+                 'identifiers': "",
+                 'via_device': "VIA_DEVICE",
+                 'ups_id': "UPS_NAME_ID",
+                 'uniq_id': "UPS_ID"}
+    
+    log().debug('Sensor_dic: ' + str(len(sensor_dic)))
+    if len(sensor_dic) == 0:
+        for k in json_hass.items():
+            json_file_path = k[0] + '.json'
+            if IN_HASSIO:
+                json_file_path = '/' + json_file_path  # to run on HASS.IO
+            if not os.path.isfile(json_file_path):
+                log().error(json_file_path + " not found!")
+            json_file = open(json_file_path)
+            json_str = json_file.read()
+            sensor_dic[k[0]] = json.loads(json_str)
+
+    for k in sensor_dic.items():
+        # print('Componente:' + k[0])
+        monta_publica_topico(k[0], sensor_dic[k[0]], varComuns)
+
+    gDevices_enviados['b'] = True
+    gDevices_enviados['t'] = datetime.now()
+    log().debug('Hass Sended')
+
+
+
+def publicaDados(solarData):
+    # publica dados no MQTT
+    global status
+    global gMqttEnviado
+    # // upsData.update(noBreakInfo)  # junta outros dados
+    jsonUPS = json.dumps(solarData)
+    (rc, mid) = publicaMqtt(MQTT_PUB + "/json", jsonUPS)
+    gMqttEnviado['b'] = True
+    gMqttEnviado['t'] = datetime.now()
+
+    if status['mqtt'] == 'on': 
+        status[APP_NAME] = "on"
+    else:
+        status[APP_NAME] = "off"
+    send_clients_status()
+
+def monta_publica_topico(component, sDict, varComuns):
+    ''' monta e envia topico '''
+    key_todos = sDict['todos']
+    newDict = sDict.copy()
+    newDict.pop('todos')
+    for key,dic in newDict.items():
+        # print(key,dic)
+        if key[:1] != '#':
+            varComuns['uniq_id']=varComuns['identifiers'] + "_" + key
+            if not('val_tpl' in dic):
+                dic['val_tpl'] = dic['name']
+            dic['name'] = varComuns['uniq_id']
+            dic['device_dict'] = device_dict
+            dic['publish_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+            dic['expire_after'] = INTERVALO_EXPIRE # quando deve expirar
+            dados = Template(json_hass[component]) # sensor
+            dados = Template(dados.safe_substitute(dic))
+            dados = Template(dados.safe_substitute(varComuns)) # faz ultimas substituições
+            dados = dados.safe_substitute(key_todos) # remove os não substituidos.
+            topico = MQTT_HASS + "/" + component + "/" + NODE_ID + "/" + varComuns['uniq_id'] + "/config"
+            # print(topico)
+            # print(dados)
+            dados = json_remove_vazio(dados)
+            (rc, mid) = publicaMqtt(topico, dados)
+            # print ("rc: ", rc)
 
 
 
 # INICIO, START
 
 print (Color.B_Blue + "********** " + MANUFACTURER + " " + APP_NAME + " v." + VERSAO + Color.B_Default)
-print (Color.B_Green + "Starting up... " + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + Color.B_Default)
+print (Color.B_Green + "Starting up... " + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + '     ' + Color.B_Default)
 
-inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', stdOut=True)
+dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', stdOut=True)
+
+# info
+dl.dadosOS()
+status['ip'] = dl.get_ip()
+print ("IP: " + Color.F_Magenta + status['ip'] + Color.F_Default)
+
+
 get_secrets()
+
+if dl.IN_HASSIO():
+    print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
+    # substitui_secrets()
+    if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
+        log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
+        print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
+
 
 pegou = False
 if TOKEN == '':
@@ -196,9 +420,31 @@ else:
 
 if token != '':
     # pega dados solar
-    dados_solar = pega_solar(PLANT_ID)
+    dados_solar = pega_solar(HOYMILES_PLANT_ID)
     print (str(dados_solar))
- 
+    gDadosSolar = dados_solar['data']
+
+# força a conexão
+while not gConnected:
+    mqttStart()
+    time.sleep(1)  # wait for connection
+    if not clientOk:
+        time.sleep(240)
+
+publicaDados(gDadosSolar)
+
+send_clients_status()
+
+# loop start
+while True:
+    if gConnected:
+        time_dif = dl.date_diff_in_Seconds(datetime.now(), \
+            gDevices_enviados['t'])
+        if time_dif > INTERVALO_HASS:
+                    gDevices_enviados['b'] = False
+                    send_hass()
+        if not clientOk: mqttStart()  # tenta client mqqt novamente.
+    time.sleep(INTERVALO_GETDATA) # dá um tempo
 
 
 
