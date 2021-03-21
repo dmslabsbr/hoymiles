@@ -229,14 +229,14 @@ def substitui_secrets():
     global MQTT_PASSWORD
     global MQTT_USERNAME
     global DEVELOPERS_MODE
-    log.debug ("Loading env data....")
+    log().debug ("Loading env data....")
     HOYMILES_USER = dl.pegaEnv("HOYMILES_USER")
     HOYMILES_PASSWORD = dl.pegaEnv("HOYMILES_PASSWORD")
     HOYMILES_PLANT_ID = dl.pegaEnv("HOYMILES_PLANT_ID")
     MQTT_HOST = dl.pegaEnv("MQTT_HOST")
     MQTT_PASSWORD = dl.pegaEnv("MQTT_PASSWORD")
     MQTT_USERNAME = dl.pegaEnv("MQTT_USERNAME")
-    log.debug ("Env data loaded.")
+    log().debug ("Env data loaded.")
 
 
 def mqttStart():
