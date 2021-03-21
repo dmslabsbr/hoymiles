@@ -1,14 +1,14 @@
 {
   "name": "HoyMiles Solar Data Gateway Add-on",
   "version": "0.02",
-  "slug": "hassio_HoyMiles_SolarData",
-  "description": "HoyMiles Solar Data Gateway Add-on - Read Hoymiles Gateway Solar Data.",
+  "slug": "hoymiles_solardata",
+  "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "url": "https://github.com/dmslabsbr/hoymiles",
   "startup": "application",
   "boot": "auto",
   "ports": {
-    "8000/tcp": 8000
+    "8000/tcp": 8001
   },
   "ports_description": {
     "3493/tcp": "Web Interface - Not working yet!"
