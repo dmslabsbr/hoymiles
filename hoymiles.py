@@ -16,6 +16,7 @@ from paho.mqtt import client
 import uuid
 import time
 import os
+import sys
 
 
 # CONFIG Secrets
@@ -23,15 +24,15 @@ HOYMILES_USER = "user"
 HOYMILES_PASSWORD = "pass"
 HOYMILES_PLANT_ID = 00000
 MQTT_HOST = "mqtt.eclipse.org" 
-MQTT_USERNAME  = ""
-MQTT_PASSWORD  = ""
+MQTT_USERNAME  = "MQTT_USERNAME"
+MQTT_PASSWORD  = "MQTT_PASSWORD"
 INTERVALO_MQTT = 240   #   How often to send data to the MQTT server?
 INTERVALO_HASS = 1200   # How often to send device information in a format compatible with Home Asssistant MQTT discovery?
 INTERVALO_GETDATA = 600 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.03'
+VERSAO = '0.05'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -156,7 +157,7 @@ def pega_token():
    ret = False
    T1 = Template(PAYLOAD_T1)
    payload_T1 = T1.substitute(user = HOYMILES_USER, password = pass_hex)
-   print(payload_T1)
+   #print(payload_T1)
    header = headers_h1
    header['Cookie'] = "'" + COOKIE_UID + "; " + COOKIE_EGG_SESS + "'"
    login, sCode = pega_url(URL1, payload_T1, header)
@@ -214,7 +215,7 @@ def get_secrets():
     MQTT_PASSWORD = dl.get_config(config, 'secrets', 'MQTT_PASS', MQTT_PASSWORD)
     MQTT_USERNAME  = dl.get_config(config, 'secrets', 'MQTT_USER', MQTT_USERNAME)
     MQTT_HOST = dl.get_config(config, 'secrets', 'MQTT_HOST', MQTT_HOST)
-    dev_mode = dl.get_config(config, 'developers', 'MQTT_HOST', "")
+    dev_mode = dl.get_config(config, 'developers', 'DEVELOPERS_MODE', "")
     if dev_mode == True:
         DEVELOPERS_MODE = True
     else:
@@ -235,7 +236,7 @@ def substitui_secrets():
     HOYMILES_PLANT_ID = dl.pegaEnv("HOYMILES_PLANT_ID")
     MQTT_HOST = dl.pegaEnv("MQTT_HOST")
     MQTT_PASSWORD = dl.pegaEnv("MQTT_PASSWORD")
-    MQTT_USERNAME = dl.pegaEnv("MQTT_USERNAME")
+    MQTT_USERNAME = dl.pegaEnv("MQTT_USER")
     log().debug ("Env data loaded.")
 
 
@@ -246,6 +247,7 @@ def mqttStart():
     # MQTT Start
     client = mqtt.Client()
     log().info("Starting MQTT " + MQTT_HOST)
+    log().debug("mqttStart MQTT_USERNAME: " + str(MQTT_USERNAME))
     log().debug("mqttStart MQTT_PASSWORD: " + str(MQTT_PASSWORD))
     client.username_pw_set(username=MQTT_USERNAME, password=MQTT_PASSWORD)
     client.on_connect = on_connect
@@ -301,6 +303,13 @@ def on_connect(client, userdata, flags, rc):
         print (str(rc) + str(tp_c[rc]))
         log().error(str(rc) + str(tp_c[rc]))
         # tratar quando for 3 e outros
+        if rc == 4 or rc == 5:
+            # senha errada
+            print(Color.F_Magenta + "APP EXIT" + str(rc) + Color.F_Default)
+            time.sleep(60000)
+            #raise SystemExit(0)
+            #sys.exit()
+            #quit()
 
 def on_publish(client, userdata, mid):
     # fazer o que aqui? 
@@ -441,8 +450,17 @@ def pegaDadosSolar():
     global gDadosSolar
     ''' pega dados solar '''
     dados_solar = pega_solar(HOYMILES_PLANT_ID)
-    print (str(dados_solar))
+    if DEVELOPERS_MODE:
+        print ("dados_solar: " + str(dados_solar))
     gDadosSolar = dados_solar['data']
+    gDadosSolar['power_ratio'] = '0'
+    realPower = dl.float2number(gDadosSolar['real_power'])
+    if int(realPower) > 0:
+        capacidade = dl.float2number(gDadosSolar['capacitor'],2)
+        if capacidade < 100: capacidade = capacidade * 1000
+        power = realPower / capacidade
+        power = round(power, 2)
+        gDadosSolar['power_ratio'] = str( power )
     return gDadosSolar
 
 # INICIO, START
@@ -477,9 +495,13 @@ if DEVELOPERS_MODE or MQTT_HOST == '192.168.50.20':
     print (Color.F_Green + "MQTT_HOST: " + Color.F_Default + str(MQTT_HOST))
     print (Color.F_Green + "MQTT_PASSWORD: " + Color.F_Default + str(MQTT_PASSWORD))
     print (Color.F_Green + "MQTT_USERNAME: " + Color.F_Default + str(MQTT_USERNAME))
-    print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str())
-    print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str())
-    print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str())
+    print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str(INTERVALO_MQTT))
+    print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str(INTERVALO_HASS))
+    print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str(INTERVALO_GETDATA))
+
+if dl.float2number(HOYMILES_PLANT_ID) < 100:        
+    print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
+    print (Color.B_Magenta + "Wrong plant ID" + Color.B_Default )
 
 
 pegou = False
@@ -494,6 +516,10 @@ if token != '':
     #print (str(dados_solar))
     #gDadosSolar = dados_solar['data']
     pegaDadosSolar()
+else:
+    log().error("I can't get access token")
+    print (Color.B_Red + "I can't get access token" + Color.B_Default)
+    quit()
 
 # força a conexão
 while not gConnected:
