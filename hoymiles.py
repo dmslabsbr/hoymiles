@@ -398,7 +398,7 @@ def publicaDados(solarData):
     (rc, mid) = publicaMqtt(MQTT_PUB + "/json", jsonUPS)
     gMqttEnviado['b'] = True
     gMqttEnviado['t'] = datetime.now()
-
+    print ("Dados Solar Publicados..." + str(datetime.now()))
     if status['mqtt'] == 'on': 
         status[APP_NAME] = "on"
     else:
@@ -431,7 +431,13 @@ def monta_publica_topico(component, sDict, varComuns):
             (rc, mid) = publicaMqtt(topico, dados)
             # print ("rc: ", rc)
 
-
+def pegaDadosSolar():
+    global gDadosSolar
+    ''' pega dados solar '''
+    dados_solar = pega_solar(HOYMILES_PLANT_ID)
+    print (str(dados_solar))
+    gDadosSolar = dados_solar['data']
+    return gDadosSolar
 
 # INICIO, START
 
@@ -467,9 +473,10 @@ else:
 
 if token != '':
     # pega dados solar
-    dados_solar = pega_solar(HOYMILES_PLANT_ID)
-    print (str(dados_solar))
-    gDadosSolar = dados_solar['data']
+    #dados_solar = pega_solar(HOYMILES_PLANT_ID)
+    #print (str(dados_solar))
+    #gDadosSolar = dados_solar['data']
+    pegaDadosSolar()
 
 # força a conexão
 while not gConnected:
@@ -494,20 +501,17 @@ while True:
         time_dif = dl.date_diff_in_Seconds(datetime.now(), \
             gDevices_enviados['t'])
         if time_dif > INTERVALO_HASS:
-                    gDevices_enviados['b'] = False
-                    send_hass()
+            gDevices_enviados['b'] = False
+            send_hass()
+        if time_dif > INTERVALO_GETDATA:
+            pegaDadosSolar()
+            publicaDados(gDadosSolar)
         if not clientOk: mqttStart()  # tenta client mqqt novamente.
     time.sleep(INTERVALO_GETDATA) # dá um tempo
 
 
 
 
-
-'''
-
-sudo pip3 install requests
-
-'''
 
 
 
