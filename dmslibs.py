@@ -8,6 +8,7 @@ import sys
 import pathlib
 import socket
 import requests
+import json
 
 # CONSTANTS
 # ARRUMAR aqui para não ficar na lib
@@ -237,6 +238,24 @@ def pega_url2(url, payload, headers):
     print("content: " + str(response.content))
     # print("utf8: " + str(response.text.encode('utf8')))
     return ret, response.status_code
+
+
+def json_remove_vazio(strJson):
+    ''' remove linhas / elementos vazios de uma string Json '''
+    strJson.replace("\n","")
+    try:
+        dados = json.loads(strJson)  # converte string para dict
+    except Exception as e:
+        if e.__class__.__name__ == 'JSONDecodeError':
+            log.warning ("erro json.load: " + strJson)
+        else:
+            mostraErro(e, 40, "on_message")
+    cp_dados = json.loads(strJson) # cria uma copia
+    for k,v in dados.items():
+        if len(v) == 0:
+            cp_dados.pop(k)  # remove vazio
+    return json.dumps(cp_dados) # converte dict para json
+
 
 
 # HASS.IO Functions

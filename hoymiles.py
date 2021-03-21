@@ -15,6 +15,7 @@ import paho.mqtt.client as mqtt
 from paho.mqtt import client
 import uuid
 import time
+import os
 
 
 # CONFIG Secrets
@@ -31,8 +32,11 @@ SECRETS = 'secrets.ini'
 
 # Contants
 VERSAO = '0.02'
+DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
-APP_NAME = 'HASS.hoymiles'
+APP_NAME = 'Hoymiles Gateway'
+SHORT_NAME = 'solarH'
+SOLAR_MODEL = "DTU-W100" # mudar para pegar
 TOKEN = ''
 COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
 COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP"
@@ -44,8 +48,11 @@ URL5 = 'https://global.hoymiles.com/platform/api/gateway/pvm/station_select_by_p
 URL6 = 'https://global.hoymiles.com/platform/api/gateway/pvm/station_find'
 UUID = str(uuid.uuid1())
 MQTT_PUB = "home/solar"
+SID = 'solar'
 MQTT_HASS = "homeassistant"
 DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
+INTERVALO_EXPIRE = int(INTERVALO_GETDATA)
+NODE_ID = 'dmslabs'
 
 
 PAYLOAD_T1= '''
@@ -88,6 +95,26 @@ headers_h2 = {
   'Accept-Language': 'pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3',
   'Cookie': 'hm_token_language=en_us; ' # 'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5; EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'
 }
+
+json_hass = {"sensor": '''
+{ 
+  "stat_t": "home/$sid/json",
+  "name": "$name",
+  "uniq_id": "$uniq_id",
+  "val_tpl": "{{ value_json.$val_tpl }}",
+  "icon": "$icon",
+  "device_class": "$device_class",
+  "expire_after": "$expire_after",
+  "device": { $device_dict }
+}'''}
+
+device_dict = ''' "name": "$device_name",
+    "manufacturer": "$manufacturer",
+    "model": "$model",
+    "sw_version": "$sw_version",
+    "via_device": "$via_device",
+    "identifiers": [ "$identifiers" ] '''
+
 
 # # GLOBAL VARS
 token = ""
@@ -186,6 +213,24 @@ def get_secrets():
     MQTT_PASSWORD = dl.get_config(config, 'secrets', 'MQTT_PASS', MQTT_PASSWORD)
     MQTT_USERNAME  = dl.get_config(config, 'secrets', 'MQTT_USER', MQTT_USERNAME)
     MQTT_HOST = dl.get_config(config, 'secrets', 'MQTT_HOST', MQTT_HOST)
+
+def substitui_secrets():
+    "No HASS.IO ADD-ON substitui os dados do secrets.ini pelos do options.json"
+    global HOYMILES_USER
+    global HOYMILES_PASSWORD
+    global HOYMILES_PLANT_ID
+    global MQTT_HOST
+    global MQTT_PASSWORD
+    global MQTT_USERNAME
+    global DEVELOPERS_MODE
+    log.debug ("Loading env data....")
+    HOYMILES_USER = dl.pegaEnv("HOYMILES_USER")
+    HOYMILES_PASSWORD = dl.pegaEnv("HOYMILES_PASSWORD")
+    HOYMILES_PLANT_ID = dl.pegaEnv("HOYMILES_PLANT_ID")
+    MQTT_HOST = dl.pegaEnv("MQTT_HOST")
+    MQTT_PASSWORD = dl.pegaEnv("MQTT_PASSWORD")
+    MQTT_USERNAME = dl.pegaEnv("MQTT_USERNAME")
+    log.debug ("Env data loaded.")
 
 
 def mqttStart():
@@ -315,19 +360,19 @@ def send_hass():
 
     # var comuns
     varComuns = {'sw_version': VERSAO,
-                 'model': "noBreakInfo['info']",
+                 'model': SOLAR_MODEL,
                  'manufacturer': MANUFACTURER,
-                 'device_name': "noBreakInfo['name']",
-                 'identifiers': "",
-                 'via_device': "VIA_DEVICE",
-                 'ups_id': "UPS_NAME_ID",
-                 'uniq_id': "UPS_ID"}
+                 'device_name': APP_NAME,
+                 'identifiers': SHORT_NAME + "_" + str(HOYMILES_PLANT_ID),
+                 'via_device': SOLAR_MODEL,
+                 'sid': SID,
+                 'uniq_id': UUID }  #"UPS_ID"
     
     log().debug('Sensor_dic: ' + str(len(sensor_dic)))
     if len(sensor_dic) == 0:
         for k in json_hass.items():
             json_file_path = k[0] + '.json'
-            if IN_HASSIO:
+            if dl.IN_HASSIO():
                 json_file_path = '/' + json_file_path  # to run on HASS.IO
             if not os.path.isfile(json_file_path):
                 log().error(json_file_path + " not found!")
@@ -349,7 +394,6 @@ def publicaDados(solarData):
     # publica dados no MQTT
     global status
     global gMqttEnviado
-    # // upsData.update(noBreakInfo)  # junta outros dados
     jsonUPS = json.dumps(solarData)
     (rc, mid) = publicaMqtt(MQTT_PUB + "/json", jsonUPS)
     gMqttEnviado['b'] = True
@@ -383,7 +427,7 @@ def monta_publica_topico(component, sDict, varComuns):
             topico = MQTT_HASS + "/" + component + "/" + NODE_ID + "/" + varComuns['uniq_id'] + "/config"
             # print(topico)
             # print(dados)
-            dados = json_remove_vazio(dados)
+            dados = dl.json_remove_vazio(dados)
             (rc, mid) = publicaMqtt(topico, dados)
             # print ("rc: ", rc)
 
@@ -400,13 +444,16 @@ dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', std
 dl.dadosOS()
 status['ip'] = dl.get_ip()
 print ("IP: " + Color.F_Magenta + status['ip'] + Color.F_Default)
+if DEVELOPERS_MODE:
+    print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
 
 
 get_secrets()
 
 if dl.IN_HASSIO():
     print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
-    # substitui_secrets()
+    if not DEVELOPERS_MODE:
+        substitui_secrets()
     if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
         log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
         print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
@@ -431,7 +478,13 @@ while not gConnected:
     if not clientOk:
         time.sleep(240)
 
+send_hass()
+
 publicaDados(gDadosSolar)
+
+if int(gDadosSolar['total_eq']) == 0:
+    log().warning('All data is 0. Maybe your Plant_ID is wrong.')
+    status['response'] = "Plant_ID could be wrong!"
 
 send_clients_status()
 
