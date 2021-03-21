@@ -209,7 +209,7 @@ def date_diff_in_Seconds(dt2, dt1):
   return timedelta.days * 24 * 3600 + timedelta.seconds
 
 def pega_url(url, payload, headers):
-    print("Loading: " + url)
+    print(Color.B_Green + "Loading: " + Color.B_Default + url)
     response = requests.request("POST", url, headers=headers, data = payload)
     ret = ""
     if response.status_code != 200:
@@ -222,7 +222,7 @@ def pega_url(url, payload, headers):
     return ret, response.status_code
 
 def pega_url2(url, payload, headers):
-    print("Loading: " + url)
+    print(Color.B_Green + "Loading: " + Color.B_Default + url)
     s = requests.Session()
     req = requests.Request('POST', url, data = payload.replace('\n',""), headers=headers)
     prepped = req.prepare()

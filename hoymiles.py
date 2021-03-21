@@ -31,8 +31,8 @@ INTERVALO_GETDATA = 600 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.02'
-DEVELOPERS_MODE = True
+VERSAO = '0.03'
+DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
 SHORT_NAME = 'solarH'
@@ -201,6 +201,7 @@ def get_secrets():
     global MQTT_HOST
     global MQTT_PASSWORD
     global MQTT_USERNAME
+    global DEVELOPERS_MODE
 
     config = dl.getConfigParser(SECRETS)
 
@@ -213,6 +214,11 @@ def get_secrets():
     MQTT_PASSWORD = dl.get_config(config, 'secrets', 'MQTT_PASS', MQTT_PASSWORD)
     MQTT_USERNAME  = dl.get_config(config, 'secrets', 'MQTT_USER', MQTT_USERNAME)
     MQTT_HOST = dl.get_config(config, 'secrets', 'MQTT_HOST', MQTT_HOST)
+    dev_mode = dl.get_config(config, 'developers', 'MQTT_HOST', "")
+    if dev_mode == True:
+        DEVELOPERS_MODE = True
+    else:
+        DEVELOPERS_MODE = False
 
 def substitui_secrets():
     "No HASS.IO ADD-ON substitui os dados do secrets.ini pelos do options.json"
@@ -449,10 +455,9 @@ dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', std
 # info
 dl.dadosOS()
 status['ip'] = dl.get_ip()
-print ("IP: " + Color.F_Magenta + status['ip'] + Color.F_Default)
+print (Color.B_Cyan + "IP: " + Color.B_Default + Color.F_Magenta + status['ip'] + Color.F_Default)
 if DEVELOPERS_MODE:
     print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
-
 
 get_secrets()
 
@@ -463,6 +468,18 @@ if dl.IN_HASSIO():
     if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
         log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
         print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
+
+
+if DEVELOPERS_MODE or MQTT_HOST == '192.168.50.20':
+    print (Color.F_Green + "HOYMILES_USER: " + Color.F_Default + str(HOYMILES_USER))
+    print (Color.F_Green + "HOYMILES_PASSWORD: " + Color.F_Default + str(HOYMILES_PASSWORD))
+    print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
+    print (Color.F_Green + "MQTT_HOST: " + Color.F_Default + str(MQTT_HOST))
+    print (Color.F_Green + "MQTT_PASSWORD: " + Color.F_Default + str(MQTT_PASSWORD))
+    print (Color.F_Green + "MQTT_USERNAME: " + Color.F_Default + str(MQTT_USERNAME))
+    print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str())
+    print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str())
+    print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str())
 
 
 pegou = False
