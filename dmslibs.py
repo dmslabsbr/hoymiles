@@ -6,23 +6,29 @@ import logging
 import os
 import sys
 import pathlib
+import socket
+import requests
+import json
 
 # CONSTANTS
 # ARRUMAR aqui para não ficar na lib
 
 
 # VARS GLOBAIS
-log = ''
+_log = ''
+
+def log():
+    return _log 
 
 def getConfigParser(secrets_file):
     ''' Pega o Config Parcer '''
     print ("Getting Config Parser.")
     bl_existe_secrets = os.path.isfile(secrets_file)
     if bl_existe_secrets:
-        log.debug("Existe " + secrets_file)
+        _log.debug("Existe " + secrets_file)
         print ("Existe " +  secrets_file)
     else:
-        log.warning("Não existe " + secrets_file)
+        _log.warning("Não existe " + secrets_file)
         print (Color.F_Magenta, "Não existe " +  secrets_file, Color.F_Default)
         # SECRETS = "/" + SECRETS # tenta arrumar para o HASS.IO
         # O ideal é o SECRETS ficar no data, para não perder a cada iniciada.
@@ -35,7 +41,7 @@ def getConfigParser(secrets_file):
     try:
         config.read(secrets_file)
     except Exception as e:
-        log.warning("Can't load config. Using default config.")
+        _log.warning("Can't load config. Using default config.")
         print ("Can't load config. Using default config.")
         mostraErro(e,20, "get_secrets")
         # ver - INFO get_secrets / Error! Code: DuplicateOptionError, Message,
@@ -46,27 +52,27 @@ def getConfigParser(secrets_file):
 
 def inicia_log(logFile, logName = "dmsLibs", stdOut = True, logLevel = logging.DEBUG):
     ''' inicia o log do sistema '''
-    global log
+    global _log
     if stdOut:
-        log = iniciaLoggerStdout()
+        _log = iniciaLoggerStdout()
     else:
-        log = iniciaLogger(logFile, logLevel, logName)
+        _log = iniciaLogger(logFile, logLevel, logName)
 
 
 def iniciaLoggerStdout():
     ''' inicia loggger no StdOut '''
-    log = logging.getLogger()
-    log.setLevel(logging.DEBUG)
+    _log = logging.getLogger()
+    _log.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
-    log.addHandler(handler)
-    return log
+    _log.addHandler(handler)
+    return _log
 
 def iniciaLogger(logFile, logLevel, logName):
     ''' inicia loggger no LOG_FILE '''
-    log = logging.getLogger(logName) # 'smsUPS'
+    _log = logging.getLogger(logName) # 'smsUPS'
     erroDif = False
     try:
         hdlr = logging.FileHandler(logFile)
@@ -77,15 +83,15 @@ def iniciaLogger(logFile, logLevel, logName):
     finally:
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         hdlr.setFormatter(formatter)
-        log.addHandler(hdlr) 
-        log.setLevel(logLevel)
+        _log.addHandler(hdlr) 
+        _log.setLevel(logLevel)
     if erroDif != False:
         # different error
         mostraErro(e, 20, 'Open LOG_FILE')
     if hdlr.baseFilename != logFile:
         print ('LOG file: ', hdlr.baseFilename)
-        log.debug ('LOG file: ' + hdlr.baseFilename)
-    return log
+        _log.debug ('LOG file: ' + hdlr.baseFilename)
+    return _log
 
 
 
@@ -98,7 +104,7 @@ def get_config (config, topic, key, default, getBool = False, getInt = False, sp
         if getInt or type(default) is int: ret = config.getint(topic, key)
     except:
         ret = default
-        log.debug('Config: ' + key + " use default: " + str(default))
+        _log.debug('Config: ' + key + " use default: " + str(default))
     if split:
         ret = ret.split(',')
         for i in range(len(ret)):
@@ -111,11 +117,11 @@ def mostraErro(e, nivel=10, msg_add=""):
     ''' mostra erros '''
     err_msg = msg_add + ' / Error! Code: {c}, Message, {m}'.format(c = type(e).__name__, m = str(e))
     print(Color.F_Red + err_msg + Color.F_Default)
-    if nivel == logging.DEBUG: log.debug(err_msg)      # 10
-    if nivel == logging.INFO: log.info(err_msg)       # 20
-    if nivel == logging.WARNING: log.warning(err_msg)    # 30
-    if nivel == logging.ERROR: log.error(err_msg)      # 40
-    if nivel == logging.CRITICAL: log.critical(err_msg)   # 50
+    if nivel == logging.DEBUG: _log.debug(err_msg)      # 10
+    if nivel == logging.INFO: _log.info(err_msg)       # 20
+    if nivel == logging.WARNING: _log.warning(err_msg)    # 30
+    if nivel == logging.ERROR: _log.error(err_msg)      # 40
+    if nivel == logging.CRITICAL: _log.critical(err_msg)   # 50
 
 class Color:
     # Foreground
@@ -164,6 +170,94 @@ def pegaEnv(env):
         ret = ""
     return ret
 
+def get_ip(change_dot = False, testIP = '192.168.1.1'):
+    ''' pega o IP do device '''
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect((testIP, 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '0.0.0.1'
+    finally:
+        s.close()
+    if change_dot: IP=IP.replace('.','-')
+    return str(IP)
+
+
+def dadosOS():
+    ''' tenta pegar dados do SO '''
+    ret = dict()
+    try:
+        osEnv = os.environ
+        ret['os.name'] = str(os.name)
+        ret['os.getlogin'] = str(os.getlogin())
+        ret['os.uname'] = str(os.uname())
+        ret['whoami'] = str(os.popen('whoami').read())
+        _log.info("os.name: " + str(os.name))
+        _log.info("os.getlogin: " + str(os.getlogin()))
+        _log.info("os.uname: " + str(os.uname()))
+        _log.info("whoami: " + str(os.popen('whoami').read()))
+    except Exception as e:
+        mostraErro(e, 10, 'info')
+    return ret
+
+def date_diff_in_Seconds(dt2, dt1):
+    # Get time diference in seconds
+    # not tested for many days.
+  timedelta = dt2 - dt1
+  return timedelta.days * 24 * 3600 + timedelta.seconds
+
+def pega_url(url, payload, headers):
+    print("Loading: " + url)
+    response = requests.request("POST", url, headers=headers, data = payload)
+    ret = ""
+    if response.status_code != 200:
+        print ("erro ao acessar: " + url)
+    else:
+        ret = response.content
+    print("status_code: " + str(response.status_code))
+    print("content: " + str(response.content))
+    # print("utf8: " + str(response.text.encode('utf8')))
+    return ret, response.status_code
+
+def pega_url2(url, payload, headers):
+    print("Loading: " + url)
+    s = requests.Session()
+    req = requests.Request('POST', url, data = payload.replace('\n',""), headers=headers)
+    prepped = req.prepare()
+    print (prepped.headers)
+    #response = requests.request("POST", url, headers=headers, data = payload)
+    response = s.send(prepped)
+    ret = ""
+    if response.status_code != 200:
+        print ("erro ao acessar: " + url)
+    else:
+        ret = response.content
+    print("status_code: " + str(response.status_code))
+    print("content: " + str(response.content))
+    # print("utf8: " + str(response.text.encode('utf8')))
+    return ret, response.status_code
+
+
+def json_remove_vazio(strJson):
+    ''' remove linhas / elementos vazios de uma string Json '''
+    strJson.replace("\n","")
+    try:
+        dados = json.loads(strJson)  # converte string para dict
+    except Exception as e:
+        if e.__class__.__name__ == 'JSONDecodeError':
+            log.warning ("erro json.load: " + strJson)
+        else:
+            mostraErro(e, 40, "on_message")
+    cp_dados = json.loads(strJson) # cria uma copia
+    for k,v in dados.items():
+        if len(v) == 0:
+            cp_dados.pop(k)  # remove vazio
+    return json.dumps(cp_dados) # converte dict para json
+
+
+
 # HASS.IO Functions
 
 def IN_HASSIO():
@@ -172,3 +266,4 @@ def IN_HASSIO():
     PATH_ROOT = str(PATH_ROOT.resolve())
     inHass = ( pegaEnv('HASSIO_TOKEN') != "" and PATH_ROOT == "/data")
     return inHass
+
