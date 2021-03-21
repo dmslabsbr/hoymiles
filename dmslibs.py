@@ -213,12 +213,11 @@ def pega_url(url, payload, headers):
     response = requests.request("POST", url, headers=headers, data = payload)
     ret = ""
     if response.status_code != 200:
-        print ("erro ao acessar: " + url)
+        print (Color.F_Red + "Erro ao acessar: " + Color.F_Default + url)
+        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
     else:
         ret = response.content
-    print("status_code: " + str(response.status_code))
-    print("content: " + str(response.content))
-    # print("utf8: " + str(response.text.encode('utf8')))
+        print("content: " + str(response.content))
     return ret, response.status_code
 
 def pega_url2(url, payload, headers):
@@ -231,12 +230,11 @@ def pega_url2(url, payload, headers):
     response = s.send(prepped)
     ret = ""
     if response.status_code != 200:
-        print ("erro ao acessar: " + url)
+        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
+        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
     else:
         ret = response.content
-    print("status_code: " + str(response.status_code))
-    print("content: " + str(response.content))
-    # print("utf8: " + str(response.text.encode('utf8')))
+        print("content: " + str(response.content))
     return ret, response.status_code
 
 
@@ -257,6 +255,13 @@ def json_remove_vazio(strJson):
     return json.dumps(cp_dados) # converte dict para json
 
 
+def float2number(numero, arredonda = False):
+    ''' Converte um número ou string '533.12341' para número normal '''
+    fl = float(numero)
+    ret = fl
+    if arredonda != False:
+        ret = round(fl,arredonda)
+    return ret
 
 # HASS.IO Functions
 
