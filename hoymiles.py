@@ -32,7 +32,7 @@ INTERVALO_GETDATA = 600 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.05'
+VERSAO = '0.06'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -52,7 +52,7 @@ MQTT_PUB = "home/solar"
 SID = 'solar'
 MQTT_HASS = "homeassistant"
 DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
-INTERVALO_EXPIRE = int(INTERVALO_GETDATA)
+INTERVALO_EXPIRE = int(INTERVALO_GETDATA) * 1.5
 NODE_ID = 'dmslabs'
 
 
@@ -458,7 +458,7 @@ def pegaDadosSolar():
     if int(realPower) > 0:
         capacidade = dl.float2number(gDadosSolar['capacitor'],2)
         if capacidade < 100: capacidade = capacidade * 1000
-        power = realPower / capacidade
+        power = (realPower / capacidade) * 100
         power = round(power, 2)
         gDadosSolar['power_ratio'] = str( power )
     return gDadosSolar
