@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.07 
+
+- Add DEVELOPERS_MODE at add-on config
 
 ### 0.06 
 

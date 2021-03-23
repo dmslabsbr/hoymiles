@@ -12,6 +12,7 @@ export HOYMILES_PLANT_ID=$(jq --raw-output '.HOYMILES_PLANT_ID' $CONFIG_PATH)
 export MQTT_HOST=$(jq --raw-output '.MQTT_HOST' $CONFIG_PATH)
 export MQTT_USER=$(jq --raw-output '.MQTT_USER' $CONFIG_PATH)
 export MQTT_PASSWORD=$(jq --raw-output '.MQTT_PASSWORD' $CONFIG_PATH)
+export DEVELOPERS_MODE=$(jq --raw-output '.DEVELOPERS_MODE' $CONFIG_PATH)
 
 bashio::log.blue "PATH: "
 pwd

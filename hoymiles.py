@@ -135,9 +135,9 @@ sensor_dic = dict() # {}
 def pega_url_jsonDic(url, payload, headers, qualPega):
     # recebe o dic da url
     if qualPega ==1 :
-        resposta, sCode = pega_url(url, payload, headers)
+        resposta, sCode = pega_url(url, payload, headers, DEVELOPERS_MODE)
     else:
-        resposta, sCode = pega_url2(url, payload, headers)
+        resposta, sCode = pega_url2(url, payload, headers, DEVELOPERS_MODE)
     ret = dict()
     if sCode == 200:
         json_res = json.loads(resposta)
@@ -237,6 +237,8 @@ def substitui_secrets():
     MQTT_HOST = dl.pegaEnv("MQTT_HOST")
     MQTT_PASSWORD = dl.pegaEnv("MQTT_PASSWORD")
     MQTT_USERNAME = dl.pegaEnv("MQTT_USER")
+    DEVELOPERS_MODE = dl.pegaEnv("DEVELOPERS_MODE")
+    DEVELOPERS_MODE = dl.onOff(DEVELOPERS_MODE, True, False)
     log().debug ("Env data loaded.")
 
 
@@ -483,6 +485,8 @@ if dl.IN_HASSIO():
     print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
     if not DEVELOPERS_MODE:
         substitui_secrets()
+        if DEVELOPERS_MODE:
+            print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
     if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
         log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
         print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
