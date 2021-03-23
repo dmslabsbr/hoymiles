@@ -28,11 +28,11 @@ MQTT_USERNAME  = "MQTT_USERNAME"
 MQTT_PASSWORD  = "MQTT_PASSWORD"
 INTERVALO_MQTT = 240   #   How often to send data to the MQTT server?
 INTERVALO_HASS = 1200   # How often to send device information in a format compatible with Home Asssistant MQTT discovery?
-INTERVALO_GETDATA = 600 # How often do I read site data
+INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.06'
+VERSAO = '0.09'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -162,15 +162,23 @@ def pega_token():
    header['Cookie'] = "'" + COOKIE_UID + "; " + COOKIE_EGG_SESS + "'"
    login, sCode = pega_url(URL1, payload_T1, header)
    if sCode == 200:
-      json_res = json.loads(login)
-      if json_res['status'] == '0':
-        data_body = json_res['data']
-        token = json_res['data']['token']
-        TOKEN = token
-        ret = True
-        if token == "":
-            print ('erro na resposta')
-            ret = False
+        json_res = json.loads(login)
+        if json_res['status'] == '0':
+            data_body = json_res['data']
+            token = json_res['data']['token']
+            TOKEN = token
+            ret = True
+            if token == "":
+                print ('erro na resposta')
+                ret = False
+        elif json_res['status'] == '1':
+            TOKEN = ''
+            token = ''
+            print (Color.F_Red + "Wrong user/password" + Color.F_Default)
+   else:
+        TOKEN = ''
+        token = ''
+        print (Color.F_Red + "HTTP Error: " + str(sCode) + Color.F_Default + " " + dl.httpStatusCode(sCode))
    return ret
 
 def pega_solar(uid):
@@ -182,16 +190,19 @@ def pega_solar(uid):
     # header['Cookie'] = COOKIE_UID + "; " + COOKIE_EGG_SESS + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
     header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
     solar = pega_url_jsonDic(URL2, payload_t2, header, 2)
-    if solar['status'] == "0":
-        ret = solar.copy()
-    if solar['status'] != "0":
-        ret = solar['status']
-    if solar['status'] == "100":
-        # erro no token
-        # pede um novo  
-        if (pega_token()):
-            # chama pega solar novamente
-            ret = pega_solar(uid)
+    if 'status' in solar.keys():
+        if solar['status'] == "0":
+            ret = solar.copy()
+        if solar['status'] != "0":
+            ret = solar['status']
+        if solar['status'] == "100":
+            # erro no token
+            # pede um novo  
+            if (pega_token()):
+                # chama pega solar novamente
+                ret = pega_solar(uid)
+    else:
+        print(Color.B_Red + "I can't connect!"  + Color.B_Default)
     return ret
 
 def get_secrets():
@@ -249,8 +260,10 @@ def mqttStart():
     # MQTT Start
     client = mqtt.Client()
     log().info("Starting MQTT " + MQTT_HOST)
-    log().debug("mqttStart MQTT_USERNAME: " + str(MQTT_USERNAME))
-    log().debug("mqttStart MQTT_PASSWORD: " + str(MQTT_PASSWORD))
+    print (Color.B_LightYellow + "Starting MQTT " + MQTT_HOST + Color.B_Default)
+    if DEVELOPERS_MODE:
+        log().debug("mqttStart MQTT_USERNAME: " + str(MQTT_USERNAME))
+        log().debug("mqttStart MQTT_PASSWORD: " + str(MQTT_PASSWORD))
     client.username_pw_set(username=MQTT_USERNAME, password=MQTT_PASSWORD)
     client.on_connect = on_connect
     # client.on_message = on_message
@@ -385,7 +398,8 @@ def send_hass():
                  'sid': SID,
                  'uniq_id': UUID }  #"UPS_ID"
     
-    log().debug('Sensor_dic: ' + str(len(sensor_dic)))
+    if DEVELOPERS_MODE:
+        log().debug('Sensor_dic: ' + str(len(sensor_dic)))
     if len(sensor_dic) == 0:
         for k in json_hass.items():
             json_file_path = k[0] + '.json'
@@ -508,11 +522,24 @@ if dl.float2number(HOYMILES_PLANT_ID) < 100:
     print (Color.B_Magenta + "Wrong plant ID" + Color.B_Default )
 
 
-pegou = False
+'''
+#pegou = False
 if TOKEN == '':
     pegou = pega_token()
 else:
     token = TOKEN
+'''
+
+cnt = 0
+while token == '':
+    pega_token()
+    cnt = cnt + 1
+    if token == '':
+        print (Color.B_Red + "I can't get access token" + Color.B_Default)
+        if cnt >= 5: 
+            exit()
+        time.sleep(60000)
+
 
 if token != '':
     # pega dados solar
@@ -550,11 +577,14 @@ while True:
         if time_dif > INTERVALO_HASS:
             gDevices_enviados['b'] = False
             send_hass()
+        time_dif = dl.date_diff_in_Seconds(datetime.now(), \
+            gMqttEnviado['t'])
         if time_dif > INTERVALO_GETDATA:
             pegaDadosSolar()
             publicaDados(gDadosSolar)
         if not clientOk: mqttStart()  # tenta client mqqt novamente.
-    time.sleep(INTERVALO_GETDATA) # dá um tempo
+    #time.sleep(INTERVALO_GETDATA) # dá um tempo
+    time.sleep(10) # dá um tempo de 10s
 
 
 

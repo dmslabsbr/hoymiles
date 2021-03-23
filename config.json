@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Data Gateway Add-on",
-  "version": "0.07",
+  "version": "0.08",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -8,7 +8,7 @@
   "startup": "application",
   "boot": "auto",
   "ports": {
-    "8000/tcp": 8001
+    "8000/tcp": 10543
   },
   "ports_description": {
     "3493/tcp": "Web Interface - Not working yet!"
