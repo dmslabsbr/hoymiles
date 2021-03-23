@@ -208,7 +208,7 @@ def date_diff_in_Seconds(dt2, dt1):
   timedelta = dt2 - dt1
   return timedelta.days * 24 * 3600 + timedelta.seconds
 
-def pega_url(url, payload, headers):
+def pega_url(url, payload, headers, debug_mode = False):
     print(Color.B_Green + "Loading: " + Color.B_Default + url)
     response = requests.request("POST", url, headers=headers, data = payload)
     ret = ""
@@ -217,15 +217,17 @@ def pega_url(url, payload, headers):
         print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
     else:
         ret = response.content
-        print("content: " + str(response.content))
+        if debug_mode:
+            print("content: " + str(response.content))
     return ret, response.status_code
 
-def pega_url2(url, payload, headers):
+def pega_url2(url, payload, headers, debug_mode = False):
     print(Color.B_Green + "Loading: " + Color.B_Default + url)
     s = requests.Session()
     req = requests.Request('POST', url, data = payload.replace('\n',""), headers=headers)
     prepped = req.prepare()
-    print (prepped.headers)
+    if debug_mode:
+        print (prepped.headers)
     #response = requests.request("POST", url, headers=headers, data = payload)
     response = s.send(prepped)
     ret = ""
@@ -234,7 +236,8 @@ def pega_url2(url, payload, headers):
         print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
     else:
         ret = response.content
-        print("content: " + str(response.content))
+        if debug_mode:
+            print("content: " + str(response.content))
     return ret, response.status_code
 
 
@@ -261,6 +264,16 @@ def float2number(numero, arredonda = False):
     ret = fl
     if arredonda != False:
         ret = round(fl,arredonda)
+    return ret
+
+
+def onOff(value, ON = "on", OFF = "off"):
+    ''' return a string on / off '''
+    v = str(value).upper().replace('-','')
+    ret = OFF
+    if v == '1': ret = ON
+    if v == 'TRUE': ret = ON
+    if v == 'ON': ret = ON
     return ret
 
 # HASS.IO Functions
