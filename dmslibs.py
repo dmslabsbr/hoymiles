@@ -13,6 +13,27 @@ import json
 # CONSTANTS
 # ARRUMAR aqui para não ficar na lib
 
+# Constants que podem ficar na lib
+
+HTTP_STATUS_CODE = {
+    100: "Continue",
+    200: "OK",
+    202: "Non-Authoritative Information",
+    307: "Temporary Redirect",
+    308: "Permanent Redirect",
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",  
+    404: "Not Found",
+    407: "Proxy Authentication Required",  
+    408: "Request Timeout",  
+    500: "Internal Server Error",  
+    502: "Bad Gateway",  
+    403: "Forbidden",  
+    403: "Forbidden",  
+    504: "Gateway Timeout",
+    1000: "Message not set."
+    }
 
 # VARS GLOBAIS
 _log = ''
@@ -202,6 +223,17 @@ def dadosOS():
         mostraErro(e, 10, 'info')
     return ret
 
+
+def httpStatusCode(stCode):
+    ''' retorna texto do status code '''
+    ret = ''
+    stCode = int(stCode)
+    if stCode in HTTP_STATUS_CODE.keys():
+        ret = HTTP_STATUS_CODE[stCode]
+    else:
+        ret = HTTP_STATUS_CODE[1000]
+    return ret
+
 def date_diff_in_Seconds(dt2, dt1):
     # Get time diference in seconds
     # not tested for many days.
@@ -214,7 +246,7 @@ def pega_url(url, payload, headers, debug_mode = False):
     ret = ""
     if response.status_code != 200:
         print (Color.F_Red + "Erro ao acessar: " + Color.F_Default + url)
-        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
+        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code) + " " + httpStatusCode(response.status_code))
     else:
         ret = response.content
         if debug_mode:
@@ -232,8 +264,8 @@ def pega_url2(url, payload, headers, debug_mode = False):
     response = s.send(prepped)
     ret = ""
     if response.status_code != 200:
-        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
-        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code))
+        print (Color.F_Red + "Erro ao acessar: " + Color.F_Default + url)
+        print(Color.F_Red + "status_code: " + Color.F_Default + str(response.status_code) + " " + httpStatusCode(response.status_code))
     else:
         ret = response.content
         if debug_mode:
