@@ -9,7 +9,7 @@ import json
 import configparser
 import logging
 import dmslibs as dl
-from dmslibs import Color, mostraErro, log, pega_url, pega_url2
+from dmslibs import Color, mostraErro, log, pega_url, pega_url2, printC
 from datetime import datetime, timedelta
 import paho.mqtt.client as mqtt
 from paho.mqtt import client
@@ -32,7 +32,7 @@ INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.09'
+VERSAO = '0.10'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -227,7 +227,7 @@ def get_secrets():
     MQTT_USERNAME  = dl.get_config(config, 'secrets', 'MQTT_USER', MQTT_USERNAME)
     MQTT_HOST = dl.get_config(config, 'secrets', 'MQTT_HOST', MQTT_HOST)
     dev_mode = dl.get_config(config, 'developers', 'DEVELOPERS_MODE', "")
-    if dev_mode == True:
+    if bool(dev_mode) == True:
         DEVELOPERS_MODE = True
     else:
         DEVELOPERS_MODE = False
@@ -315,8 +315,9 @@ def on_connect(client, userdata, flags, rc):
         gConnected = False
         status['mqtt'] = "off"
         if rc>5: rc=100
-        print (str(rc) + str(tp_c[rc]))
-        log().error(str(rc) + str(tp_c[rc]))
+        #print (str(rc) + str(tp_c[rc]))
+        print (str(rc) + dl.MQTT_STATUS_CODE(rc))
+        log().error(str(rc) + str(dl.MQTT_STATUS_CODE(rc)))
         # tratar quando for 3 e outros
         if rc == 4 or rc == 5:
             # senha errada
@@ -407,17 +408,26 @@ def send_hass():
                 json_file_path = '/' + json_file_path  # to run on HASS.IO
             if not os.path.isfile(json_file_path):
                 log().error(json_file_path + " not found!")
+            printC(Color.F_Cyan, json_file_path)
             json_file = open(json_file_path)
+            if not json_file.readable():
+                printC(Color.B_Red,"I can't read file")
             json_str = json_file.read()
             sensor_dic[k[0]] = json.loads(json_str)
 
+    if len(sensor_dic) == 0:
+        printC(Color.B_Red, "Sensor_dic error")
+    rc = 0
     for k in sensor_dic.items():
         # print('Componente:' + k[0])
-        monta_publica_topico(k[0], sensor_dic[k[0]], varComuns)
+        rc = monta_publica_topico(k[0], sensor_dic[k[0]], varComuns)
+        if not rc == 0:
+            printC(Color.B_LightRed, 'Hass publish error: ' + str(rc) )
 
-    gDevices_enviados['b'] = True
-    gDevices_enviados['t'] = datetime.now()
-    log().debug('Hass Sended')
+    if rc == 0:
+        gDevices_enviados['b'] = True
+        gDevices_enviados['t'] = datetime.now()
+        log().debug('Hass Sended')
 
 
 
@@ -438,6 +448,7 @@ def publicaDados(solarData):
 
 def monta_publica_topico(component, sDict, varComuns):
     ''' monta e envia topico '''
+    ret_rc = 0
     key_todos = sDict['todos']
     newDict = sDict.copy()
     newDict.pop('todos')
@@ -460,7 +471,9 @@ def monta_publica_topico(component, sDict, varComuns):
             # print(dados)
             dados = dl.json_remove_vazio(dados)
             (rc, mid) = publicaMqtt(topico, dados)
+            ret_rc = ret_rc + rc
             # print ("rc: ", rc)
+    return rc
 
 def pegaDadosSolar():
     global gDadosSolar
@@ -473,10 +486,15 @@ def pegaDadosSolar():
     realPower = dl.float2number(gDadosSolar['real_power'])
     if int(realPower) > 0:
         capacidade = dl.float2number(gDadosSolar['capacitor'],2)
-        if capacidade < 100: capacidade = capacidade * 1000
-        power = (realPower / capacidade) * 100
-        power = round(power, 2)
-        gDadosSolar['power_ratio'] = str( power )
+        if capacidade == 0:
+            print  (Color.B_Yellow + "" + str(capacidade) + Color.B_Default)
+        else:
+            if capacidade < 100: capacidade = capacidade * 1000
+            power = (realPower / capacidade) * 100
+            power = round(power, 2)
+            gDadosSolar['power_ratio'] = str( power )
+            if power == 0:
+                print  (Color.B_Green + "Power_ratio0 Capacitor:" + str(capacidade) + Color.B_Default)
     return gDadosSolar
 
 # INICIO, START

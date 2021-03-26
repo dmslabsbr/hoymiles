@@ -1,5 +1,12 @@
 # CHANGELOG
 
+### 0.10
+- MQTT_STATUS_CODE
+- Sensor DIC
+- More debug information
+- dmslibs.PrintC
+
+
 ### 0.09
 
 - bug fix pegaDadosSolar()

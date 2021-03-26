@@ -35,6 +35,16 @@ HTTP_STATUS_CODE = {
     1000: "Message not set."
     }
 
+MQTT_STATUS_CODE = {
+    0: "Connection successful",
+    1: "Connection refused – incorrect protocol version",
+    2: "Connection refused – invalid client identifier",
+    3: "Connection refused – server unavailable",
+    4: "Connection refused – bad username or password",
+    5: "Connection refused – not authorised",
+    100: "Connection refused - other things"
+    }
+
 # VARS GLOBAIS
 _log = ''
 
@@ -182,6 +192,30 @@ class Color:
     B_LightCyan = "\x1b[106m"
     B_White = "\x1b[107m"
 
+def printC(cor, texto):
+    ''' Imprime de uma cor '''
+    corDict = Color.__dict__
+    color = ''
+    codProc = '\x1b'
+    cor_default = ''
+    # precisa dividir
+    #if cor.count('[') == 1:
+    #    color = list(corDict.keys())[list(corDict.values()).index(cor)]
+    #else: 
+    corDividida = cor.split(codProc)
+    corDividida.pop(0)
+    #corDividida[0] = codProc + corDividida[0]
+    #corDividida[1] = codProc + corDividida[1]
+    for i in range(len(corDividida)):
+        corDividida[i] = codProc + corDividida[i]
+        color = list(corDict.keys())[list(corDict.values()).index(corDividida[i])]
+        if color[0] == "F":
+            cor_default = cor_default + Color.F_Default
+        else:
+            cor_default = cor_default + Color.B_Default
+
+    print (cor + texto + cor_default)
+
 def pegaEnv(env):
     ''' PEGA dados do ENV do SO '''
     ret = ""
@@ -233,6 +267,17 @@ def httpStatusCode(stCode):
     else:
         ret = HTTP_STATUS_CODE[1000]
     return ret
+
+def mqttStatusCode(stCode):
+    ''' retorna texto do status code '''
+    ret = ''
+    stCode = int(stCode)
+    if stCode in MQTT_STATUS_CODE.keys():
+        ret = MQTT_STATUS_CODE[stCode]
+    else:
+        ret = MQTT_STATUS_CODE[100]
+    return ret
+
 
 def date_diff_in_Seconds(dt2, dt1):
     # Get time diference in seconds

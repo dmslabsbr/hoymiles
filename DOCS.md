@@ -33,3 +33,5 @@
 <img src="https://github.com/dmslabsbr/smsUps/raw/master/hass6.png" alt="Hass.io screen Add a new repository." width="200" /> 
 
 You can now use your Hoymiles data in your Home Assistant.
+
+You **must have** an *MQTT server*.
