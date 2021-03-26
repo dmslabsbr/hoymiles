@@ -1,6 +1,12 @@
 # CHANGELOG
 
-### 0.10
+
+### 0.12
+- Realpower round
+- Other data round and scale
+- sensors update
+
+### 0.11
 - Bug fix
 
 ### 0.10

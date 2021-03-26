@@ -3,12 +3,12 @@
       "name":"capacitor",
       "device_class":"power",
       "icon":"mdi:solar-panel",
-      "unit_of_measurement":"kW"
+      "unit_of_measurement":"W"
    },
    "co2_emission_reduction":{
       "name":"co2_emission_reduction",
-      "icon":"mdi:periodic-table-co2",
-      "device_class":"power"
+      "icon":"mdi:gas-cylinder",
+      "unit_of_measurement":"Ton"
    },
    "is_balance":{
       "name":"is_balance",

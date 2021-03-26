@@ -1,5 +1,6 @@
 __author__ = 'dmslabs'
 
+from os.path import realpath
 import requests
 from requests.models import HTTPBasicAuth, Response, StreamConsumedError
 from requests import Request, Session
@@ -32,7 +33,7 @@ INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.10'
+VERSAO = '0.12'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -439,7 +440,7 @@ def publicaDados(solarData):
     (rc, mid) = publicaMqtt(MQTT_PUB + "/json", jsonUPS)
     gMqttEnviado['b'] = True
     gMqttEnviado['t'] = datetime.now()
-    print ("Dados Solar Publicados..." + str(datetime.now()))
+    print (Color.F_Blue + "Dados Solares Publicados..." + Color.F_Default + str(datetime.now()))
     if status['mqtt'] == 'on': 
         status[APP_NAME] = "on"
     else:
@@ -484,15 +485,30 @@ def pegaDadosSolar():
     gDadosSolar = dados_solar['data']
     gDadosSolar['power_ratio'] = '0'
     realPower = dl.float2number(gDadosSolar['real_power'])
+    gDadosSolar['real_power'] = str(realPower)
     if int(realPower) > 0:
-        capacidade = dl.float2number(gDadosSolar['capacitor'],2)
+        capacidade = dl.float2number(gDadosSolar['capacitor'])
+        if capacidade > 0 and capacidade < 100:
+            capacidade = capacidade * 1000
         if capacidade == 0:
             print  (Color.B_Yellow + "" + str(capacidade) + Color.B_Default)
         else:
-            if capacidade < 100: capacidade = capacidade * 1000
             power = (realPower / capacidade) * 100
             power = round(power, 2)
+            power = int(power)
             gDadosSolar['power_ratio'] = str( power )
+            # corrige escala e digitos
+            gDadosSolar['capacitor'] =  str( capacidade )
+            co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
+            co2 = round(co2,3)
+            gDadosSolar['co2_emission_reduction'] = str( co2 )
+            gDadosSolar['plant_tree'] = str( dl.float2number(gDadosSolar['plant_tree']) )
+            total_eq = dl.float2number(gDadosSolar['total_eq']) / 1000000
+            total_eq = round(total_eq, 2)
+            gDadosSolar['total_eq'] = str(total_eq)
+            month_eq = dl.float2number(gDadosSolar['total_eq']) / 1000
+            month_eq = round(month_eq, 2)
+            gDadosSolar['month_eq'] = str( month_eq )
             if power == 0:
                 print  (Color.B_Green + "Power_ratio0 Capacitor:" + str(capacidade) + Color.B_Default)
     return gDadosSolar
