@@ -335,12 +335,14 @@ def json_remove_vazio(strJson):
     return json.dumps(cp_dados) # converte dict para json
 
 
-def float2number(numero, arredonda = False):
+def float2number(numero, arredonda = -1):
     ''' Converte um número ou string '533.12341' para número normal '''
     fl = float(numero)
     ret = fl
-    if arredonda != False:
-        ret = round(fl,arredonda)
+    if arredonda == 0:
+        ret = round(fl)
+    elif arredonda >=1:
+        ret = round(fl, arredonda)
     return ret
 
 
