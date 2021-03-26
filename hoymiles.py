@@ -33,7 +33,7 @@ INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.12'
+VERSAO = '0.13'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -597,7 +597,7 @@ send_hass()
 
 publicaDados(gDadosSolar)
 
-if int(gDadosSolar['total_eq']) == 0:
+if dl.float2number(gDadosSolar['total_eq'], 0) == 0:
     log().warning('All data is 0. Maybe your Plant_ID is wrong.')
     status['response'] = "Plant_ID could be wrong!"
 

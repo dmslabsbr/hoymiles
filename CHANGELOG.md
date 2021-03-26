@@ -1,5 +1,7 @@
 # CHANGELOG
 
+### 0.13
+- Bug fix
 
 ### 0.12
 - Realpower round
