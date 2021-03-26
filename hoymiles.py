@@ -217,7 +217,7 @@ def get_secrets():
 
     config = dl.getConfigParser(SECRETS)
 
-    print ("Reading secrets.ini")
+    printC (Color.F_LightGreen, "Reading secrets.ini")
 
     # le os dados
     HOYMILES_USER  = dl.get_config(config, 'secrets', 'HOYMILES_USER', HOYMILES_USER)
@@ -515,7 +515,7 @@ get_secrets()
 
 if dl.IN_HASSIO():
     print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
-    if not DEVELOPERS_MODE:
+    if not DEVELOPERS_MODE or 1==1:  # teste
         substitui_secrets()
         if DEVELOPERS_MODE:
             print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)

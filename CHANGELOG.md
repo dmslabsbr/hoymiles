@@ -1,11 +1,13 @@
 # CHANGELOG
 
 ### 0.10
+- Bug fix
+
+### 0.10
 - MQTT_STATUS_CODE
 - Sensor DIC
 - More debug information
 - dmslibs.PrintC
-
 
 ### 0.09
 
