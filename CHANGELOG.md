@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.15
+- Bug fix
+
 ### 0.14
 - float2number fix
 

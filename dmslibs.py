@@ -9,6 +9,7 @@ import pathlib
 import socket
 import requests
 import json
+from datetime import datetime
 
 # CONSTANTS
 # ARRUMAR aqui para não ficar na lib
@@ -50,6 +51,11 @@ _log = ''
 
 def log():
     return _log 
+
+
+def hoje():
+    ''' retorna String de hoje '''
+    return datetime.today().strftime('%Y-%m-%d %H:%M:%S')
 
 def getConfigParser(secrets_file):
     ''' Pega o Config Parcer '''
