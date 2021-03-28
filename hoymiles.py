@@ -33,7 +33,7 @@ INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
 
 # Contants
-VERSAO = '0.14'
+VERSAO = '0.15'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -372,8 +372,9 @@ def publicaMqtt(topic, payload):
     "Publica no MQTT atual"
     global gLastMidMqtt
     (rc, mid) = client.publish(topic, payload)
-    # print (Color.F_Cyan, topic, Color.F_Default)
-    # print (Color.F_Blue, payload, Color.F_Default)
+    # if DEVELOPERS_MODE:
+        # print (Color.F_Cyan, topic, Color.F_Default)
+        # print (Color.F_Blue, payload, Color.F_Default)
     gLastMidMqtt = mid
     if rc == mqtt.MQTT_ERR_NO_CONN:
         print ("mqtt.MQTT_ERR_NO_CONN")
@@ -462,7 +463,7 @@ def monta_publica_topico(component, sDict, varComuns):
             dic['name'] = varComuns['uniq_id']
             dic['device_dict'] = device_dict
             dic['publish_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-            dic['expire_after'] = INTERVALO_EXPIRE # quando deve expirar
+            dic['expire_after'] = int(INTERVALO_EXPIRE) # quando deve expirar
             dados = Template(json_hass[component]) # sensor
             dados = Template(dados.safe_substitute(dic))
             dados = Template(dados.safe_substitute(varComuns)) # faz ultimas substituições
@@ -472,9 +473,50 @@ def monta_publica_topico(component, sDict, varComuns):
             # print(dados)
             dados = dl.json_remove_vazio(dados)
             (rc, mid) = publicaMqtt(topico, dados)
+            if rc == 0:
+                if DEVELOPERS_MODE:
+                    topicoResumo = topico.replace(MQTT_HASS + "/" + component + "/" + NODE_ID, '...')
+                    topicoResumo = topicoResumo.replace("/config", '')
+                    printC (Color.F_Cyan, topicoResumo)
+            else:
+                # deu erro na publicação
+                printC (Color.B_Red, "Erro monta_publica_topico")
+                printC (Color.F_Red, topico)
             ret_rc = ret_rc + rc
             # print ("rc: ", rc)
     return rc
+
+def ajustaDadosSolar():
+    ''' ajusta dados solar '''
+    global gDadosSolar
+    realPower = dl.float2number(gDadosSolar['real_power'],0)
+    capacidade = dl.float2number(gDadosSolar['capacitor'])
+    plant_tree = dl.float2number(gDadosSolar['plant_tree'], 0)
+    month_eq = dl.float2number(gDadosSolar['month_eq']) / 1000
+    month_eq = round(month_eq, 2)
+    total_eq = dl.float2number(gDadosSolar['total_eq']) / 1000000
+    total_eq = round(total_eq, 2)
+    co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
+    co2 = round(co2,2)
+    # corrige escala e digitos
+    if capacidade > 0 and capacidade < 100:
+        capacidade = capacidade * 1000
+        capacidade = round(capacidade)
+    power = (realPower / capacidade) * 100
+    power = round(power,1)
+    if power == 0: 
+        printC (Color.F_Magenta, "Power = 0")
+        printC (Color.B_LightMagenta, dl.hoje() )
+        if DEVELOPERS_MODE:
+            printC ('parada 1/0', str(1/0))
+    gDadosSolar['real_power'] = str( realPower )
+    gDadosSolar['power_ratio'] = str( power )
+    gDadosSolar['capacitor'] =  str( capacidade )
+    gDadosSolar['co2_emission_reduction'] = str( co2 )
+    gDadosSolar['plant_tree'] = str( plant_tree )
+    gDadosSolar['total_eq'] = str( total_eq )
+    gDadosSolar['month_eq'] = str( month_eq )
+
 
 def pegaDadosSolar():
     global gDadosSolar
@@ -483,35 +525,12 @@ def pegaDadosSolar():
     if DEVELOPERS_MODE:
         print ("dados_solar: " + str(dados_solar))
     gDadosSolar = dados_solar['data']
-    gDadosSolar['power_ratio'] = '0'
-    realPower = dl.float2number(gDadosSolar['real_power'],0)
-    gDadosSolar['real_power'] = str(realPower)
-    if int(realPower) > 0:
-        capacidade = dl.float2number(gDadosSolar['capacitor'])
-        if capacidade > 0 and capacidade < 100:
-            capacidade = capacidade * 1000
-            capacidade = round(capacidade)
-        if capacidade == 0:
-            print  (Color.B_Yellow + "" + str(capacidade) + Color.B_Default)
-        else:
-            power = (realPower / capacidade) * 100
-            power = round(power,1)
-            gDadosSolar['power_ratio'] = str( power )
-            # corrige escala e digitos
-            gDadosSolar['capacitor'] =  str( capacidade )
-            co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
-            co2 = round(co2,2)
-            gDadosSolar['co2_emission_reduction'] = str( co2 )
-            plant_tree = dl.float2number(gDadosSolar['plant_tree'], 0)
-            gDadosSolar['plant_tree'] = str( plant_tree )
-            total_eq = dl.float2number(gDadosSolar['total_eq']) / 1000000
-            total_eq = round(total_eq, 2)
-            gDadosSolar['total_eq'] = str(total_eq)
-            month_eq = dl.float2number(gDadosSolar['month_eq']) / 1000
-            month_eq = round(month_eq, 2)
-            gDadosSolar['month_eq'] = str( month_eq )
-            if power == 0:
-                print  (Color.B_Green + "Power_ratio0 Capacitor:" + str(capacidade) + Color.B_Default)
+    capacidade = dl.float2number(gDadosSolar['capacitor'])
+    if capacidade == 0:
+        # é um erro
+        print  (Color.B_Red + "Erro capacitor: " + str(capacidade) + Color.B_Default)
+    else:
+        ajustaDadosSolar()
     return gDadosSolar
 
 # INICIO, START
