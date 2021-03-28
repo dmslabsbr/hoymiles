@@ -372,8 +372,9 @@ def publicaMqtt(topic, payload):
     "Publica no MQTT atual"
     global gLastMidMqtt
     (rc, mid) = client.publish(topic, payload)
-    # print (Color.F_Cyan, topic, Color.F_Default)
-    # print (Color.F_Blue, payload, Color.F_Default)
+    # if DEVELOPERS_MODE:
+        # print (Color.F_Cyan, topic, Color.F_Default)
+        # print (Color.F_Blue, payload, Color.F_Default)
     gLastMidMqtt = mid
     if rc == mqtt.MQTT_ERR_NO_CONN:
         print ("mqtt.MQTT_ERR_NO_CONN")
@@ -462,7 +463,7 @@ def monta_publica_topico(component, sDict, varComuns):
             dic['name'] = varComuns['uniq_id']
             dic['device_dict'] = device_dict
             dic['publish_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-            dic['expire_after'] = INTERVALO_EXPIRE # quando deve expirar
+            dic['expire_after'] = int(INTERVALO_EXPIRE) # quando deve expirar
             dados = Template(json_hass[component]) # sensor
             dados = Template(dados.safe_substitute(dic))
             dados = Template(dados.safe_substitute(varComuns)) # faz ultimas substituições
@@ -472,6 +473,15 @@ def monta_publica_topico(component, sDict, varComuns):
             # print(dados)
             dados = dl.json_remove_vazio(dados)
             (rc, mid) = publicaMqtt(topico, dados)
+            if rc == 0:
+                if DEVELOPERS_MODE:
+                    topicoResumo = topico.replace(MQTT_HASS + "/" + component + "/" + NODE_ID, '...')
+                    topicoResumo = topicoResumo.replace("/config", '')
+                    printC (Color.F_Cyan, topicoResumo)
+            else:
+                # deu erro na publicação
+                printC (Color.B_Red, "Erro monta_publica_topico")
+                printC (Color.F_Red, topico)
             ret_rc = ret_rc + rc
             # print ("rc: ", rc)
     return rc
@@ -497,6 +507,8 @@ def ajustaDadosSolar():
     if power == 0: 
         printC (Color.F_Magenta, "Power = 0")
         printC (Color.B_LightMagenta, dl.hoje() )
+        if DEVELOPERS_MODE:
+            printC ('parada 1/0', str(1/0))
     gDadosSolar['real_power'] = str( realPower )
     gDadosSolar['power_ratio'] = str( power )
     gDadosSolar['capacitor'] =  str( capacidade )

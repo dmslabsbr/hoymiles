@@ -2,6 +2,7 @@
 
 ### 0.15
 - Bug fix
+- dic['expire_after'] error
 
 ### 0.14
 - float2number fix
