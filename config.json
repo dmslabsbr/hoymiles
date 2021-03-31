@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Data Gateway Add-on",
-  "version": "0.15",
+  "version": "0.16",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -8,16 +8,19 @@
   "startup": "application",
   "boot": "auto",
   "ports": {
-    "8000/tcp": 10543
+    "5000/tcp": 5000
   },
   "ports_description": {
-    "3493/tcp": "Web Interface - Not working yet!"
+    "5000/tcp": "Simple Web Interface"
   },
   "hassio_api": false,
   "homeassistant_api": false,
   "hassio_role": "default",
   "devicetree": false,
-  "webui": "[PROTO:use_ssl]://[HOST]:[PORT:8000]/",
+  "webui": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
+  "ingress": true,
+  "ingress_port": 5000,
+  "host_network": true,
   "panel_icon": "mdi:solar-power",
   "panel_title": "HoyMiles Solar Data Gateway",
   "panel_admin": false,

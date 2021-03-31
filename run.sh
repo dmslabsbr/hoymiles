@@ -14,8 +14,10 @@ export MQTT_USER=$(jq --raw-output '.MQTT_USER' $CONFIG_PATH)
 export MQTT_PASSWORD=$(jq --raw-output '.MQTT_PASSWORD' $CONFIG_PATH)
 export DEVELOPERS_MODE=$(jq --raw-output '.DEVELOPERS_MODE' $CONFIG_PATH)
 
-bashio::log.blue "PATH: "
-pwd
+mkdir -p /data/templates
+cp /*.html /data/templates
+
+ls -la /data/templates
 
 if [ -e "secrets.ini" ]; then
     bashio::log.info "secrets.ini exists!"
@@ -31,7 +33,7 @@ else
     fi    
 fi
 
+
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
+
 python3 ../hoymiles.py
-echo "Run Webserver"
-python3 -m http.server 8000

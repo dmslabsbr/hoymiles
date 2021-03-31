@@ -52,6 +52,10 @@ _log = ''
 def log():
     return _log 
 
+def igual(a, b):
+    ''' retorna true ou false , para testar '''
+    ''' tem que arrumar '''
+    return False
 
 def hoje():
     ''' retorna String de hoje '''
@@ -361,6 +365,42 @@ def onOff(value, ON = "on", OFF = "off"):
     if v == 'ON': ret = ON
     return ret
 
+def writeJsonFile(filePath, jsonx):
+    ''' Write Json or Dic to Json file '''
+    bl_existe_file = os.path.isfile(filePath)
+    xFiles = open(filePath,'w')
+    if xFiles.writable():
+        if type(jsonx) is dict:
+            # tem que converter para json str
+            jsonx = json.dumps(jsonx)
+        xFiles.write(jsonx)
+    else:
+        printC(Color.F_Red,"Can't write file!")
+    xFiles.close()
+
+def loadJsonFile(filePath, retDict = False):
+    '''  '''
+    jsonx = ''
+    bl_existe_file = os.path.isfile(filePath)
+    if bl_existe_file:
+        xFiles = open(filePath,'r')
+        print (xFiles.readable())
+        jsonx = xFiles.read()
+        xFiles.close()
+        if retDict:
+            # converte para dict a resposta
+            try:
+                jsonx = json.loads(jsonx)  # converte string para dict
+            except Exception as e:
+                if e.__class__.__name__ == 'JSONDecodeError':
+                    log.warning ("erro json.load: " + jsonx)
+                else:
+                    mostraErro(e, 40, "on_message")
+    else:
+        printC(Color.B_LightYellow, filePath + ' Do not exist')
+    return jsonx
+
+
 # HASS.IO Functions
 
 def IN_HASSIO():
@@ -369,4 +409,10 @@ def IN_HASSIO():
     PATH_ROOT = str(PATH_ROOT.resolve())
     inHass = ( pegaEnv('HASSIO_TOKEN') != "" and PATH_ROOT == "/data")
     return inHass
+
+# TESTES
+
+if __name__ == "__main__":
+    # faz os testes
+    printC(Color.B_Red, 'os testes vão aqui')
 
