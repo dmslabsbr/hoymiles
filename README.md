@@ -10,11 +10,7 @@ But you can use the application without using the Home Assistant. You just need 
 
 <a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
 
-<form action="https://www.paypal.com/donate" method="post" target="_top">
-<input type="hidden" name="hosted_button_id" value="9S3JYKPHR3XQ6" />
-<input type="image" src="https://img.shields.io/badge/Donate-PayPal-green.svg" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
-</form>
-
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9S3JYKPHR3XQ6)
 [![Donate with Bitcoin](https://en.cryptobadges.io/badge/micro/1MAC9RBnPYT9ua1zsgvhwfRoASTBKr4QL8)](https://www.blockchain.com/btc/address/1MAC9RBnPYT9ua1zsgvhwfRoASTBKr4QL8)
 
 <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/dmslabsbr/hoymiles">
@@ -52,7 +48,8 @@ I invite everyone to help in the this tool development.
 
 ## Screenshots
 
-<img src="https://github.com/dmslabsbr/hoymiles/raw/img/Hass1.png" alt="" />
-<img src="https://github.com/dmslabsbr/hoymiles/raw/img/Hass2.png" alt="" />
-<img src="https://github.com/dmslabsbr/hoymiles/raw/img/Hass3.png" alt="" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass1.png?raw=true" alt="" />
 
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass2.png?raw=true" alt="" />
+
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass3.png?raw=true" alt="" />
