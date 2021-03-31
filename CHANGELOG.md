@@ -3,6 +3,8 @@
 ### 0.16
 - First webserver version
 - Comum.py 
+- https://www.buymeacoffee.com/dmslabs
+- Images
 
 ### 0.15
 - Bug fix
