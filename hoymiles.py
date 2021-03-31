@@ -10,7 +10,8 @@ import json
 import configparser
 import logging
 import dmslibs as dl
-from dmslibs import Color, mostraErro, log, pega_url, pega_url2, printC
+import comum
+from dmslibs import Color, IN_HASSIO, mostraErro, log, pega_url, pega_url2, printC
 from datetime import datetime, timedelta
 import paho.mqtt.client as mqtt
 from paho.mqtt import client
@@ -19,6 +20,12 @@ import time
 import os
 import sys
 
+from flask import Flask
+from flask import render_template
+import webserver
+import multiprocessing
+
+from multiprocessing import Process, Pipe
 
 # CONFIG Secrets
 HOYMILES_USER = "user"
@@ -31,9 +38,10 @@ INTERVALO_MQTT = 240   #   How often to send data to the MQTT server?
 INTERVALO_HASS = 1200   # How often to send device information in a format compatible with Home Asssistant MQTT discovery?
 INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
+WEB_SERVER = True
 
 # Contants
-VERSAO = '0.15'
+VERSAO = '0.16'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -55,7 +63,6 @@ MQTT_HASS = "homeassistant"
 DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
 INTERVALO_EXPIRE = int(INTERVALO_GETDATA) * 1.5
 NODE_ID = 'dmslabs'
-
 
 PAYLOAD_T1= '''
    {
@@ -152,9 +159,9 @@ def pega_token():
    global HOYMILES_PASSWORD
    global HOYMILES_USER
 
-   pass_hash = hashlib.md5(HOYMILES_PASSWORD.encode()) # b'GeeksforGeeks' 
+   pass_hash = hashlib.md5(HOYMILES_PASSWORD.encode()) # b'senhadohoymiles' 
    pass_hex = pass_hash.hexdigest()
-   print(pass_hex) 
+   # print(pass_hex) 
    ret = False
    T1 = Template(PAYLOAD_T1)
    payload_T1 = T1.substitute(user = HOYMILES_USER, password = pass_hex)
@@ -169,6 +176,7 @@ def pega_token():
             token = json_res['data']['token']
             TOKEN = token
             ret = True
+            printC(Color.F_Blue, 'I got the token!!  :-)')
             if token == "":
                 print ('erro na resposta')
                 ret = False
@@ -192,11 +200,14 @@ def pega_solar(uid):
     header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
     solar = pega_url_jsonDic(URL2, payload_t2, header, 2)
     if 'status' in solar.keys():
-        if solar['status'] == "0":
+        solar_status = solar['status']
+        if solar_status == "0":
             ret = solar.copy()
-        if solar['status'] != "0":
-            ret = solar['status']
-        if solar['status'] == "100":
+        if solar_status != "0":
+            ret = solar_status
+            if DEVELOPERS_MODE:
+                printC(Color.B_Red, 'Solar Status Error: ' + str(solar_status) )
+        if solar_status == "100":
             # erro no token
             # pede um novo  
             if (pega_token()):
@@ -215,6 +226,7 @@ def get_secrets():
     global MQTT_PASSWORD
     global MQTT_USERNAME
     global DEVELOPERS_MODE
+    global WEB_SERVER
 
     config = dl.getConfigParser(SECRETS)
 
@@ -232,6 +244,7 @@ def get_secrets():
         DEVELOPERS_MODE = True
     else:
         DEVELOPERS_MODE = False
+    WEB_SERVER = dl.get_config(config, 'secrets', 'WEB_SERVER', WEB_SERVER)
 
 def substitui_secrets():
     "No HASS.IO ADD-ON substitui os dados do secrets.ini pelos do options.json"
@@ -242,6 +255,9 @@ def substitui_secrets():
     global MQTT_PASSWORD
     global MQTT_USERNAME
     global DEVELOPERS_MODE
+    global FILE_COMM
+    global WEB_SERVER
+
     log().debug ("Loading env data....")
     HOYMILES_USER = dl.pegaEnv("HOYMILES_USER")
     HOYMILES_PASSWORD = dl.pegaEnv("HOYMILES_PASSWORD")
@@ -251,6 +267,10 @@ def substitui_secrets():
     MQTT_USERNAME = dl.pegaEnv("MQTT_USER")
     DEVELOPERS_MODE = dl.pegaEnv("DEVELOPERS_MODE")
     DEVELOPERS_MODE = dl.onOff(DEVELOPERS_MODE, True, False)
+    if dl.IN_HASSIO():
+        WEB_SERVER = True
+        FILE_COMM = '/data/' + comum.FILE_COMM
+        
     log().debug ("Env data loaded.")
 
 
@@ -432,7 +452,6 @@ def send_hass():
         log().debug('Hass Sended')
 
 
-
 def publicaDados(solarData):
     # publica dados no MQTT
     global status
@@ -447,6 +466,7 @@ def publicaDados(solarData):
     else:
         status[APP_NAME] = "off"
     send_clients_status()
+    return jsonUPS
 
 def monta_publica_topico(component, sDict, varComuns):
     ''' monta e envia topico '''
@@ -504,11 +524,12 @@ def ajustaDadosSolar():
         capacidade = round(capacidade)
     power = (realPower / capacidade) * 100
     power = round(power,1)
-    if power == 0: 
-        printC (Color.F_Magenta, "Power = 0")
+    if realPower == 0: 
+        printC (Color.F_Magenta, "realPower = 0")
         printC (Color.B_LightMagenta, dl.hoje() )
         if DEVELOPERS_MODE:
-            printC ('parada 1/0', str(1/0))
+            #printC ('parada 1/0', str(1/0))
+            printC(Color.B_Red,'parada')
     gDadosSolar['real_power'] = str( realPower )
     gDadosSolar['power_ratio'] = str( power )
     gDadosSolar['capacitor'] =  str( capacidade )
@@ -526,12 +547,50 @@ def pegaDadosSolar():
         print ("dados_solar: " + str(dados_solar))
     gDadosSolar = dados_solar['data']
     capacidade = dl.float2number(gDadosSolar['capacitor'])
+    real_power = dl.float2number(gDadosSolar['real_power'])
+    if real_power == 0:
+        # é igual a 0
+        printC(Color.B_Red, "REAL_POWER = 0")
+        time.sleep(60) # espera 60 segundos
+        printC(Color.F_Blue, "Getting data again")
+        dados_solar = pega_solar(HOYMILES_PLANT_ID)
+        gDadosSolar = dados_solar['data']
+        capacidade = dl.float2number(gDadosSolar['capacitor'])
+        real_power = dl.float2number(gDadosSolar['real_power'])
     if capacidade == 0:
         # é um erro
         print  (Color.B_Red + "Erro capacitor: " + str(capacidade) + Color.B_Default)
     else:
         ajustaDadosSolar()
     return gDadosSolar
+
+
+# RODA O APP WEB
+def iniciaWebServerB(Conf):
+    ''' inicia o webserver '''
+    webserver.app.run(debug=True, host="0.0.0.0", threaded=True)
+    #app.run(debug=True, host="0.0.0.0", threaded=False)
+
+def iniciaWebServer():
+    ''' inicia o webserver '''
+    printC (Color.B_LightMagenta, "WEB SERVER Starting ...")
+
+    path_index = comum.PATH_TEMPLATE
+    if IN_HASSIO():
+        path_index = comum.PATH_TEMPLATE_HAS
+
+    bl_existe_index = os.path.isfile(path_index + '/index.html')
+    if not bl_existe_index:
+        ''' não existe o index '''
+        printC (Color.B_Red, "Index not found. I can't start webserver. ")
+        arr = os.listdir(path_index)
+        printC(Color.F_Magenta, path_index)
+        print(arr)
+    else:
+        # existe index
+        p = multiprocessing.Process(target=iniciaWebServerB, args=({"Something":"SomethingElese"},))
+        p.start()
+
 
 # INICIO, START
 
@@ -570,19 +629,11 @@ if DEVELOPERS_MODE or MQTT_HOST == '192.168.50.20':
     print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str(INTERVALO_MQTT))
     print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str(INTERVALO_HASS))
     print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str(INTERVALO_GETDATA))
+    print (Color.F_Blue + "WEB_SERVER: " + Color.F_Default + str(WEB_SERVER))
 
 if dl.float2number(HOYMILES_PLANT_ID) < 100:        
     print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
     print (Color.B_Magenta + "Wrong plant ID" + Color.B_Default )
-
-
-'''
-#pegou = False
-if TOKEN == '':
-    pegou = pega_token()
-else:
-    token = TOKEN
-'''
 
 cnt = 0
 while token == '':
@@ -593,7 +644,6 @@ while token == '':
         if cnt >= 5: 
             exit()
         time.sleep(60000)
-
 
 if token != '':
     # pega dados solar
@@ -615,7 +665,8 @@ while not gConnected:
 
 send_hass()
 
-publicaDados(gDadosSolar)
+# primeira publicação
+jsonx = publicaDados(gDadosSolar)
 
 if dl.float2number(gDadosSolar['total_eq'], 0) == 0:
     log().warning('All data is 0. Maybe your Plant_ID is wrong.')
@@ -623,6 +674,13 @@ if dl.float2number(gDadosSolar['total_eq'], 0) == 0:
 
 send_clients_status()
 
+
+if WEB_SERVER:  # se tiver webserver, inicia o web server
+    iniciaWebServer()
+    dl.writeJsonFile(FILE_COMM, jsonx)
+
+
+printC(Color.B_LightCyan, 'Loop start!')
 # loop start
 while True:
     if gConnected:
@@ -635,12 +693,11 @@ while True:
             gMqttEnviado['t'])
         if time_dif > INTERVALO_GETDATA:
             pegaDadosSolar()
-            publicaDados(gDadosSolar)
+            jsonx = publicaDados(gDadosSolar)
+            if WEB_SERVER:
+                dl.writeJsonFile(FILE_COMM, jsonx)
         if not clientOk: mqttStart()  # tenta client mqqt novamente.
-    #time.sleep(INTERVALO_GETDATA) # dá um tempo
     time.sleep(10) # dá um tempo de 10s
-
-
 
 
 

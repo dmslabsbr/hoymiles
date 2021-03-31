@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.16
+- First webserver version
+- Comum.py 
+
 ### 0.15
 - Bug fix
 - dic['expire_after'] error
