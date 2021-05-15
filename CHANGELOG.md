@@ -1,8 +1,15 @@
 # CHANGELOG
 
+### 0.18
+"0.38" - fix returned a non-zero code on install
+Alpine 3.13 bug - now using 3.12
+
+### 0.17
+Dockerfile error
+
 ### 0.16
 - First webserver version
-- Comum.py 
+- Comum.py
 - https://www.buymeacoffee.com/dmslabs
 - Images
 

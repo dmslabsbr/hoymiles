@@ -1,10 +1,10 @@
-ARG BUILD_FROM
+ARG BUILD_FROM=homeassistant/amd64-base-python:3.9-alpine3.12
 FROM $BUILD_FROM
 
 ENV LANG C.UTF-8
 
 # Install requirements for add-on
-RUN apk add --no-cache python3 py3-pip 
+#RUN apk add --no-cache python3 py3-pip 
 
 RUN pip3 install paho-mqtt
 RUN pip3 install requests

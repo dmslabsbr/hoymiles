@@ -41,7 +41,7 @@ SECRETS = 'secrets.ini'
 WEB_SERVER = True
 
 # Contants
-VERSAO = '0.16'
+VERSAO = '0.17'
 DEVELOPERS_MODE = False
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
