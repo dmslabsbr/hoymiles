@@ -41,7 +41,7 @@ SECRETS = 'secrets.ini'
 WEB_SERVER = False
 
 # Contants
-VERSAO = '0.20'
+VERSAO = '0.20c'
 DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -536,7 +536,8 @@ def ajustaDadosSolar():
             #printC ('parada 1/0', str(1/0))
             printC(Color.B_Red,'parada')
     gDadosSolar['real_power'] = str( realPower )
-    gDadosSolar['real_power_statistics'] = str( realPower )
+    gDadosSolar['real_power_measurement'] = str( realPower )
+    gDadosSolar['real_power_total_increasing'] = str( realPower )
     gDadosSolar['power_ratio'] = str( power )
     gDadosSolar['capacitor'] =  str( capacidade )
     gDadosSolar['co2_emission_reduction'] = str( co2 )
