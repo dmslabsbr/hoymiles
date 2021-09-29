@@ -38,11 +38,11 @@ INTERVALO_MQTT = 240   #   How often to send data to the MQTT server?
 INTERVALO_HASS = 1200   # How often to send device information in a format compatible with Home Asssistant MQTT discovery?
 INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
-WEB_SERVER = True
+WEB_SERVER = False
 
 # Contants
-VERSAO = '0.17'
-DEVELOPERS_MODE = False
+VERSAO = '0.20d'
+DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
 SHORT_NAME = 'solarH'
@@ -113,7 +113,11 @@ json_hass = {"sensor": '''
   "val_tpl": "{{ value_json.$val_tpl }}",
   "icon": "$icon",
   "device_class": "$device_class",
+  "state_class": "$state_class",
+  "unit_of_measurement": "$unit_of_measurement",
   "expire_after": "$expire_after",
+  "last_reset_topic": "$last_reset_topic",
+  "last_reset_value_template": "$last_reset_value_template",
   "device": { $device_dict }
 }'''}
 
@@ -419,7 +423,7 @@ def send_hass():
                  'identifiers': SHORT_NAME + "_" + str(HOYMILES_PLANT_ID),
                  'via_device': SOLAR_MODEL,
                  'sid': SID,
-                 'uniq_id': UUID }  #"UPS_ID"
+                 'uniq_id': UUID } 
     
     if DEVELOPERS_MODE:
         log().debug('Sensor_dic: ' + str(len(sensor_dic)))
@@ -498,6 +502,7 @@ def monta_publica_topico(component, sDict, varComuns):
                     topicoResumo = topico.replace(MQTT_HASS + "/" + component + "/" + NODE_ID, '...')
                     topicoResumo = topicoResumo.replace("/config", '')
                     printC (Color.F_Cyan, topicoResumo)
+                    printC (Color.F_Red, dados)
             else:
                 # deu erro na publicação
                 printC (Color.B_Red, "Erro monta_publica_topico")
@@ -531,6 +536,8 @@ def ajustaDadosSolar():
             #printC ('parada 1/0', str(1/0))
             printC(Color.B_Red,'parada')
     gDadosSolar['real_power'] = str( realPower )
+    gDadosSolar['real_power_measurement'] = str( realPower )
+    gDadosSolar['real_power_total_increasing'] = str( realPower )
     gDadosSolar['power_ratio'] = str( power )
     gDadosSolar['capacitor'] =  str( capacidade )
     gDadosSolar['co2_emission_reduction'] = str( co2 )
