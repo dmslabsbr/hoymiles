@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Data Gateway Add-on",
-  "version": "0.20d BETA",
+  "version": "0.20F",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -18,6 +18,10 @@
   "hassio_role": "default",
   "devicetree": false,
   "webui": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
+  "watchdog": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
+  "services": [
+    "mqtt:need"
+  ],
   "ingress": true,
   "ingress_port": 5000,
   "host_network": true,
