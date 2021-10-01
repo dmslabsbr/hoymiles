@@ -1,7 +1,8 @@
 # CHANGELOG
 
 ### 0.20
-"0.20d" - support to the HA Energy Management dashboard (BETA)
+"0.20F" - support to the HA Energy Management dashboard (BETA)
+        - Change some sensors config
 
 ### 0.19
 "0.19" - amd64-base-python:3.9-alpine3.12 bug - now using 3.7-alpine3.12
