@@ -41,7 +41,7 @@ SECRETS = 'secrets.ini'
 WEB_SERVER = False
 
 # Contants
-VERSAO = '0.20F'
+VERSAO = '0.20h'
 DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -117,7 +117,7 @@ json_hass = {"sensor": '''
   "unit_of_measurement": "$unit_of_measurement",
   "expire_after": "$expire_after",
   "last_reset_topic": "$last_reset_topic",
-  "last_reset_value_template": "$last_reset_value_template",
+  "last_reset_value_template": "{{ value_json.reset_$val_tpl }}",
   "device": { $device_dict }
 }'''}
 
@@ -141,7 +141,17 @@ statusLast = status.copy()
 gDadosSolar = dict()
 gConnected = False #global variable for the state of the connection
 
+gEnvios = {'last_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S'),
+          'load_cnt': 0,
+          'load_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S')}   # conta envios e ultimo envio.  Ajuda ver se travou.
+
 sensor_dic = dict() # {}
+
+gLastReset = {'dtMes': "1970-01-01T00:00:00+00:00",
+              'valMes': 0,
+              'dtDia': "1970-01-01T00:00:00+00:00",
+              'valDia':0,
+              }
 
 
 def pega_url_jsonDic(url, payload, headers, qualPega):
@@ -388,6 +398,10 @@ def send_clients_status():
     dadosEnviar['version'] = VERSAO
     dadosEnviar['plant_id'] = HOYMILES_PLANT_ID
     dadosEnviar['inHass'] = dl.IN_HASSIO()
+    gEnvios['last_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    dadosEnviar['last_time'] = gEnvios['last_time']  
+    dadosEnviar['load_cnt'] = gEnvios['load_cnt']
+    dadosEnviar['load_time'] = gEnvios['load_time']
     jsonStatus = json.dumps(dadosEnviar)
     (rc, mid) = publicaMqtt(mqtt_topic, jsonStatus)
     return rc
@@ -456,6 +470,18 @@ def send_hass():
         log().debug('Hass Sended')
 
 
+def publicaDadosWeb(gDadosSolar):
+    # publica dados na web por meio do webserver via JSON
+    jsonx = publicaDados(gDadosSolar)
+    # add new data
+    json_load = json.loads(jsonx)
+    json_load['last_time'] = gEnvios['last_time']  
+    json_load['load_cnt'] = gEnvios['load_cnt']
+    json_load['load_time'] = gEnvios['load_time']
+    json_x = json.dumps(json_load)
+    return json_x
+
+
 def publicaDados(solarData):
     # publica dados no MQTT
     global status
@@ -514,12 +540,15 @@ def monta_publica_topico(component, sDict, varComuns):
 def ajustaDadosSolar():
     ''' ajusta dados solar '''
     global gDadosSolar
+    global gLastReset
     realPower = dl.float2number(gDadosSolar['real_power'],0)
     capacidade = dl.float2number(gDadosSolar['capacitor'])
     plant_tree = dl.float2number(gDadosSolar['plant_tree'], 0)
+    today_eq = dl.float2number(gDadosSolar['today_eq']) / 1000
+    today_eq = round(today_eq, 2)
     month_eq = dl.float2number(gDadosSolar['month_eq']) / 1000
     month_eq = round(month_eq, 2)
-    total_eq = dl.float2number(gDadosSolar['total_eq']) / 1000000
+    total_eq = dl.float2number(gDadosSolar['total_eq']) / 1000
     total_eq = round(total_eq, 2)
     co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
     co2 = round(co2,2)
@@ -542,14 +571,30 @@ def ajustaDadosSolar():
     gDadosSolar['capacitor'] =  str( capacidade )
     gDadosSolar['co2_emission_reduction'] = str( co2 )
     gDadosSolar['plant_tree'] = str( plant_tree )
-    gDadosSolar['total_eq'] = str( total_eq )
+    gDadosSolar['today_eq'] = str( today_eq )
     gDadosSolar['month_eq'] = str( month_eq )
+    gDadosSolar['total_eq'] = str( total_eq )
+    # dados solar reset
+
+    gLastReset['valMes']=month_eq
+    gLastReset['dtMes']=datetime.today().strftime('%Y-%m-01T00:00:00+00:00')
+    gLastReset['valDia']=month_eq
+    gLastReset['dtDia']=datetime.today().strftime('%Y-%m-%dT00:00:00+00:00')
+
+    part1 = "reset_"
+    gDadosSolar[part1+"today_eq"] = gLastReset['dtDia']
+    gDadosSolar[part1+"month_eq"] = gLastReset['dtMes']
 
 
 def pegaDadosSolar():
     global gDadosSolar
+    global gEnvios
     ''' pega dados solar '''
     dados_solar = pega_solar(HOYMILES_PLANT_ID)
+
+    gEnvios['load_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    gEnvios['load_cnt'] = gEnvios['load_cnt'] + 1
+
     if DEVELOPERS_MODE:
         print ("dados_solar: " + str(dados_solar))
     gDadosSolar = dados_solar['data']
@@ -673,7 +718,7 @@ while not gConnected:
 send_hass()
 
 # primeira publicação
-jsonx = publicaDados(gDadosSolar)
+jsonx = publicaDadosWeb(gDadosSolar)
 
 if dl.float2number(gDadosSolar['total_eq'], 0) == 0:
     log().warning('All data is 0. Maybe your Plant_ID is wrong.')
@@ -700,7 +745,7 @@ while True:
             gMqttEnviado['t'])
         if time_dif > INTERVALO_GETDATA:
             pegaDadosSolar()
-            jsonx = publicaDados(gDadosSolar)
+            jsonx = publicaDadosWeb(gDadosSolar)
             if WEB_SERVER:
                 dl.writeJsonFile(FILE_COMM, jsonx)
         if not clientOk: mqttStart()  # tenta client mqqt novamente.
