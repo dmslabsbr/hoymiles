@@ -1,21 +1,26 @@
 #!/usr/bin/with-contenv bashio
 set +u
 
+bashio::log.green "Starting add-on container..."
+date
+
 CONFIG_PATH=/data/options.json
 SYSTEM_USER=/data/system_user.json
 
-bashio::log.red "Exporting config data"
+bashio::log.red "Exporting config data..."
 
 export HOYMILES_USER=$(jq --raw-output '.HOYMILES_USER' $CONFIG_PATH)
 export HOYMILES_PASSWORD=$(jq --raw-output '.HOYMILES_PASSWORD' $CONFIG_PATH)
 export HOYMILES_PLANT_ID=$(jq --raw-output '.HOYMILES_PLANT_ID' $CONFIG_PATH)
-export MQTT_HOST=$(jq --raw-output '.MQTT_HOST' $CONFIG_PATH)
-export MQTT_USER=$(jq --raw-output '.MQTT_USER' $CONFIG_PATH)
-export MQTT_PASSWORD=$(jq --raw-output '.MQTT_PASSWORD' $CONFIG_PATH)
+#export MQTT_HOST=$(jq --raw-output '.MQTT_HOST' $CONFIG_PATH)
+#export MQTT_USER=$(jq --raw-output '.MQTT_USER' $CONFIG_PATH)
+#export MQTT_PASSWORD=$(jq --raw-output '.MQTT_PASSWORD' $CONFIG_PATH)
 
-bashio::log.blue $(bashio::services mqtt "host")
-bashio::log.blue $(bashio::services mqtt "username")
-bashio::log.blue $(bashio::services mqtt "password")
+bashio::log.blue "Getting mqqt data..."
+
+export MQTT_HOST=$(bashio::services mqtt "host")
+export MQTT_USER=$(bashio::services mqtt "username")
+export MQTT_PASSWORD=$(bashio::services mqtt "password")
 
 export DEVELOPERS_MODE=$(jq --raw-output '.DEVELOPERS_MODE' $CONFIG_PATH)
 

@@ -1,15 +1,18 @@
 # CHANGELOG
 
 ### 0.20
-"0.20F" - support to the HA Energy Management dashboard (BETA)
-        - Change some sensors config
+"0.20h" - Support to the HA Energy Management dashboard (BETA)
+        - Change some sensors config (testing)
+        - Automatically receives login data from the mqqt server and ignores the config.
+        - Load HASS.IO MQTT host, user and pass
+        - Dark mode bug fix
 
 ### 0.19
 "0.19" - amd64-base-python:3.9-alpine3.12 bug - now using 3.7-alpine3.12
 
 ### 0.18
 "0.18" - fix returned a non-zero code on install
-Alpine 3.13 bug - now using 3.12
+       Alpine 3.13 bug - now using 3.12
 
 ### 0.17
 Dockerfile error
