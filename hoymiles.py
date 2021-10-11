@@ -39,9 +39,14 @@ INTERVALO_HASS = 1200   # How often to send device information in a format compa
 INTERVALO_GETDATA = 480 # How often do I read site data
 SECRETS = 'secrets.ini'
 WEB_SERVER = False
+Use_kW_instead_W = True
+External_MQTT_Server = False
+External_MQTT_Host = "nda"
+External_MQTT_User = "nda"
+External_MQTT_Pass = "nda"
 
 # Contants
-VERSAO = '0.20h'
+VERSAO = '0.21'
 DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -241,6 +246,11 @@ def get_secrets():
     global MQTT_USERNAME
     global DEVELOPERS_MODE
     global WEB_SERVER
+    global Use_kW_instead_W
+    global External_MQTT_Server
+    global External_MQTT_Host
+    global External_MQTT_User
+    global External_MQTT_Pass
 
     config = dl.getConfigParser(SECRETS)
 
@@ -271,6 +281,11 @@ def substitui_secrets():
     global DEVELOPERS_MODE
     global FILE_COMM
     global WEB_SERVER
+    global Use_kW_instead_W
+    global External_MQTT_Server
+    global External_MQTT_Host
+    global External_MQTT_User
+    global External_MQTT_Pass
 
     log().debug ("Loading env data....")
     HOYMILES_USER = dl.pegaEnv("HOYMILES_USER")
@@ -284,7 +299,24 @@ def substitui_secrets():
     if dl.IN_HASSIO():
         WEB_SERVER = True
         FILE_COMM = '/data/' + comum.FILE_COMM
-        
+    #Use_kW_instead_W = dl.pegaEnv("Use_kW_instead_W")
+    External_MQTT_Server = dl.pegaEnv("External_MQTT_Server")
+    External_MQTT_Server = dl.onOff(External_MQTT_Server, True, False)
+
+    External_MQTT_Host = dl.pegaEnv("External_MQTT_Host")
+    External_MQTT_User = dl.pegaEnv("External_MQTT_User")
+    External_MQTT_Pass = dl.pegaEnv("External_MQTT_Pass")
+
+    if (External_MQTT_Server):
+        MQTT_HOST = External_MQTT_Host
+        MQTT_PASSWORD = External_MQTT_Pass
+        MQTT_USERNAME = External_MQTT_User
+        printC(Color.B_Green, "Using Externar MQTT Server: " + str(MQTT_HOST))
+
+    #printC(Color.B_Red, "mqtt_extenal: " + str(External_MQTT_Host))
+    #printC(Color.B_Red, "Use_kW_instead_W: " + str(Use_kW_instead_W))
+    #printC(Color.B_Red, "External_MQTT: " + str(External_MQTT_User))
+
     log().debug ("Env data loaded.")
 
 
@@ -544,6 +576,7 @@ def ajustaDadosSolar():
     realPower = dl.float2number(gDadosSolar['real_power'],0)
     capacidade = dl.float2number(gDadosSolar['capacitor'])
     plant_tree = dl.float2number(gDadosSolar['plant_tree'], 0)
+    today_eqW = dl.float2number(gDadosSolar['today_eq'])
     today_eq = dl.float2number(gDadosSolar['today_eq']) / 1000
     today_eq = round(today_eq, 2)
     month_eq = dl.float2number(gDadosSolar['month_eq']) / 1000
@@ -569,9 +602,11 @@ def ajustaDadosSolar():
     gDadosSolar['real_power_total_increasing'] = str( realPower )
     gDadosSolar['power_ratio'] = str( power )
     gDadosSolar['capacitor'] =  str( capacidade )
+    gDadosSolar['capacitor_kW'] =  str( capacidade / 1000) 
     gDadosSolar['co2_emission_reduction'] = str( co2 )
     gDadosSolar['plant_tree'] = str( plant_tree )
     gDadosSolar['today_eq'] = str( today_eq )
+    gDadosSolar['today_eq_Wh'] = str( today_eqW )
     gDadosSolar['month_eq'] = str( month_eq )
     gDadosSolar['total_eq'] = str( total_eq )
     # dados solar reset

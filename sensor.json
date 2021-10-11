@@ -5,6 +5,12 @@
       "icon":"mdi:solar-panel",
       "unit_of_measurement":"W"
    },
+   "capacitor_kW":{
+      "name":"capacitor_kW",
+      "device_class":"power",
+      "icon":"mdi:solar-panel",
+      "unit_of_measurement":"kW"
+   },
    "co2_emission_reduction":{
       "name":"co2_emission_reduction",
       "icon":"mdi:molecule-co2",
@@ -70,6 +76,13 @@
       "device_class":"energy",
       "state_class":"total_increasing",
       "unit_of_measurement":"kWh",
+      "last_reset_topic": "home/solar/json"
+   },
+   "today_eq_Wh":{
+      "name":"today_eq_Wh",
+      "device_class":"energy",
+      "state_class":"total_increasing",
+      "unit_of_measurement":"Wh",
       "last_reset_topic": "home/solar/json"
    },
    "total_eq":{
