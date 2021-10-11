@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Data Gateway Add-on",
-  "version": "0.20h",
+  "version": "0.21",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -32,12 +32,20 @@
     "HOYMILES_USER": "HOYMILES_USER",
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
     "HOYMILES_PLANT_ID": "01",
-    "DEVELOPERS_MODE": false
+    "DEVELOPERS_MODE": false,
+    "External_MQTT_Server": false,
+    "External_MQTT_Host": "127.0.0.1",
+    "External_MQTT_User": "nda",
+    "External_MQTT_Pass": "nda"
   },
   "schema": {
     "HOYMILES_USER": "str",
     "HOYMILES_PASSWORD": "password",
     "HOYMILES_PLANT_ID": "str",
-    "DEVELOPERS_MODE": "bool"
+    "DEVELOPERS_MODE": "bool",
+    "External_MQTT_Server": "bool",
+    "External_MQTT_Host": "str?",
+    "External_MQTT_User": "str?",
+    "External_MQTT_Pass": "password?"
   }
 }

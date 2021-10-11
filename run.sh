@@ -22,7 +22,13 @@ export MQTT_HOST=$(bashio::services mqtt "host")
 export MQTT_USER=$(bashio::services mqtt "username")
 export MQTT_PASSWORD=$(bashio::services mqtt "password")
 
+#export Use_kW_instead_W=$(jq --raw-output '.Use_kW_instead_W' $CONFIG_PATH)
 export DEVELOPERS_MODE=$(jq --raw-output '.DEVELOPERS_MODE' $CONFIG_PATH)
+
+export External_MQTT_Server=$(jq --raw-output '.External_MQTT_Server' $CONFIG_PATH)
+export External_MQTT_Host=$(jq --raw-output '.External_MQTT_Host' $CONFIG_PATH)
+export External_MQTT_User=$(jq --raw-output '.External_MQTT_User' $CONFIG_PATH)
+export External_MQTT_Pass=$(jq --raw-output '.External_MQTT_Pass' $CONFIG_PATH)
 
 mkdir -p /data/templates
 cp /*.html /data/templates
