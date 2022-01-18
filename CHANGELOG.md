@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.22
+        - Try to solve error - Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
+        - Add device_class: power and state_class: measurement to real_power template
+        - TLS external server test
 ### 0.21
 
         - External MQTT bug fix

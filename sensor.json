@@ -47,6 +47,8 @@
    "real_power":{
       "name":"real_power",
       "icon":"mdi:solar-power",
+      "state_class":"measurement",
+      "device_class":"power",
       "unit_of_measurement":"W"
    },
    "real_power_measurement":{
