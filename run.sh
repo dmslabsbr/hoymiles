@@ -53,11 +53,13 @@ else
     fi    
 fi
 
-USERNAME=$(bashio::config.username)
-bashio::log.info "${USERNAME}"
-TIMEZONE=$(bashio::info.timezone)
-bashio::log.info "${TIMEZONE}"
+export HASS_USERNAME=$(bashio::config 'username')
+bashio::log.info "${HASS_USERNAME}"
+export HASS_TIMEZONE=$(bashio::info 'timezone')
+bashio::log.info "${HASS_TIMEZONE}"
 
+export HASS_TIMEZONE_2=$(bashio::info "timezone")
+bashio::log.info "${HASS_TIMEZONE_2}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 

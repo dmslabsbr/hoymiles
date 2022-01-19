@@ -12,7 +12,7 @@ import logging
 import dmslibs as dl
 import comum
 from dmslibs import Color, IN_HASSIO, mostraErro, log, pega_url, pega_url2, printC
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import paho.mqtt.client as mqtt
 from paho.mqtt import client
 import uuid
@@ -49,8 +49,12 @@ External_MQTT_Pass = "nda"
 External_MQTT_TLS = False
 External_MQTT_TLS_PORT = 8883
 
+# HASS
+HASS_TIMEZONE = "America/Sao_Paulo"
+LOCAL_TIMEZONE = datetime.now(timezone.utc).astimezone().tzinfo   #  I guess it is the same of Hass Server
+
 # Contants
-VERSAO = '0.22g'
+VERSAO = '0.22a7'
 DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -234,7 +238,7 @@ def pega_solar(uid):
     payload_t2 = T2.substitute(sid = uid)
     header = headers_h2
     # header['Cookie'] = COOKIE_UID + "; " + COOKIE_EGG_SESS + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
-    header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
+    header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 30 Mar 2024 22:11:48 GMT;" + "'"
     solar = pega_url_jsonDic(URL2, payload_t2, header, 2)
     if 'status' in solar.keys():
         solar_status = solar['status']
@@ -306,6 +310,8 @@ def get_secrets():
         if (External_MQTT_TLS):
             MQTT_PORT = External_MQTT_TLS_PORT
             printC(Color.B_Green, "Using External MQTT TLS PORT: " + str(MQTT_PORT))
+    else:
+        External_MQTT_TLS = False
 
 
 
@@ -328,6 +334,7 @@ def substitui_secrets():
     global External_MQTT_Pass
     global External_MQTT_TLS
     global External_MQTT_TLS_PORT
+    global HASS_TIMEZONE
 
     log().debug ("Loading env data....")
     HOYMILES_USER = dl.pegaEnv("HOYMILES_USER")
@@ -355,6 +362,8 @@ def substitui_secrets():
     External_MQTT_TLS_PORT = dl.pegaEnv("External_MQTT_TLS_PORT")
     printC(Color.B_Red, "MQTT Server: " + str(MQTT_HOST))
     printC(Color.B_Green, "Using External MQTT Server: " + str(External_MQTT_Server == True))
+
+    HASS_TIMEZONE = dl.pegaEnv("HASS_TIMEZONE")
 
     if (External_MQTT_Server):
         MQTT_HOST = External_MQTT_Host
@@ -649,6 +658,14 @@ def monta_publica_topico(component, sDict, varComuns):
             # print ("rc: ", rc)
     return rc
 
+def strDateTimeZone(str_datetime, format='%Y-%m-%d %H:%M:%S', _tzinfo = ''):
+    ''' string to datetimezone'''
+    if _tzinfo=='':
+        _tzinfo=datetime.now(timezone.utc).astimezone().tzinfo # Local_TimeZone
+    str_datetime_obj = datetime.strptime(str_datetime, format)
+    str_datetime_obj = str_datetime_obj.replace(tzinfo=_tzinfo) # LOCAL_TIMEZONE
+    return str_datetime_obj
+
 def ajustaDadosSolar():
     ''' ajusta dados solar '''
     global gDadosSolar
@@ -665,6 +682,7 @@ def ajustaDadosSolar():
     total_eq = round(total_eq, 2)
     co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
     co2 = round(co2,2)
+    last_data_time = gDadosSolar['last_data_time']
     # corrige escala e digitos
     if capacidade > 0 and capacidade < 100:
         capacidade = capacidade * 1000
@@ -689,12 +707,21 @@ def ajustaDadosSolar():
     gDadosSolar['today_eq_Wh'] = str( today_eqW )
     gDadosSolar['month_eq'] = str( month_eq )
     gDadosSolar['total_eq'] = str( total_eq )
-    # dados solar reset
+    #last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
+    #last_data_time = last_data_time.replace(tzinfo=LOCAL_TIMEZONE)
+    last_data_time = strDateTimeZone(last_data_time)
+    gDadosSolar['last_data_time'] = last_data_time.isoformat()
+    print(last_data_time.isoformat())
+    print(last_data_time.tzname())
 
-    gLastReset['valMes']=month_eq
-    gLastReset['dtMes']=datetime.today().strftime('%Y-%m-01T00:00:00+00:00')
-    gLastReset['valDia']=month_eq
-    gLastReset['dtDia']=datetime.today().strftime('%Y-%m-%dT00:00:00+00:00')
+    # dados solar reset
+    gLastReset['valMes'] = month_eq
+    #gLastReset['dtMes']=datetime.today().strftime('%Y-%m-01T00:00:00+00:00')
+    dtMes = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    gLastReset['dtMes'] = strDateTimeZone(dtMes).isoformat()
+    gLastReset['valDia'] = month_eq
+    #gLastReset['dtDia']=datetime.today().strftime('%Y-%m-%dT00:00:00+00:00')
+    gLastReset['dtDia'] = gLastReset['dtMes']
 
     part1 = "reset_"
     gDadosSolar[part1+"today_eq"] = gLastReset['dtDia']
