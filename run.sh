@@ -18,6 +18,7 @@ export HOYMILES_PLANT_ID=$(jq --raw-output '.HOYMILES_PLANT_ID' $CONFIG_PATH)
 
 bashio::log.blue "Getting mqqt data..."
 
+# try to solve Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
 export MQTT_HOST=$(bashio::services mqtt "host")
 export MQTT_USER=$(bashio::services mqtt "username")
 export MQTT_PASSWORD=$(bashio::services mqtt "password")
@@ -29,6 +30,9 @@ export External_MQTT_Server=$(jq --raw-output '.External_MQTT_Server' $CONFIG_PA
 export External_MQTT_Host=$(jq --raw-output '.External_MQTT_Host' $CONFIG_PATH)
 export External_MQTT_User=$(jq --raw-output '.External_MQTT_User' $CONFIG_PATH)
 export External_MQTT_Pass=$(jq --raw-output '.External_MQTT_Pass' $CONFIG_PATH)
+# 0.22
+export External_MQTT_TLS=$(jq --raw-output '.External_MQTT_TLS' $CONFIG_PATH)
+export External_MQTT_TLS_PORT=$(jq --raw-output '.External_MQTT_TLS_PORT' $CONFIG_PATH)
 
 mkdir -p /data/templates
 cp /*.html /data/templates
@@ -49,6 +53,13 @@ else
     fi    
 fi
 
+export HASS_USERNAME=$(bashio::config 'username')
+bashio::log.info "${HASS_USERNAME}"
+export HASS_TIMEZONE=$(bashio::info 'timezone')
+bashio::log.info "${HASS_TIMEZONE}"
+
+export HASS_TIMEZONE_2=$(bashio::info "timezone")
+bashio::log.info "${HASS_TIMEZONE_2}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 

@@ -12,13 +12,14 @@ import logging
 import dmslibs as dl
 import comum
 from dmslibs import Color, IN_HASSIO, mostraErro, log, pega_url, pega_url2, printC
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import paho.mqtt.client as mqtt
 from paho.mqtt import client
 import uuid
 import time
 import os
 import sys
+import ssl
 
 from flask import Flask
 from flask import render_template
@@ -34,6 +35,7 @@ HOYMILES_PLANT_ID = 00000
 MQTT_HOST = "mqtt.eclipse.org" 
 MQTT_USERNAME  = "MQTT_USERNAME"
 MQTT_PASSWORD  = "MQTT_PASSWORD"
+MQTT_PORT = 1883
 INTERVALO_MQTT = 240   #   How often to send data to the MQTT server?
 INTERVALO_HASS = 1200   # How often to send device information in a format compatible with Home Asssistant MQTT discovery?
 INTERVALO_GETDATA = 480 # How often do I read site data
@@ -44,9 +46,15 @@ External_MQTT_Server = False
 External_MQTT_Host = "nda"
 External_MQTT_User = "nda"
 External_MQTT_Pass = "nda"
+External_MQTT_TLS = False
+External_MQTT_TLS_PORT = 8883
+
+# HASS
+HASS_TIMEZONE = "America/Sao_Paulo"
+LOCAL_TIMEZONE = datetime.now(timezone.utc).astimezone().tzinfo   #  I guess it is the same of Hass Server
 
 # Contants
-VERSAO = '0.21'
+VERSAO = '0.22a7'
 DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -68,6 +76,20 @@ MQTT_HASS = "homeassistant"
 DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
 INTERVALO_EXPIRE = int(INTERVALO_GETDATA) * 1.5
 NODE_ID = 'dmslabs'
+
+# mqqt SSL
+MQTTversion = mqtt.MQTTv31
+TLS_protocol_version = ssl.PROTOCOL_TLSv1_2
+
+paho_erro_codes = {0: "Connection successful",
+    1: "Connection refused – incorrect protocol version",
+    2: "Connection refused – invalid client identifier",
+    3: "Connection refused – server unavailable",
+    4: "Connection refused – bad username or password",
+    5: "Connection refused – not authorised",
+    100: "Connection refused - other things"
+}
+
 
 PAYLOAD_T1= '''
    {
@@ -216,7 +238,7 @@ def pega_solar(uid):
     payload_t2 = T2.substitute(sid = uid)
     header = headers_h2
     # header['Cookie'] = COOKIE_UID + "; " + COOKIE_EGG_SESS + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
-    header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
+    header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 30 Mar 2024 22:11:48 GMT;" + "'"
     solar = pega_url_jsonDic(URL2, payload_t2, header, 2)
     if 'status' in solar.keys():
         solar_status = solar['status']
@@ -244,6 +266,7 @@ def get_secrets():
     global MQTT_HOST
     global MQTT_PASSWORD
     global MQTT_USERNAME
+    global MQTT_PORT
     global DEVELOPERS_MODE
     global WEB_SERVER
     global Use_kW_instead_W
@@ -251,6 +274,8 @@ def get_secrets():
     global External_MQTT_Host
     global External_MQTT_User
     global External_MQTT_Pass
+    global External_MQTT_TLS
+    global External_MQTT_TLS_PORT
 
     config = dl.getConfigParser(SECRETS)
 
@@ -269,6 +294,26 @@ def get_secrets():
     else:
         DEVELOPERS_MODE = False
     WEB_SERVER = dl.get_config(config, 'secrets', 'WEB_SERVER', WEB_SERVER)
+    # external server
+    External_MQTT_Server = dl.get_config(config, 'external', 'External_MQTT_Server', External_MQTT_Server, getBool=True)
+    if (External_MQTT_Server):
+        External_MQTT_Host = dl.get_config(config, 'external', 'External_MQTT_Host', External_MQTT_Host)
+        External_MQTT_User = dl.get_config(config, 'external', 'External_MQTT_User', External_MQTT_User)
+        External_MQTT_Pass = dl.get_config(config, 'external', 'External_MQTT_Pass', External_MQTT_Pass)
+        External_MQTT_TLS = dl.get_config(config, 'external', 'External_MQTT_TLS', External_MQTT_TLS, getBool=True)
+        External_MQTT_TLS_PORT = dl.get_config(config, 'external', 'External_MQTT_TLS_PORT', External_MQTT_TLS_PORT, getInt=True)
+    if (External_MQTT_Server):
+        MQTT_HOST = External_MQTT_Host
+        MQTT_PASSWORD = External_MQTT_Pass
+        MQTT_USERNAME = External_MQTT_User
+        printC(Color.B_Green, "Using External MQTT Server: " + str(MQTT_HOST))
+        if (External_MQTT_TLS):
+            MQTT_PORT = External_MQTT_TLS_PORT
+            printC(Color.B_Green, "Using External MQTT TLS PORT: " + str(MQTT_PORT))
+    else:
+        External_MQTT_TLS = False
+
+
 
 def substitui_secrets():
     "No HASS.IO ADD-ON substitui os dados do secrets.ini pelos do options.json"
@@ -278,6 +323,7 @@ def substitui_secrets():
     global MQTT_HOST
     global MQTT_PASSWORD
     global MQTT_USERNAME
+    global MQTT_PORT
     global DEVELOPERS_MODE
     global FILE_COMM
     global WEB_SERVER
@@ -286,6 +332,9 @@ def substitui_secrets():
     global External_MQTT_Host
     global External_MQTT_User
     global External_MQTT_Pass
+    global External_MQTT_TLS
+    global External_MQTT_TLS_PORT
+    global HASS_TIMEZONE
 
     log().debug ("Loading env data....")
     HOYMILES_USER = dl.pegaEnv("HOYMILES_USER")
@@ -307,11 +356,23 @@ def substitui_secrets():
     External_MQTT_User = dl.pegaEnv("External_MQTT_User")
     External_MQTT_Pass = dl.pegaEnv("External_MQTT_Pass")
 
+    #v0.22
+    External_MQTT_TLS = dl.pegaEnv("External_MQTT_TLS")
+    External_MQTT_TLS = dl.onOff(External_MQTT_TLS, True, False)
+    External_MQTT_TLS_PORT = dl.pegaEnv("External_MQTT_TLS_PORT")
+    printC(Color.B_Red, "MQTT Server: " + str(MQTT_HOST))
+    printC(Color.B_Green, "Using External MQTT Server: " + str(External_MQTT_Server == True))
+
+    HASS_TIMEZONE = dl.pegaEnv("HASS_TIMEZONE")
+
     if (External_MQTT_Server):
         MQTT_HOST = External_MQTT_Host
         MQTT_PASSWORD = External_MQTT_Pass
         MQTT_USERNAME = External_MQTT_User
-        printC(Color.B_Green, "Using Externar MQTT Server: " + str(MQTT_HOST))
+        printC(Color.B_Green, "Using External MQTT Server: " + str(MQTT_HOST))
+        if (External_MQTT_TLS):
+            MQTT_PORT = External_MQTT_TLS_PORT
+            printC(Color.B_Green, "Using External MQTT TLS PORT: " + str(MQTT_PORT))
 
     #printC(Color.B_Red, "mqtt_extenal: " + str(External_MQTT_Host))
     #printC(Color.B_Red, "Use_kW_instead_W: " + str(Use_kW_instead_W))
@@ -325,20 +386,52 @@ def mqttStart():
     global client
     global clientOk
     # MQTT Start
-    client = mqtt.Client()
+    # client = mqtt.Client(transport="tcp") # "websockets"
+    client = mqtt.Client(client_id = '', clean_session = True, userdata = None, protocol = MQTTversion, transport="tcp" ) # mqtt.MQTTv31
+
     log().info("Starting MQTT " + MQTT_HOST)
-    print (Color.B_LightYellow + "Starting MQTT " + MQTT_HOST + Color.B_Default)
+    printC(Color.B_Blue, "Starting MQTT Client " + MQTT_HOST)
     if DEVELOPERS_MODE:
-        log().debug("mqttStart MQTT_USERNAME: " + str(MQTT_USERNAME))
-        log().debug("mqttStart MQTT_PASSWORD: " + str(MQTT_PASSWORD))
+        printC(Color.F_Blue, "SSL: " + ssl.OPENSSL_VERSION)
+        log().debug("mqttStart External: " + str(External_MQTT_Server) + ' ' + str(type(External_MQTT_Server)))
+        log().debug("mqttStart TLS: " + str(External_MQTT_TLS) + ' ' + str(type(External_MQTT_TLS)) )
+        log().debug("mqttStart MQTT_USERNAME: " + str(MQTT_USERNAME) + ' ' + str(type(MQTT_USERNAME) ))
+        log().debug("mqttStart MQTT_PASSWORD: " + str(MQTT_PASSWORD) + ' ' + str(type(MQTT_PASSWORD) ))
+        log().debug("mqttStart MQTT_PORT: " + str(MQTT_PORT) + ' ' + str(type(MQTT_PORT) ))
     client.username_pw_set(username=MQTT_USERNAME, password=MQTT_PASSWORD)
     client.on_connect = on_connect
     # client.on_message = on_message
     client.on_disconnect = on_disconnect
     client.on_publish = on_publish
+    if DEVELOPERS_MODE:
+        client.on_log = on_log
+
+    #v.0.22 TLS
+    if (External_MQTT_TLS):
+        log().debug("Trying TLS: " + str(MQTT_PORT))
+        printC( Color.F_Green, "Trying TLS: " + str(MQTT_PORT) + " " + str(type(MQTT_PORT) ))
+        # ssl._create_default_https_context = ssl._create_unverified_context
+
+        if DEVELOPERS_MODE:
+            printC( Color.F_Magenta, "TLS_protocol_version: " + str( TLS_protocol_version ) )
+        
+        context = ssl.SSLContext(protocol = TLS_protocol_version) # ssl.PROTOCOL_TLSv1  ,  ssl.PROTOCOL_TLS_CLIENT
+        
+        #context.check_hostname = False
+        client.tls_set_context(context)
+        #ssl._create_default_https_context = ssl._create_unverified_context
+        #ssl.create_default_context()
+        #client.tls_set()
+        #client.tls_set_context(ssl._create_unverified_context)
+        #client.tls_insecure_set(True)
+        #import certifi
+        #client.tls_set(certifi.where())
     try:
         clientOk = True
-        rc = client.connect(MQTT_HOST, 1883, 60)
+        #rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
+        rc = client.connect(host = MQTT_HOST,
+            port = int(MQTT_PORT),
+            keepalive = 60)  # 1883
 
     except Exception as e:  # OSError
         if e.__class__.__name__ == 'OSError':
@@ -371,20 +464,12 @@ def on_connect(client, userdata, flags, rc):
         status['publish_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
         send_clients_status()
     else:
-        tp_c = {0: "Connection successful",
-                1: "Connection refused – incorrect protocol version",
-                2: "Connection refused – invalid client identifier",
-                3: "Connection refused – server unavailable",
-                4: "Connection refused – bad username or password",
-                5: "Connection refused – not authorised",
-                100: "Connection refused - other things"
-        }
         gConnected = False
         status['mqtt'] = "off"
         if rc>5: rc=100
         #print (str(rc) + str(tp_c[rc]))
-        print (str(rc) + dl.MQTT_STATUS_CODE(rc))
-        log().error(str(rc) + str(dl.MQTT_STATUS_CODE(rc)))
+        print (str(rc) + dl.MQTT_STATUS_CODE[rc])
+        log().error(str(rc) + str(dl.MQTT_STATUS_CODE[rc]))
         # tratar quando for 3 e outros
         if rc == 4 or rc == 5:
             # senha errada
@@ -393,6 +478,9 @@ def on_connect(client, userdata, flags, rc):
             #raise SystemExit(0)
             #sys.exit()
             #quit()
+
+def on_log(client, userdata, level, buf):
+  print("log: ",buf)#connect
 
 def on_publish(client, userdata, mid):
     # fazer o que aqui? 
@@ -408,10 +496,11 @@ def on_disconnect(client, userdata, rc):
     global gDevices_enviados
     global status
     gConnected = False
-    log().info("disconnecting reason  "  +str(rc))
-    print("disconnecting reason  "  +str(rc))
-    client.connected_flag=False
-    client.disconnect_flag=True
+    print("disconnecting reason  "  + str(rc))
+    if rc>5: rc=100
+    print("disconnecting reason  "  + str(client) +  str(dl.MQTT_STATUS_CODE[rc]))
+    client.connected_flag = False
+    client.disconnect_flag = True
     gDevices_enviados['b'] = False # Force sending again
     status['mqtt'] = "off"
     # mostra cliente desconectado
@@ -569,6 +658,14 @@ def monta_publica_topico(component, sDict, varComuns):
             # print ("rc: ", rc)
     return rc
 
+def strDateTimeZone(str_datetime, format='%Y-%m-%d %H:%M:%S', _tzinfo = ''):
+    ''' string to datetimezone'''
+    if _tzinfo=='':
+        _tzinfo=datetime.now(timezone.utc).astimezone().tzinfo # Local_TimeZone
+    str_datetime_obj = datetime.strptime(str_datetime, format)
+    str_datetime_obj = str_datetime_obj.replace(tzinfo=_tzinfo) # LOCAL_TIMEZONE
+    return str_datetime_obj
+
 def ajustaDadosSolar():
     ''' ajusta dados solar '''
     global gDadosSolar
@@ -585,6 +682,7 @@ def ajustaDadosSolar():
     total_eq = round(total_eq, 2)
     co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
     co2 = round(co2,2)
+    last_data_time = gDadosSolar['last_data_time']
     # corrige escala e digitos
     if capacidade > 0 and capacidade < 100:
         capacidade = capacidade * 1000
@@ -609,12 +707,21 @@ def ajustaDadosSolar():
     gDadosSolar['today_eq_Wh'] = str( today_eqW )
     gDadosSolar['month_eq'] = str( month_eq )
     gDadosSolar['total_eq'] = str( total_eq )
-    # dados solar reset
+    #last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
+    #last_data_time = last_data_time.replace(tzinfo=LOCAL_TIMEZONE)
+    last_data_time = strDateTimeZone(last_data_time)
+    gDadosSolar['last_data_time'] = last_data_time.isoformat()
+    print(last_data_time.isoformat())
+    print(last_data_time.tzname())
 
-    gLastReset['valMes']=month_eq
-    gLastReset['dtMes']=datetime.today().strftime('%Y-%m-01T00:00:00+00:00')
-    gLastReset['valDia']=month_eq
-    gLastReset['dtDia']=datetime.today().strftime('%Y-%m-%dT00:00:00+00:00')
+    # dados solar reset
+    gLastReset['valMes'] = month_eq
+    #gLastReset['dtMes']=datetime.today().strftime('%Y-%m-01T00:00:00+00:00')
+    dtMes = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    gLastReset['dtMes'] = strDateTimeZone(dtMes).isoformat()
+    gLastReset['valDia'] = month_eq
+    #gLastReset['dtDia']=datetime.today().strftime('%Y-%m-%dT00:00:00+00:00')
+    gLastReset['dtDia'] = gLastReset['dtMes']
 
     part1 = "reset_"
     gDadosSolar[part1+"today_eq"] = gLastReset['dtDia']
@@ -685,6 +792,8 @@ print (Color.B_Blue + "********** " + MANUFACTURER + " " + APP_NAME + " v." + VE
 print (Color.B_Green + "Starting up... " + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + '     ' + Color.B_Default)
 
 dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', stdOut=True)
+
+
 
 # info
 dl.dadosOS()
