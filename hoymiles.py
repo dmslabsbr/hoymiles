@@ -1,6 +1,8 @@
 __author__ = 'dmslabs'
+__version__ = '0.23'
 
 from os.path import realpath
+from pyexpat import version_info
 import requests
 from requests.models import HTTPBasicAuth, Response, StreamConsumedError
 from requests import Request, Session
@@ -12,7 +14,7 @@ import logging
 import dmslibs as dl
 import comum
 from dmslibs import Color, IN_HASSIO, mostraErro, log, pega_url, pega_url2, printC
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import paho.mqtt.client as mqtt
 from paho.mqtt import client
 import uuid
@@ -54,7 +56,7 @@ HASS_TIMEZONE = "America/Sao_Paulo"
 LOCAL_TIMEZONE = datetime.now(timezone.utc).astimezone().tzinfo   #  I guess it is the same of Hass Server
 
 # Contants
-VERSAO = '0.22a7'
+VERSAO = __version__
 DEVELOPERS_MODE = True
 MANUFACTURER = 'dmslabs'
 APP_NAME = 'Hoymiles Gateway'
@@ -134,7 +136,7 @@ headers_h2 = {
 
 json_hass = {"sensor": '''
 { 
-  "stat_t": "home/$sid/json",
+  "stat_t": "home/$sid/json_$plant_id",
   "name": "$name",
   "uniq_id": "$uniq_id",
   "val_tpl": "{{ value_json.$val_tpl }}",
@@ -157,6 +159,7 @@ device_dict = ''' "name": "$device_name",
 
 
 # # GLOBAL VARS
+version_expected = {"dmslibs":1}
 token = ""
 status = {"ip":"?",
           "mqtt": False}
@@ -183,7 +186,7 @@ gLastReset = {'dtMes': "1970-01-01T00:00:00+00:00",
 
 def pega_url_jsonDic(url, payload, headers, qualPega):
     # recebe o dic da url
-    if qualPega ==1 :
+    if qualPega == 1 :
         resposta, sCode = pega_url(url, payload, headers, DEVELOPERS_MODE)
     else:
         resposta, sCode = pega_url2(url, payload, headers, DEVELOPERS_MODE)
@@ -461,7 +464,7 @@ def on_connect(client, userdata, flags, rc):
         status['mqtt'] = "on"
         client.connected_flag = True
         # Mostra clientes
-        status['publish_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+        status['publish_time'] = dl.strDateTimeZone('now').isoformat() 
         send_clients_status()
     else:
         gConnected = False
@@ -519,7 +522,7 @@ def send_clients_status():
     dadosEnviar['version'] = VERSAO
     dadosEnviar['plant_id'] = HOYMILES_PLANT_ID
     dadosEnviar['inHass'] = dl.IN_HASSIO()
-    gEnvios['last_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    gEnvios['last_time'] = dl.strDateTimeZone('now').isoformat()  #datetime.today().strftime('%Y-%m-%d %H:%M:%S')
     dadosEnviar['last_time'] = gEnvios['last_time']  
     dadosEnviar['load_cnt'] = gEnvios['load_cnt']
     dadosEnviar['load_time'] = gEnvios['load_time']
@@ -558,6 +561,8 @@ def send_hass():
                  'identifiers': SHORT_NAME + "_" + str(HOYMILES_PLANT_ID),
                  'via_device': SOLAR_MODEL,
                  'sid': SID,
+                 'plant_id': HOYMILES_PLANT_ID,
+                 'last_reset_topic': 'home/$sid/json_$plant_id',
                  'uniq_id': UUID } 
     
     if DEVELOPERS_MODE:
@@ -591,9 +596,9 @@ def send_hass():
         log().debug('Hass Sended')
 
 
-def publicaDadosWeb(gDadosSolar):
+def publicaDadosWeb(gDadosSolar, plant_id):
     # publica dados na web por meio do webserver via JSON
-    jsonx = publicaDados(gDadosSolar)
+    jsonx = publicaDados(gDadosSolar, plant_id)
     # add new data
     json_load = json.loads(jsonx)
     json_load['last_time'] = gEnvios['last_time']  
@@ -603,12 +608,12 @@ def publicaDadosWeb(gDadosSolar):
     return json_x
 
 
-def publicaDados(solarData):
-    # publica dados no MQTT
+def publicaDados(solarData, plant_id):
+    # publica dados no MQTT  - MQTT_PUB/json
     global status
     global gMqttEnviado
     jsonUPS = json.dumps(solarData)
-    (rc, mid) = publicaMqtt(MQTT_PUB + "/json", jsonUPS)
+    (rc, mid) = publicaMqtt(MQTT_PUB + "/json" + '_' + str(plant_id), jsonUPS)
     gMqttEnviado['b'] = True
     gMqttEnviado['t'] = datetime.now()
     print (Color.F_Blue + "Dados Solares Publicados..." + Color.F_Default + str(datetime.now()))
@@ -620,7 +625,7 @@ def publicaDados(solarData):
     return jsonUPS
 
 def monta_publica_topico(component, sDict, varComuns):
-    ''' monta e envia topico '''
+    ''' monta e envia topico - sensores'''
     ret_rc = 0
     key_todos = sDict['todos']
     newDict = sDict.copy()
@@ -637,7 +642,10 @@ def monta_publica_topico(component, sDict, varComuns):
             dic['expire_after'] = int(INTERVALO_EXPIRE) # quando deve expirar
             dados = Template(json_hass[component]) # sensor
             dados = Template(dados.safe_substitute(dic))
-            dados = Template(dados.safe_substitute(varComuns)) # faz ultimas substituições
+            varComuns_template = Template( json.dumps(varComuns) )
+            varComuns_template = varComuns_template.safe_substitute(varComuns) 
+            #dados = Template(dados.safe_substitute(varComuns)) # faz ultimas substituições
+            dados = Template(dados.safe_substitute(json.loads( varComuns_template)) ) # faz ultimas substituições
             dados = dados.safe_substitute(key_todos) # remove os não substituidos.
             topico = MQTT_HASS + "/" + component + "/" + NODE_ID + "/" + varComuns['uniq_id'] + "/config"
             # print(topico)
@@ -657,14 +665,6 @@ def monta_publica_topico(component, sDict, varComuns):
             ret_rc = ret_rc + rc
             # print ("rc: ", rc)
     return rc
-
-def strDateTimeZone(str_datetime, format='%Y-%m-%d %H:%M:%S', _tzinfo = ''):
-    ''' string to datetimezone'''
-    if _tzinfo=='':
-        _tzinfo=datetime.now(timezone.utc).astimezone().tzinfo # Local_TimeZone
-    str_datetime_obj = datetime.strptime(str_datetime, format)
-    str_datetime_obj = str_datetime_obj.replace(tzinfo=_tzinfo) # LOCAL_TIMEZONE
-    return str_datetime_obj
 
 def ajustaDadosSolar():
     ''' ajusta dados solar '''
@@ -709,7 +709,7 @@ def ajustaDadosSolar():
     gDadosSolar['total_eq'] = str( total_eq )
     #last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
     #last_data_time = last_data_time.replace(tzinfo=LOCAL_TIMEZONE)
-    last_data_time = strDateTimeZone(last_data_time)
+    last_data_time = dl.strDateTimeZone(last_data_time)
     gDadosSolar['last_data_time'] = last_data_time.isoformat()
     print(last_data_time.isoformat())
     print(last_data_time.tzname())
@@ -718,15 +718,20 @@ def ajustaDadosSolar():
     gLastReset['valMes'] = month_eq
     #gLastReset['dtMes']=datetime.today().strftime('%Y-%m-01T00:00:00+00:00')
     dtMes = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-    gLastReset['dtMes'] = strDateTimeZone(dtMes).isoformat()
+    gLastReset['dtMes'] = dl.strDateTimeZone(dtMes).isoformat()
     gLastReset['valDia'] = month_eq
     #gLastReset['dtDia']=datetime.today().strftime('%Y-%m-%dT00:00:00+00:00')
     gLastReset['dtDia'] = gLastReset['dtMes']
 
     part1 = "reset_"
+    # TODO: Need to check values source
     gDadosSolar[part1+"today_eq"] = gLastReset['dtDia']
     gDadosSolar[part1+"month_eq"] = gLastReset['dtMes']
-
+    # v0.23.
+    gDadosSolar[part1+"real_power_measurement"] = gLastReset['dtMes']
+    gDadosSolar[part1+"real_power_total_increasing"] = gLastReset['dtMes']
+    gDadosSolar[part1+"today_eq_Wh"] = gLastReset['dtMes']
+    gDadosSolar[part1+"total_eq"] = gLastReset['dtMes']
 
 def pegaDadosSolar():
     global gDadosSolar
@@ -734,7 +739,7 @@ def pegaDadosSolar():
     ''' pega dados solar '''
     dados_solar = pega_solar(HOYMILES_PLANT_ID)
 
-    gEnvios['load_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    gEnvios['load_time'] = dl.strDateTimeZone('now').isoformat()  # datetime.today().strftime('%Y-%m-%d %H:%M:%S')
     gEnvios['load_cnt'] = gEnvios['load_cnt'] + 1
 
     if DEVELOPERS_MODE:
@@ -790,6 +795,12 @@ def iniciaWebServer():
 
 print (Color.B_Blue + "********** " + MANUFACTURER + " " + APP_NAME + " v." + VERSAO + Color.B_Default)
 print (Color.B_Green + "Starting up... " + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + '     ' + Color.B_Default)
+
+# version check
+if int(dl.version()) < int(version_expected['dmslibs']):
+    printC (Color.B_Red, "Wrong dmslibs version! ")
+    printC (Color.F_Blue, "Current: " + dl.version() )
+    printC (Color.F_Blue, "Expected: " + version_expected['dmslibs'] )
 
 dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', stdOut=True)
 
@@ -862,7 +873,7 @@ while not gConnected:
 send_hass()
 
 # primeira publicação
-jsonx = publicaDadosWeb(gDadosSolar)
+jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
 
 if dl.float2number(gDadosSolar['total_eq'], 0) == 0:
     log().warning('All data is 0. Maybe your Plant_ID is wrong.')
@@ -889,7 +900,7 @@ while True:
             gMqttEnviado['t'])
         if time_dif > INTERVALO_GETDATA:
             pegaDadosSolar()
-            jsonx = publicaDadosWeb(gDadosSolar)
+            jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
             if WEB_SERVER:
                 dl.writeJsonFile(FILE_COMM, jsonx)
         if not clientOk: mqttStart()  # tenta client mqqt novamente.

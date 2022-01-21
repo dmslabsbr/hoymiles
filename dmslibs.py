@@ -1,4 +1,5 @@
 __author__ = 'dmslabs'
+__version__ = '1'
 
 # Commum methods and functions
 
@@ -9,7 +10,7 @@ import pathlib
 import socket
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 # CONSTANTS
 # ARRUMAR aqui para não ficar na lib
@@ -48,6 +49,9 @@ MQTT_STATUS_CODE = {
 
 # VARS GLOBAIS
 _log = ''
+
+def version():
+    return __version__
 
 def log():
     return _log 
@@ -399,6 +403,16 @@ def loadJsonFile(filePath, retDict = False):
     else:
         printC(Color.B_LightYellow, filePath + ' Do not exist')
     return jsonx
+
+def strDateTimeZone(str_datetime='', format='%Y-%m-%d %H:%M:%S', _tzinfo = ''):
+    ''' string to datetimezone'''
+    if _tzinfo=='':
+        _tzinfo=datetime.now(timezone.utc).astimezone().tzinfo # Local_TimeZone
+    if str_datetime=='' or str_datetime=='now': 
+        str_datetime=datetime.today().strftime(format)
+    str_datetime_obj = datetime.strptime(str_datetime, format)
+    str_datetime_obj = str_datetime_obj.replace(tzinfo=_tzinfo) # LOCAL_TIMEZONE
+    return str_datetime_obj
 
 
 # HASS.IO Functions

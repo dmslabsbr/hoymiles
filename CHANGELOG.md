@@ -1,11 +1,18 @@
 # CHANGELOG
 
-### 0.22
-        - Try to solve error - Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
+## 0.23
+
+        - Correct "Missing default value for External_MQTT_TLS bug' - issue #44
+        - Try to solve issue #40 - 'dict object' has no attribute
+
+## 0.22
+
+        - Correct - Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
         - Add device_class: power and state_class: measurement to real_power template
         - TLS external server test
         - Add timezone to last_data_time - issue #42
-### 0.21
+
+## 0.21
 
         - External MQTT bug fix
   
@@ -24,16 +31,20 @@
         - Dark mode bug fix
 
 ### 0.19
+
 "0.19" - amd64-base-python:3.9-alpine3.12 bug - now using 3.7-alpine3.12
 
 ### 0.18
+
 "0.18" - fix returned a non-zero code on install
        Alpine 3.13 bug - now using 3.12
 
 ### 0.17
+
 Dockerfile error
 
 ### 0.16
+
 - First webserver version
   
 - Comum.py
@@ -43,6 +54,7 @@ Dockerfile error
 - Images
 
 ### 0.15
+
 - Bug fix
   
 - dic['expire_after'] error

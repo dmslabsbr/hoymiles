@@ -15,7 +15,6 @@
       "name":"co2_emission_reduction",
       "icon":"mdi:molecule-co2",
       "state_class":"total_increasing",
-      "last_reset_value_template": "1970-01-01T00:00:00+00:00",
       "unit_of_measurement":"t"
    },
    "is_balance":{
@@ -34,14 +33,12 @@
       "name":"month_eq",
       "device_class":"energy",
       "state_class":"total_increasing",
-      "last_reset_value_template": "last_reset",
       "unit_of_measurement":"kWh"
    },
    "plant_tree":{
       "name":"plant_tree",
       "icon":"mdi:tree",
       "state_class":"total_increasing",
-      "last_reset_value_template": "1970-01-01T00:00:00+00:00",
       "unit_of_measurement":"Trees"
    },
    "real_power":{
@@ -56,18 +53,14 @@
       "icon":"mdi:solar-power",
       "state_class":"measurement",
       "device_class":"energy",
-      "unit_of_measurement":"Wh",
-      "last_reset_topic": "home/solar/json",
-      "last_reset_value_template": "1970-01-01T00:00:00+00:00"
+      "unit_of_measurement":"Wh"
    },
    "real_power_total_increasing":{
       "name":"real_power_total_increasing",
       "icon":"mdi:solar-power",
       "state_class":"total_increasing",
       "device_class":"energy",
-      "unit_of_measurement":"Wh",
-      "last_reset_topic": "home/solar/json",
-      "last_reset_value_template": "1970-01-01T00:00:00+00:00"
+      "unit_of_measurement":"Wh"
    },
    "reflux_station_data":{
       "name":"reflux_station_data",
@@ -92,9 +85,7 @@
       "device_class":"energy",
       "icon":"mdi:infinity",
       "state_class":"total_increasing",
-      "unit_of_measurement":"kWh",
-      "last_reset_topic": "home/solar/json",
-      "last_reset_value_template": "1970-01-01T00:00:00+00:00"
+      "unit_of_measurement":"kWh"
    },
    "power_ratio":{
       "name":"power_ratio",
