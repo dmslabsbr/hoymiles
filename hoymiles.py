@@ -117,7 +117,7 @@ PAYLOAD_T2 = '''
 '''
 
 headers_h1 = {
-  'Content-Type': 'application/json',
+  'Content-Type': 'application/json;charset=UTF-8',
   'Cookie': '' # 'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5; EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'
 }
 
