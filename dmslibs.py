@@ -301,7 +301,7 @@ def date_diff_in_Seconds(dt2, dt1):
 
 def pega_url(url, payload, headers, debug_mode = False):
     print(Color.B_Green + "Loading: " + Color.B_Default + url)
-    response = requests.request("POST", url, headers=headers, data = payload)
+    response = requests.request("POST", url, headers=headers, data = payload.encode('utf-8'))
     ret = ""
     if response.status_code != 200:
         print (Color.F_Red + "Erro ao acessar: " + Color.F_Default + url)
