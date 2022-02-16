@@ -3,6 +3,7 @@ __version__ = '0.23'
 
 from os.path import realpath
 from pyexpat import version_info
+from click import pass_context
 import requests
 from requests.models import HTTPBasicAuth, Response, StreamConsumedError
 from requests import Request, Session
@@ -13,7 +14,7 @@ import configparser
 import logging
 import dmslibs as dl
 import comum
-from dmslibs import Color, IN_HASSIO, mostraErro, log, pega_url, pega_url2, printC
+from dmslibs import Color, IN_HASSIO, mostraErro, log, pega_url, pega_url2, printC, httpStatusCode
 from datetime import datetime, timezone
 import paho.mqtt.client as mqtt
 from paho.mqtt import client
@@ -116,6 +117,7 @@ PAYLOAD_T2 = '''
 }
 '''
 
+
 headers_h1 = {
   'Content-Type': 'application/json;charset=UTF-8',
   'Cookie': '' # 'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5; EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'
@@ -196,70 +198,9 @@ def pega_url_jsonDic(url, payload, headers, qualPega):
         ret = json_res
     return ret
 
-def pega_token():
-   # pega o token
-   global token
-   global TOKEN
-   global HOYMILES_PASSWORD
-   global HOYMILES_USER
 
-   pass_hash = hashlib.md5(HOYMILES_PASSWORD.encode()) # b'senhadohoymiles' 
-   pass_hex = pass_hash.hexdigest()
-   # print(pass_hex) 
-   ret = False
-   T1 = Template(PAYLOAD_T1)
-   payload_T1 = T1.substitute(user = HOYMILES_USER, password = pass_hex)
-   #print(payload_T1)
-   header = headers_h1
-   header['Cookie'] = "'" + COOKIE_UID + "; " + COOKIE_EGG_SESS + "'"
-   login, sCode = pega_url(URL1, payload_T1, header)
-   if sCode == 200:
-        json_res = json.loads(login)
-        if json_res['status'] == '0':
-            data_body = json_res['data']
-            token = json_res['data']['token']
-            TOKEN = token
-            ret = True
-            printC(Color.F_Blue, 'I got the token!!  :-)')
-            if token == "":
-                print ('erro na resposta')
-                ret = False
-        elif json_res['status'] == '1':
-            TOKEN = ''
-            token = ''
-            print (Color.F_Red + "Wrong user/password" + Color.F_Default)
-   else:
-        TOKEN = ''
-        token = ''
-        print (Color.F_Red + "HTTP Error: " + str(sCode) + Color.F_Default + " " + dl.httpStatusCode(sCode))
-   return ret
 
-def pega_solar(uid):
-    # pega dados da usina
-    ret = False
-    T2 = Template(PAYLOAD_T2)
-    payload_t2 = T2.substitute(sid = uid)
-    header = headers_h2
-    # header['Cookie'] = COOKIE_UID + "; " + COOKIE_EGG_SESS + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 19 Mar 2022 22:11:48 GMT;" + "'"
-    header['Cookie'] = COOKIE_UID + "; hm_token=" + token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 30 Mar 2024 22:11:48 GMT;" + "'"
-    solar = pega_url_jsonDic(URL2, payload_t2, header, 2)
-    if 'status' in solar.keys():
-        solar_status = solar['status']
-        if solar_status == "0":
-            ret = solar.copy()
-        if solar_status != "0":
-            ret = solar_status
-            if DEVELOPERS_MODE:
-                printC(Color.B_Red, 'Solar Status Error: ' + str(solar_status) )
-        if solar_status == "100":
-            # erro no token
-            # pede um novo  
-            if (pega_token()):
-                # chama pega solar novamente
-                ret = pega_solar(uid)
-    else:
-        print(Color.B_Red + "I can't connect!"  + Color.B_Default)
-    return ret
+
 
 def get_secrets():
     ''' GET configuration data '''
@@ -283,11 +224,9 @@ def get_secrets():
     config = dl.getConfigParser(SECRETS)
 
     printC (Color.F_LightGreen, "Reading secrets.ini")
+    HOYMILES_PLANT_ID = dl.get_config(config, 'secrets','HOYMILES_PLANT_ID', HOYMILES_PLANT_ID, getInt=True)
 
     # le os dados
-    HOYMILES_USER  = dl.get_config(config, 'secrets', 'HOYMILES_USER', HOYMILES_USER)
-    HOYMILES_PASSWORD = dl.get_config(config, 'secrets', 'HOYMILES_PASSWORD', HOYMILES_PASSWORD)
-    HOYMILES_PLANT_ID = dl.get_config(config, 'secrets','HOYMILES_PLANT_ID', HOYMILES_PLANT_ID, getInt=True)
     MQTT_PASSWORD = dl.get_config(config, 'secrets', 'MQTT_PASS', MQTT_PASSWORD)
     MQTT_USERNAME  = dl.get_config(config, 'secrets', 'MQTT_USER', MQTT_USERNAME)
     MQTT_HOST = dl.get_config(config, 'secrets', 'MQTT_HOST', MQTT_HOST)
@@ -315,7 +254,6 @@ def get_secrets():
             printC(Color.B_Green, "Using External MQTT TLS PORT: " + str(MQTT_PORT))
     else:
         External_MQTT_TLS = False
-
 
 
 def substitui_secrets():
@@ -666,23 +604,23 @@ def monta_publica_topico(component, sDict, varComuns):
             # print ("rc: ", rc)
     return rc
 
-def ajustaDadosSolar():
+def ajustaDadosSolar(solar_data):
     ''' ajusta dados solar '''
     global gDadosSolar
     global gLastReset
-    realPower = dl.float2number(gDadosSolar['real_power'],0)
-    capacidade = dl.float2number(gDadosSolar['capacitor'])
-    plant_tree = dl.float2number(gDadosSolar['plant_tree'], 0)
-    today_eqW = dl.float2number(gDadosSolar['today_eq'])
-    today_eq = dl.float2number(gDadosSolar['today_eq']) / 1000
+    realPower = dl.float2number(solar_data['real_power'],0)
+    capacidade = dl.float2number(solar_data['capacitor'])
+    plant_tree = dl.float2number(solar_data['plant_tree'], 0)
+    today_eqW = dl.float2number(solar_data['today_eq'])
+    today_eq = dl.float2number(solar_data['today_eq']) / 1000
     today_eq = round(today_eq, 2)
-    month_eq = dl.float2number(gDadosSolar['month_eq']) / 1000
+    month_eq = dl.float2number(solar_data['month_eq']) / 1000
     month_eq = round(month_eq, 2)
-    total_eq = dl.float2number(gDadosSolar['total_eq']) / 1000
+    total_eq = dl.float2number(solar_data['total_eq']) / 1000
     total_eq = round(total_eq, 2)
-    co2 = dl.float2number(gDadosSolar['co2_emission_reduction']) / 1000000
+    co2 = dl.float2number(solar_data['co2_emission_reduction']) / 1000000
     co2 = round(co2,2)
-    last_data_time = gDadosSolar['last_data_time']
+    last_data_time = solar_data['last_data_time']
     # corrige escala e digitos
     if capacidade > 0 and capacidade < 100:
         capacidade = capacidade * 1000
@@ -695,22 +633,22 @@ def ajustaDadosSolar():
         if DEVELOPERS_MODE:
             #printC ('parada 1/0', str(1/0))
             printC(Color.B_Red,'parada')
-    gDadosSolar['real_power'] = str( realPower )
-    gDadosSolar['real_power_measurement'] = str( realPower )
-    gDadosSolar['real_power_total_increasing'] = str( realPower )
-    gDadosSolar['power_ratio'] = str( power )
-    gDadosSolar['capacitor'] =  str( capacidade )
-    gDadosSolar['capacitor_kW'] =  str( capacidade / 1000) 
-    gDadosSolar['co2_emission_reduction'] = str( co2 )
-    gDadosSolar['plant_tree'] = str( plant_tree )
-    gDadosSolar['today_eq'] = str( today_eq )
-    gDadosSolar['today_eq_Wh'] = str( today_eqW )
-    gDadosSolar['month_eq'] = str( month_eq )
-    gDadosSolar['total_eq'] = str( total_eq )
+    solar_data['real_power'] = str( realPower )
+    solar_data['real_power_measurement'] = str( realPower )
+    solar_data['real_power_total_increasing'] = str( realPower )
+    solar_data['power_ratio'] = str( power )
+    solar_data['capacitor'] =  str( capacidade )
+    solar_data['capacitor_kW'] =  str( capacidade / 1000) 
+    solar_data['co2_emission_reduction'] = str( co2 )
+    solar_data['plant_tree'] = str( plant_tree )
+    solar_data['today_eq'] = str( today_eq )
+    solar_data['today_eq_Wh'] = str( today_eqW )
+    solar_data['month_eq'] = str( month_eq )
+    solar_data['total_eq'] = str( total_eq )
     #last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
     #last_data_time = last_data_time.replace(tzinfo=LOCAL_TIMEZONE)
     last_data_time = dl.strDateTimeZone(last_data_time)
-    gDadosSolar['last_data_time'] = last_data_time.isoformat()
+    solar_data['last_data_time'] = last_data_time.isoformat()
     print(last_data_time.isoformat())
     print(last_data_time.tzname())
 
@@ -725,43 +663,14 @@ def ajustaDadosSolar():
 
     part1 = "reset_"
     # TODO: Need to check values source
-    gDadosSolar[part1+"today_eq"] = gLastReset['dtDia']
-    gDadosSolar[part1+"month_eq"] = gLastReset['dtMes']
+    solar_data[part1+"today_eq"] = gLastReset['dtDia']
+    solar_data[part1+"month_eq"] = gLastReset['dtMes']
     # v0.23.
-    gDadosSolar[part1+"real_power_measurement"] = gLastReset['dtMes']
-    gDadosSolar[part1+"real_power_total_increasing"] = gLastReset['dtMes']
-    gDadosSolar[part1+"today_eq_Wh"] = gLastReset['dtMes']
-    gDadosSolar[part1+"total_eq"] = gLastReset['dtMes']
-
-def pegaDadosSolar():
-    global gDadosSolar
-    global gEnvios
-    ''' pega dados solar '''
-    dados_solar = pega_solar(HOYMILES_PLANT_ID)
-
-    gEnvios['load_time'] = dl.strDateTimeZone('now').isoformat()  # datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-    gEnvios['load_cnt'] = gEnvios['load_cnt'] + 1
-
-    if DEVELOPERS_MODE:
-        print ("dados_solar: " + str(dados_solar))
-    gDadosSolar = dados_solar['data']
-    capacidade = dl.float2number(gDadosSolar['capacitor'])
-    real_power = dl.float2number(gDadosSolar['real_power'])
-    if real_power == 0:
-        # é igual a 0
-        printC(Color.B_Red, "REAL_POWER = 0")
-        time.sleep(60) # espera 60 segundos
-        printC(Color.F_Blue, "Getting data again")
-        dados_solar = pega_solar(HOYMILES_PLANT_ID)
-        gDadosSolar = dados_solar['data']
-        capacidade = dl.float2number(gDadosSolar['capacitor'])
-        real_power = dl.float2number(gDadosSolar['real_power'])
-    if capacidade == 0:
-        # é um erro
-        print  (Color.B_Red + "Erro capacitor: " + str(capacidade) + Color.B_Default)
-    else:
-        ajustaDadosSolar()
-    return gDadosSolar
+    solar_data[part1+"real_power_measurement"] = gLastReset['dtMes']
+    solar_data[part1+"real_power_total_increasing"] = gLastReset['dtMes']
+    solar_data[part1+"today_eq_Wh"] = gLastReset['dtMes']
+    solar_data[part1+"total_eq"] = gLastReset['dtMes']
+    return solar_data
 
 
 # RODA O APP WEB
@@ -791,125 +700,253 @@ def iniciaWebServer():
         p.start()
 
 
-# INICIO, START
 
-print (Color.B_Blue + "********** " + MANUFACTURER + " " + APP_NAME + " v." + VERSAO + Color.B_Default)
-print (Color.B_Green + "Starting up... " + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + '     ' + Color.B_Default)
+class Hoymiles(object):
 
-# version check
-if int(dl.version()) < int(version_expected['dmslibs']):
-    printC (Color.B_Red, "Wrong dmslibs version! ")
-    printC (Color.F_Blue, "Current: " + dl.version() )
-    printC (Color.F_Blue, "Expected: " + version_expected['dmslibs'] )
+    def __init__(self, plant_id, tries = 5) -> None:
+        self._plant_id = plant_id
+        self.token = None
+        self._tries = tries
+        self.logger = logging.getLogger('Hoymiles')
+        self.count_station_real_data ={}
 
-dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', stdOut=True)
+        cnt = 0
+        while True:
+            if not self.get_token():
+                print (Color.B_Red + "I can't get access token" + Color.B_Default)
+                if cnt >= self._tries: 
+                    exit()
+                time.sleep(60000)
+                cnt += 1
+            else:
+                break
+
+    def get_token(self):
+        config = dl.getConfigParser(SECRETS)
+        HOYMILES_USER  = dl.get_config(config, 'secrets', 'HOYMILES_USER', 'user')
+        HOYMILES_PASSWORD = dl.get_config(config, 'secrets', 'HOYMILES_PASSWORD', 'pass')
+        pass_hash = hashlib.md5(HOYMILES_PASSWORD.encode()) # b'senhadohoymiles' 
+        pass_hex = pass_hash.hexdigest()
+        ret = False
+        T1 = Template(PAYLOAD_T1)
+        payload_T1 = T1.substitute(user = HOYMILES_USER, password = pass_hex)
+        header = headers_h1
+        header['Cookie'] = "'" + COOKIE_UID + "; " + COOKIE_EGG_SESS + "'"
+        login, sCode = self.send_post_request(URL1, header, payload_T1)
+        if sCode == 200:
+                json_res = json.loads(login)
+                if json_res['status'] == '0':
+                    data_body = json_res['data']
+                    self.token = json_res['data']['token']
+                    ret = True
+                    self.logger.info('I got the token!!  :-)')
+                    if not self.token:
+                        self.logger.error('No response')
+                        ret = False
+                elif json_res['status'] == '1':
+                    self.token = ''
+                    self.logger.error('Wrong user/password')
+        else:
+                self.token = ''
+                self.logger.error(f'Wrong user/password {sCode} {dl.httpStatusCode(sCode)}')
+        return ret
+
+    def pega_url_jsonDic(self, url, header, payload):
+        # recebe o dic da url
+        respons, sCode = self.send_request(url, header, payload, 'POST')
+        ret = dict()
+        if sCode == 200:
+            return json.loads(respons)
+        return ret
+
+    def send_post_request(self, url, header, payload):
+        return self.send_request(url, header, payload, type = 'POST')
+        pass
+
+    def send_options_request(self, url, header, payload):
+        return self.send_request(url, header, payload, type = 'OPTIONS')
+        pass
+
+    def send_request(self, url, header, payload, type):
+        self.logger.info(f"Loading: {url}")
+        s = requests.Session()
+        req = requests.Request("POST", url, headers=header, data = payload.replace('\n',"").encode('utf-8'))
+        s = requests.Session()
+        prepped = req.prepare()
+        self.logger.debug(prepped.headers)
+        response = s.send(prepped)
+        ret = ""
+        if response.status_code != 200:
+            self.logger.error(f"Access error: {url}")
+            self.logger.error(f"Status code: {response.status_code} {httpStatusCode(response.status_code)}")
+        else:
+            ret = response.content
+            self.logger.debug(f"content: {response.content}")
+        return ret, response.status_code
+
+    def get_solar_data(self):
+        global gDadosSolar
+        global gEnvios
+
+        status, solar_data = self.pega_solar()
+
+        gEnvios['load_time'] = dl.strDateTimeZone('now').isoformat()  # datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+        gEnvios['load_cnt'] = gEnvios['load_cnt'] + 1
+
+        self.logger.debug(f"dados_solar: {solar_data}")
+        if not dl.float2number(solar_data['real_power']):
+            self.logger.warning("REAL_POWER = 0")
+            time.sleep(60) # espera 60 segundos
+            self.logger.info("Getting data again")
+            status, solar_data = self.pega_solar()
+            real_power = dl.float2number(solar_data['real_power'])
+        
+        capacity = dl.float2number(solar_data['capacitor'])
+
+        if capacity == 0:
+            # é um erro
+            self.logger.error(f"Erro capacitor: {capacity}")
+        else:
+            solar_data = ajustaDadosSolar(solar_data)
+        return solar_data
+
+    def pega_solar(self):
+        # pega dados da usina
+        ret = False
+        T2 = Template(PAYLOAD_T2)
+        payload_t2 = T2.substitute(sid = self._plant_id)
+
+        header = headers_h2
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + "; Path=/; Domain=.global.hoymiles.com; Expires=Sat, 30 Mar 2024 22:11:48 GMT;" + "'"
+        solar = self.pega_url_jsonDic(URL2, header, payload_t2)
+        if 'status' in solar.keys():
+            if solar['status'] != "0":
+                self.logger.debug(f"Solar Status Error: {solar['status']} {solar['message']}")
+                if solar['status'] == "100":
+                    # request new token
+                    if (self.get_token()):
+                        # chama pega solar novamente
+                        ret = self.pega_solar()
+        else:
+            self.logger.error("I can't connect!")
+        return solar['status'], solar['data']
 
 
 
-# info
-dl.dadosOS()
-status['ip'] = dl.get_ip()
-print (Color.B_Cyan + "IP: " + Color.B_Default + Color.F_Magenta + status['ip'] + Color.F_Default)
-if DEVELOPERS_MODE:
-    print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
+def main() -> int:
+    # INICIO, START
 
-get_secrets()
+    print (Color.B_Blue + "********** " + MANUFACTURER + " " + APP_NAME + " v." + VERSAO + Color.B_Default)
+    print (Color.B_Green + "Starting up... " + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + '     ' + Color.B_Default)
 
-if dl.IN_HASSIO():
-    print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
-    if not DEVELOPERS_MODE or 1==1:  # teste
-        substitui_secrets()
-        if DEVELOPERS_MODE:
-            print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
-    if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
-        log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
-        print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
+    # version check
+    if int(dl.version()) < int(version_expected['dmslibs']):
+        printC (Color.B_Red, "Wrong dmslibs version! ")
+        printC (Color.F_Blue, "Current: " + dl.version() )
+        printC (Color.F_Blue, "Expected: " + version_expected['dmslibs'] )
+
+    dl.inicia_log(logFile='/var/tmp/hass.hoymiles.log', logName='hass.hoymiles', stdOut=True)
+
+    # info
+    dl.dadosOS()
+    status['ip'] = dl.get_ip()
+    print (Color.B_Cyan + "IP: " + Color.B_Default + Color.F_Magenta + status['ip'] + Color.F_Default)
+    if DEVELOPERS_MODE:
+        print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
+
+    get_secrets()
+
+    if dl.IN_HASSIO():
+        print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
+        if not DEVELOPERS_MODE or 1==1:  # teste
+            substitui_secrets()
+            if DEVELOPERS_MODE:
+                print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
+        if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
+            log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
+            print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
 
 
-if DEVELOPERS_MODE or MQTT_HOST == '192.168.50.20':
-    print (Color.F_Green + "HOYMILES_USER: " + Color.F_Default + str(HOYMILES_USER))
-    print (Color.F_Green + "HOYMILES_PASSWORD: " + Color.F_Default + str(HOYMILES_PASSWORD))
-    print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
-    print (Color.F_Green + "MQTT_HOST: " + Color.F_Default + str(MQTT_HOST))
-    print (Color.F_Green + "MQTT_PASSWORD: " + Color.F_Default + str(MQTT_PASSWORD))
-    print (Color.F_Green + "MQTT_USERNAME: " + Color.F_Default + str(MQTT_USERNAME))
-    print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str(INTERVALO_MQTT))
-    print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str(INTERVALO_HASS))
-    print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str(INTERVALO_GETDATA))
-    print (Color.F_Blue + "WEB_SERVER: " + Color.F_Default + str(WEB_SERVER))
+    if DEVELOPERS_MODE or MQTT_HOST == '192.168.50.20':
+        print (Color.F_Green + "HOYMILES_USER: " + Color.F_Default + str(HOYMILES_USER))
+        print (Color.F_Green + "HOYMILES_PASSWORD: " + Color.F_Default + str(HOYMILES_PASSWORD))
+        print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
+        print (Color.F_Green + "MQTT_HOST: " + Color.F_Default + str(MQTT_HOST))
+        print (Color.F_Green + "MQTT_PASSWORD: " + Color.F_Default + str(MQTT_PASSWORD))
+        print (Color.F_Green + "MQTT_USERNAME: " + Color.F_Default + str(MQTT_USERNAME))
+        print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str(INTERVALO_MQTT))
+        print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str(INTERVALO_HASS))
+        print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str(INTERVALO_GETDATA))
+        print (Color.F_Blue + "WEB_SERVER: " + Color.F_Default + str(WEB_SERVER))
 
-if dl.float2number(HOYMILES_PLANT_ID) < 100:        
-    print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
-    print (Color.B_Magenta + "Wrong plant ID" + Color.B_Default )
+    if dl.float2number(HOYMILES_PLANT_ID) < 100:        
+        print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
+        print (Color.B_Magenta + "Wrong plant ID" + Color.B_Default )
 
-cnt = 0
-while token == '':
-    pega_token()
-    cnt = cnt + 1
-    if token == '':
+    cnt = 0
+    hoymiles = Hoymiles(plant_id=int(HOYMILES_PLANT_ID))
+
+
+    if hoymiles.token != '':
+        # pega dados solar
+        #dados_solar = pega_solar(HOYMILES_PLANT_ID)
+        #print (str(dados_solar))
+        #gDadosSolar = dados_solar['data']
+        solar_data = hoymiles.get_solar_data()
+    else:
+        log().error("I can't get access token")
         print (Color.B_Red + "I can't get access token" + Color.B_Default)
-        if cnt >= 5: 
-            exit()
-        time.sleep(60000)
+        quit()
 
-if token != '':
-    # pega dados solar
-    #dados_solar = pega_solar(HOYMILES_PLANT_ID)
-    #print (str(dados_solar))
-    #gDadosSolar = dados_solar['data']
-    pegaDadosSolar()
-else:
-    log().error("I can't get access token")
-    print (Color.B_Red + "I can't get access token" + Color.B_Default)
-    quit()
+    # força a conexão
+    while not gConnected:
+        mqttStart()
+        time.sleep(1)  # wait for connection
+        if not clientOk:
+            time.sleep(240)
 
-# força a conexão
-while not gConnected:
-    mqttStart()
-    time.sleep(1)  # wait for connection
-    if not clientOk:
-        time.sleep(240)
+    send_hass()
 
-send_hass()
+    # primeira publicação
+    jsonx = publicaDadosWeb(solar_data, HOYMILES_PLANT_ID)
 
-# primeira publicação
-jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
+    if dl.float2number(solar_data['total_eq'], 0) == 0:
+        log().warning('All data is 0. Maybe your Plant_ID is wrong.')
+        status['response'] = "Plant_ID could be wrong!"
 
-if dl.float2number(gDadosSolar['total_eq'], 0) == 0:
-    log().warning('All data is 0. Maybe your Plant_ID is wrong.')
-    status['response'] = "Plant_ID could be wrong!"
-
-send_clients_status()
+    send_clients_status()
 
 
-if WEB_SERVER:  # se tiver webserver, inicia o web server
-    iniciaWebServer()
-    dl.writeJsonFile(FILE_COMM, jsonx)
+    if WEB_SERVER:  # se tiver webserver, inicia o web server
+        iniciaWebServer()
+        dl.writeJsonFile(FILE_COMM, jsonx)
 
 
-printC(Color.B_LightCyan, 'Loop start!')
-# loop start
-while True:
-    if gConnected:
-        time_dif = dl.date_diff_in_Seconds(datetime.now(), \
-            gDevices_enviados['t'])
-        if time_dif > INTERVALO_HASS:
-            gDevices_enviados['b'] = False
-            send_hass()
-        time_dif = dl.date_diff_in_Seconds(datetime.now(), \
-            gMqttEnviado['t'])
-        if time_dif > INTERVALO_GETDATA:
-            pegaDadosSolar()
-            jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
-            if WEB_SERVER:
-                dl.writeJsonFile(FILE_COMM, jsonx)
-        if not clientOk: mqttStart()  # tenta client mqqt novamente.
-    time.sleep(10) # dá um tempo de 10s
+    printC(Color.B_LightCyan, 'Loop start!')
+    # loop start
+    while True:
+        if gConnected:
+            time_dif = dl.date_diff_in_Seconds(datetime.now(), \
+                gDevices_enviados['t'])
+            if time_dif > INTERVALO_HASS:
+                gDevices_enviados['b'] = False
+                send_hass()
+            time_dif = dl.date_diff_in_Seconds(datetime.now(), \
+                gMqttEnviado['t'])
+            if time_dif > INTERVALO_GETDATA:
+                solar_data = hoymiles.get_solar_data()
+                jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
+                if WEB_SERVER:
+                    dl.writeJsonFile(FILE_COMM, jsonx)
+            if not clientOk: mqttStart()  # tenta client mqqt novamente.
+        time.sleep(10) # dá um tempo de 10s
+
+
+
+return 0
 
 
 
 
-
-
-
-
+if __name__ == '__main__':
+    sys.exit(main())  # next section explains the use of sys.exit

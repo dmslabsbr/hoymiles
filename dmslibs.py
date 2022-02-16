@@ -316,9 +316,11 @@ def pega_url2(url, payload, headers, debug_mode = False):
     print(Color.B_Green + "Loading: " + Color.B_Default + url)
     s = requests.Session()
     req = requests.Request('POST', url, data = payload.replace('\n',""), headers=headers)
+
     prepped = req.prepare()
     if debug_mode:
         print (prepped.headers)
+        print (payload)
     #response = requests.request("POST", url, headers=headers, data = payload)
     response = s.send(prepped)
     ret = ""
