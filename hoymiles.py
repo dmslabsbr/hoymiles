@@ -1,20 +1,21 @@
-__author__ = 'dmslabs'
-__version__ = '0.23'
+__author__ = 'dmslabs&cosik'
+__version__ = '0.24'
 __app_name__ = 'Hoymiles Gateway'
 
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from configparser import ConfigParser
 import time
 import json
 from string import Template
 
 
-from const import SECRETS, SHORT_NAME, SID, json_hass, MQTT_HASS, device_dict, EXPIRE_TIME, NODE_ID, MQTT_PUB
+from const import SECRETS, SHORT_NAME, SID, json_hass, MQTT_HASS, device_dict, EXPIRE_TIME, NODE_ID, MQTT_PUB, HASS_INTERVAL, GETDATA_INTERVAL
 from hoymilesapi import Hoymiles
 from mqttapi import MqttApi
+import threading, time, signal
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -24,12 +25,6 @@ logger.setLevel(logging.INFO)
 
 def getConfigParser(secrets_file):
     logger.info("Getting Config Parser.")
-    asdasd = os.path.isfile(secrets_file)
-    # if asdasd:
-    #     logger.debug(f"exist {secrets_file}")
-
-    # else:
-    #     logger.warning(f"Not existing {secrets_file}")
 
     config = ConfigParser()
 
@@ -49,6 +44,7 @@ def get_secrets():
         logger.setLevel(logging.DEBUG)
 
     return config
+
 
 def json_remove_void(strJson):
     ''' remove linhas / elementos vazios de uma string Json '''
@@ -149,15 +145,12 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
             logger.error(f"Hass publish error: {rc}")
 
     if rc == 0:
-        # gDevices_enviados['b'] = True
-        # gDevices_enviados['t'] = datetime.now()
         logger.debug('Hass Sended')
-
 
 
 def publicaDadosWeb(hoymiles_h: Hoymiles, mqqt_t: MqttApi):
     # publica dados na web por meio do webserver via JSON
-    jsonx = publicaDados(hoymiles_h, mqqt_t)
+    jsonx = publicate_data(hoymiles_h, mqqt_t)
     # add new data
     json_load = json.loads(jsonx)
     json_load['last_time'] = hoymiles_h.data_dict['last_time']  
@@ -167,19 +160,45 @@ def publicaDadosWeb(hoymiles_h: Hoymiles, mqqt_t: MqttApi):
     return json_x
 
 
-def publicaDados(hoymiles_h: Hoymiles, mqqt_h: MqttApi):
+def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     # publica dados no MQTT  - MQTT_PUB/json
+    hoymiles_h.get_solar_data()
     jsonUPS = json.dumps(hoymiles_h.solar_data)
-    (rc, mid) = mqqt_h.public(MQTT_PUB + "/json" + '_' + str(hoymiles_h.plant_id), jsonUPS)
-    mqqt_h.publicate_time = datetime.now()
-    logger.info(f"Dados Solares Publicados...{datetime.now()}")
-    mqqt_h.send_clients_status()
+    (rc, mid) = mqtt_h.public(MQTT_PUB + "/json" + '_' + str(hoymiles_h.plant_id), jsonUPS)
+    mqtt_h.publicate_time = datetime.now()
+    logger.info(f"Solar data publication...{datetime.now()}")
+    # TODO: commented for tests
+    # mqtt_h.send_clients_status()
     return jsonUPS
 
 
-def main() -> int:
-    # INICIO, START
+class ProgramKilled(Exception):
+    pass
 
+
+def signal_handler(signum, frame):
+    raise ProgramKilled
+
+
+class Job(threading.Thread):
+    def __init__(self, interval, execute, *args, **kwargs):
+        threading.Thread.__init__(self)
+        self.daemon = False
+        self.stopped = threading.Event()
+        self.interval = interval
+        self.execute = execute
+        self.args = args
+        self.kwargs = kwargs
+        
+    def stop(self):
+                self.stopped.set()
+                self.join()
+    def run(self):
+            while not self.stopped.wait(self.interval.total_seconds()):
+                self.execute(*self.args, **self.kwargs)
+
+
+def main() -> int:
     logger.info("********** " + __author__ + " " + __app_name__ + " v." + __version__)
     logger.info(f"Starting up... {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -200,156 +219,44 @@ def main() -> int:
         logger.error("I can't get access token")
         quit()
 
-
-            # # força a conexão
-    mqtt = MqttApi(config, gEnvios=gEnvios)
+    mqtt = MqttApi(config)
     mqtt.start()
     while not mqtt.connected:
         time.sleep(1)  # wait for connection
         if not mqtt.client_status:
             time.sleep(240)
 
-
     send_hass(hoymiles, mqtt)
 
+    publicate_data(hoymiles, mqtt)
 
-    jsonx = publicaDadosWeb(hoymiles, mqtt)
-
-    mqtt.send_clients_status()
-
+    # TODO: commented for tests
+    # mqtt.send_clients_status()
 
     # if WEB_SERVER:  # se tiver webserver, inicia o web server
     #     iniciaWebServer()
     #     dl.writeJsonFile(FILE_COMM, jsonx)
+
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    job_send_hass = Job(interval=timedelta(seconds=HASS_INTERVAL), execute=send_hass, hoymiles_h=hoymiles, mqtt_h=mqtt)
+    job_send_hass.start()
+    job_publicaDados = Job(interval=timedelta(seconds=GETDATA_INTERVAL), execute=publicate_data, hoymiles_h=hoymiles, mqtt_h=mqtt)
+    job_publicaDados.start()
 
     logger.info("Main loop start!")
     while True:
-        if gConnected:
-            time_dif = dl.date_diff_in_Seconds(datetime.now(), \
-                gDevices_enviados['t'])
-            if time_dif > INTERVALO_HASS:
-                gDevices_enviados['b'] = False
-                send_hass()
-            time_dif = dl.date_diff_in_Seconds(datetime.now(), \
-                gMqttEnviado['t'])
-            if time_dif > INTERVALO_GETDATA:
-                pegaDadosSolar()
-                jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
-                if WEB_SERVER:
-                    dl.writeJsonFile(FILE_COMM, jsonx)
-            if not clientOk: mqttStart()  # tenta client mqqt novamente.
-        time.sleep(10) # dá um tempo de 10s
-
-
-
-    # TODO: is it need?
-    # version check
-    # if int(dl.version()) < int(version_expected['dmslibs']):
-    #     printC (Color.B_Red, "Wrong dmslibs version! ")
-    #     printC (Color.F_Blue, "Current: " + dl.version() )
-    #     printC (Color.F_Blue, "Expected: " + version_expected['dmslibs'] )
-
-
-
-    # # info
-    # dl.dadosOS()
-    # status['ip'] = dl.get_ip()
-    # print (Color.B_Cyan + "IP: " + Color.B_Default + Color.F_Magenta + status['ip'] + Color.F_Default)
-    # if DEVELOPERS_MODE:
-    #     print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
-
-    # get_secrets()
-
-    # if dl.IN_HASSIO():
-    #     print (Color.B_Blue, "IN HASS.IO", Color.B_Default)
-    #     if not DEVELOPERS_MODE or 1==1:  # teste
-    #         substitui_secrets()
-    #         if DEVELOPERS_MODE:
-    #             print (Color.B_Red, "DEVELOPERS_MODE", Color.B_Default)
-    #     if DEFAULT_MQTT_PASS == MQTT_PASSWORD:
-    #         log().warning ("YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!")
-    #         print (Color.F_Red + "YOU SHOUD CHANGE DE DEFAULT MQTT PASSWORD!" + Color.F_Default)
-
-
-    # if DEVELOPERS_MODE or MQTT_HOST == '192.168.50.20':
-    #     print (Color.F_Green + "HOYMILES_USER: " + Color.F_Default + str(HOYMILES_USER))
-    #     print (Color.F_Green + "HOYMILES_PASSWORD: " + Color.F_Default + str(HOYMILES_PASSWORD))
-    #     print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
-    #     print (Color.F_Green + "MQTT_HOST: " + Color.F_Default + str(MQTT_HOST))
-    #     print (Color.F_Green + "MQTT_PASSWORD: " + Color.F_Default + str(MQTT_PASSWORD))
-    #     print (Color.F_Green + "MQTT_USERNAME: " + Color.F_Default + str(MQTT_USERNAME))
-    #     print (Color.F_Blue + "INTERVALO_MQTT: " + Color.F_Default + str(INTERVALO_MQTT))
-    #     print (Color.F_Blue + "INTERVALO_HASS: " + Color.F_Default + str(INTERVALO_HASS))
-    #     print (Color.F_Blue + "INTERVALO_GETDATA: " + Color.F_Default + str(INTERVALO_GETDATA))
-    #     print (Color.F_Blue + "WEB_SERVER: " + Color.F_Default + str(WEB_SERVER))
-
-    # if dl.float2number(HOYMILES_PLANT_ID) < 100:        
-    #     print (Color.F_Green + "HOYMILES_PLANT_ID: " + Color.F_Default + str(HOYMILES_PLANT_ID))
-    #     print (Color.B_Magenta + "Wrong plant ID" + Color.B_Default )
-
-    # cnt = 0
-    # hoymiles = HoymilesAPI(plant_id=int(HOYMILES_PLANT_ID))
-
-
-    # if hoymiles.token != '':
-    #     # pega dados solar
-    #     #dados_solar = pega_solar(HOYMILES_PLANT_ID)
-    #     #print (str(dados_solar))
-    #     #gDadosSolar = dados_solar['data']
-    #     solar_data = hoymiles.get_solar_data()
-    # else:
-    #     log().error("I can't get access token")
-    #     print (Color.B_Red + "I can't get access token" + Color.B_Default)
-    #     quit()
-
-    # # força a conexão
-    # while not gConnected:
-    #     mqttStart()
-    #     time.sleep(1)  # wait for connection
-    #     if not clientOk:
-    #         time.sleep(240)
-
-    # send_hass()
-
-    # # primeira publicação
-    # jsonx = publicaDadosWeb(solar_data, HOYMILES_PLANT_ID)
-
-    # if dl.float2number(solar_data['total_eq'], 0) == 0:
-    #     log().warning('All data is 0. Maybe your Plant_ID is wrong.')
-    #     status['response'] = "Plant_ID could be wrong!"
-
-    # send_clients_status()
-
-
-    # if WEB_SERVER:  # se tiver webserver, inicia o web server
-    #     iniciaWebServer()
-    #     dl.writeJsonFile(FILE_COMM, jsonx)
-
-
-    # printC(Color.B_LightCyan, 'Loop start!')
-    # # loop start
-    # while True:
-    #     if gConnected:
-    #         time_dif = dl.date_diff_in_Seconds(datetime.now(), \
-    #             gDevices_enviados['t'])
-    #         if time_dif > INTERVALO_HASS:
-    #             gDevices_enviados['b'] = False
-    #             send_hass()
-    #         time_dif = dl.date_diff_in_Seconds(datetime.now(), \
-    #             gMqttEnviado['t'])
-    #         if time_dif > INTERVALO_GETDATA:
-    #             solar_data = hoymiles.get_solar_data()
-    #             jsonx = publicaDadosWeb(gDadosSolar, HOYMILES_PLANT_ID)
-    #             if WEB_SERVER:
-    #                 dl.writeJsonFile(FILE_COMM, jsonx)
-    #         if not clientOk: mqttStart()  # tenta client mqqt novamente.
-    #     time.sleep(10) # dá um tempo de 10s
-
-
+        if not mqtt.connected:
+            sys.exit()
+        try:
+            time.sleep(10)
+        except ProgramKilled:
+            logger.info("Program killed: running cleanup code")
+            job_send_hass.stop()
+            job_publicaDados.stop()
+            break
 
     return 0
-
-
 
 
 if __name__ == '__main__':

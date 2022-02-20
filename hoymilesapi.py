@@ -4,10 +4,10 @@ from string import Template
 import json
 import requests
 import time
-from datetime import datetime
+from datetime import datetime, date
 
 from const import HTTP_STATUS_CODE, COOKIE_UID, COOKIE_EGG_SESS, PAYLOAD_T1, HEADER_LOGIN, HEADER_DATA
-from const import BASE_URL, LOGIN_API, GET_DATA_API, PAYLOAD_T2
+from const import BASE_URL, LOGIN_API, GET_DATA_API, PAYLOAD_T2, LOCAL_TIMEZONE
 
 
 module_logger = logging.getLogger('HoymilesAdd-on.hoymilesapi')
@@ -102,18 +102,17 @@ class Hoymiles(object):
         return ret, response.status_code
 
     def get_solar_data(self):
-
-        status, self.solar_data = self.pega_solar()
+        status, self.solar_data = self.request_solar_data()
 
         self.data_dict['load_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
         self.data_dict['load_cnt'] += 1
 
-        self.logger.debug(f"dados_solar: {self.solar_data}")
+        self.logger.debug(f"solar_data: {self.solar_data}")
         if not self.solar_data['real_power']:
             self.logger.warning("REAL_POWER = 0")
             time.sleep(60) # espera 60 segundos
             self.logger.info("Getting data again")
-            status, self.solar_data = self.pega_solar()
+            status, self.solar_data = self.request_solar_data()
             real_power = int(self.solar_data['real_power'])
         
         capacity = float(self.solar_data['capacitor'])
@@ -121,22 +120,18 @@ class Hoymiles(object):
         if capacity == 0:
             self.logger.error(f"Error capacitor: {capacity}")
         else:
-            self.solar_data = self.ajusta_solar_data(self.solar_data)
+            self.solar_data = self.adjust_solar_data(self.solar_data)
         return self.solar_data
 
-    def ajusta_solar_data(self, solar_data):
-        ''' ajusta dados solar '''
+    def adjust_solar_data(self, solar_data):
         real_power = float(solar_data['real_power'])
         capacidade = float(solar_data['capacitor'])
-        # corrige escala e digitos
         if capacidade > 0 and capacidade < 100:
             capacidade = capacidade * 1000
         power_ratio = (real_power / capacidade) * 100
         power_ratio = round(power_ratio,1)
         if real_power == 0: 
             self.logger.warning("real_power = 0")
-            #FIXME
-            # printC (Color.B_LightMagenta, dl.hoje() )
 
         solar_data['real_power'] = str( real_power )
         solar_data['real_power_measurement'] = str( real_power )
@@ -144,7 +139,7 @@ class Hoymiles(object):
         solar_data['power_ratio'] = str( power_ratio )
         solar_data['capacitor'] =  str( capacidade )
         solar_data['capacitor_kW'] =  str( capacidade / 1000) 
-        co2 = round(float(solar_data['co2_emission_reduction']) / 1000000, 2)
+        co2 = round(float(solar_data['co2_emission_reduction']) / 1000000, 5)
         solar_data['co2_emission_reduction'] = str( co2 )
         solar_data['today_eq_Wh'] = solar_data['today_eq']
         solar_data['today_eq'] = str( round(float(solar_data['today_eq']) / 1000,2) )
@@ -152,22 +147,19 @@ class Hoymiles(object):
         solar_data['total_eq'] = str( round(float(solar_data['total_eq']) / 1000,2) )
         
         last_data_time = solar_data['last_data_time']
-        # solar_data['last_data_time'] = datetime.strptime(solar_data['last_data_time'], '%Y-%m-%d %H:%M:%S')
-        #FIXME
-        # last_data_time = dl.strDateTimeZone(last_data_time)
-        # solar_data['last_data_time'] = last_data_time.isoformat()
-        self.logger.info(f"last_data_time {last_data_time}")
+        last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
+        solar_data['last_data_time'] = last_data_time.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
+        self.logger.info(f"last_data_time {solar_data['last_data_time']}")
         return solar_data
 
 
-    def pega_solar(self):
-        # pega dados da usina
+    def request_solar_data(self):
         T2 = Template(PAYLOAD_T2)
         payload_t2 = T2.substitute(sid = self.plant_id)
 
         header = HEADER_DATA
         header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + "; Path=/; Domain=.global.hoymiles.com;" + \
-            "fExpires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
+            f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         solar = self.pega_url_jsonDic(BASE_URL + GET_DATA_API, header, payload_t2)
         if 'status' in solar.keys():
             if solar['status'] != "0":
@@ -176,7 +168,7 @@ class Hoymiles(object):
                     # request new token
                     if (self.get_token()):
                         # chama pega solar novamente
-                        solar['status'], solar['data'] = self.pega_solar()
+                        solar['status'], solar['data'] = self.request_solar_data()
         else:
             self.logger.error("I can't connect!")
         return solar['status'], solar['data']

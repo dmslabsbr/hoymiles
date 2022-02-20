@@ -18,21 +18,18 @@ module_logger = logging.getLogger('HoymilesAdd-on.mqttapi')
 
 class MqttApi():
 
-    def __init__(self, config, gEnvios) -> None:
+    def __init__(self, config) -> None:
         self._client = None
         self._config = config
         self.status = {}
         self.logger = logging.getLogger('HoymilesAdd-on.mqttapi.Mqtt')
         self.uuid = str(uuid.uuid1())
-        self.gEnvios=gEnvios
         self.last_mid = None
         self.client_status = False
         self.connected = False
         hostname = socket.gethostname()
         self.host_ip = socket.gethostbyname(hostname)
         self.publicate_time = None
-        
-
 
 
     def start(self):
@@ -67,7 +64,6 @@ class MqttApi():
             self.logger.info(f"Trying TLS: {self._config.get('external', 'External_MQTT_TLS_PORT')}")
             self.logger.debug(f"TLS_protocol_version: {TLS_protocol_version}")
             context = ssl.SSLContext(protocol = TLS_protocol_version)
-            
             self._client.tls_set_context(context)
 
         try:
@@ -109,7 +105,7 @@ class MqttApi():
             # tratar quando for 3 e outros
             if rc == 4 or rc == 5:
                 # senha errada
-                self.logger.error("APP EXIT {rc}")
+                self.logger.error(f"APP EXIT {rc}")
                 time.sleep(60000)
                 #raise SystemExit(0)
                 #sys.exit()
@@ -123,10 +119,6 @@ class MqttApi():
         #FIXME
         self.status['plant_id'] = 1234
         self.status['inHass'] = True
-        self.gEnvios['last_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        self.status['last_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        self.status['load_cnt'] = self.gEnvios['load_cnt']
-        self.status['load_time'] = self.gEnvios['load_time']
         jsonStatus = json.dumps(self.status)
         (rc, mid) = self.public(mqtt_topic, jsonStatus)
         return rc
@@ -134,18 +126,13 @@ class MqttApi():
     def public(self, topic, payload):
         "Publica no MQTT atual"
         (rc, mid) = self._client.publish(topic, payload)
-        # if DEVELOPERS_MODE:
-            # print (Color.F_Cyan, topic, Color.F_Default)
-            # print (Color.F_Blue, payload, Color.F_Default)
         self.last_mid = mid
         if rc == mqtt.MQTT_ERR_NO_CONN:
-            print ("mqtt.MQTT_ERR_NO_CONN")
+            self.logger.debug("mqtt.MQTT_ERR_NO_CONN")
         if rc == mqtt.MQTT_ERR_SUCCESS:
-            # certo, sem erro.
-            #print ("mqtt.MQTT_ERR_SUCCESS")
             self.last_mid = mid
         if rc == mqtt.MQTT_ERR_QUEUE_SIZE:
-            print ("mqtt.MQTT_ERR_QUEUE_SIZE")
+            self.logger.debug("mqtt.MQTT_ERR_QUEUE_SIZE")
         return rc, mid
 
     def on_publish(self, client, userdata, mid):
@@ -155,22 +142,17 @@ class MqttApi():
         if 1==2:
             print("Published mid: " + str(mid), "last: " + str(self.last_mid))
             if self.last_mid -1 != mid:
-                self.logger.error(f"Erro mid: {mid} não publicado.")
+                self.logger.error(f"Error mid: {mid} no publiation.")
 
 
     def on_disconnect(self, client, userdata, rc):
-        global gConnected
-        global gDevices_enviados
-        global status
         self.connected = False
         print("disconnecting reason  "  + str(rc))
         if rc>5: rc=100
         print("disconnecting reason  "  + str(client) +  str(MQTT_STATUS_CODE[rc]))
         client.connected_flag = False
         client.disconnect_flag = True
-        # gDevices_enviados['b'] = False # Force sending again
         self.status.status['mqtt'] = "off"
-        # mostra cliente desconectado
         try:
             self.send_clients_status()
         except Exception as e:

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.24
+
+        - Refactor of whole code
+        - Optimization of whole flow.
+
 ## 0.23
 
         - Correct "Missing default value for External_MQTT_TLS bug' - issue #44
