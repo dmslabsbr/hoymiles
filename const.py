@@ -1,3 +1,4 @@
+
 HTTP_STATUS_CODE = {
     100: "Continue",
     200: "OK",
@@ -28,6 +29,48 @@ MQTT_STATUS_CODE = {
     100: "Connection refused - other things"
     }
 
+PAYLOAD_T1= '''
+   {
+       "ERROR_BACK":true,
+       "LOAD":{
+           "loading":true
+        },
+        "body":{
+            "password":"$password",
+            "user_name":"$user"
+        },
+        "WAITING_PROMISE":true
+    }
+'''
+
+PAYLOAD_T2 = '''
+{
+    "body": {
+        "sid": $sid
+    },
+    "WAITING_PROMISE": true
+}
+'''
+
+HEADER_LOGIN = {
+  'Content-Type': 'application/json;charset=UTF-8',
+  'Cookie': '' 
+}
+
+HEADER_DATA = {
+  'Content-Type': 'application/json;charset=UTF-8',
+  'Cache-Control': 'no-cache',
+  'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0',
+  'Host': 'global.hoymiles.com',
+  'Connection': 'keep-alive',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36',
+  'Accept-Language': 'pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3',
+  'Cookie': 'hm_token_language=en_us; ' 
+}
+
+
 SECRETS = 'secrets.ini'
 
 COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
@@ -36,3 +79,38 @@ COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPnt
 
 BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
 LOGIN_API = "iam/auth_login"
+GET_DATA_API = "pvm-data/data_count_station_real_data"
+
+# For MQTT
+MQTT_PUB = "home/solar"
+SID = 'solar'
+MQTT_HASS = "homeassistant"
+DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
+NODE_ID = 'dmslabs'
+SHORT_NAME = 'solarH'
+GETDATA_INTERVAL = 480 # How often do I read site data
+EXPIRE_TIME = int(GETDATA_INTERVAL) * 1.5
+
+
+json_hass = {"sensor": '''
+{ 
+  "stat_t": "home/$sid/json_$plant_id",
+  "name": "$name",
+  "uniq_id": "$uniq_id",
+  "val_tpl": "{{ value_json.$val_tpl }}",
+  "icon": "$icon",
+  "device_class": "$device_class",
+  "state_class": "$state_class",
+  "unit_of_measurement": "$unit_of_measurement",
+  "expire_after": "$expire_after",
+  "last_reset_topic": "$last_reset_topic",
+  "last_reset_value_template": "{{ value_json.reset_$val_tpl }}",
+  "device": { $device_dict }
+}'''}
+
+device_dict = ''' "name": "$device_name",
+    "manufacturer": "$manufacturer",
+    "model": "$model",
+    "sw_version": "$sw_version",
+    "via_device": "$via_device",
+    "identifiers": [ "$identifiers" ] '''
