@@ -31,12 +31,11 @@
   "options": {
     "HOYMILES_USER": "HOYMILES_USER",
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
-    "HOYMILES_PLANT_ID": "01",
+    "HOYMILES_PLANT_ID": "123",
     "DEVELOPERS_MODE": false,
-    "External_MQTT_Server": false,
-    "External_MQTT_Host": "127.0.0.1",
-    "External_MQTT_User": "nda",
-    "External_MQTT_Pass": "nda",
+    "MQTT_Host": "127.0.0.1",
+    "MQTT_User": "nda",
+    "MQTT_Pass": "nda",
     "External_MQTT_TLS": false,
     "External_MQTT_TLS_PORT": "8883"
   },
@@ -45,10 +44,9 @@
     "HOYMILES_PASSWORD": "password",
     "HOYMILES_PLANT_ID": "str",
     "DEVELOPERS_MODE": "bool",
-    "External_MQTT_Server": "bool",
-    "External_MQTT_Host": "str?",
-    "External_MQTT_User": "str?",
-    "External_MQTT_Pass": "password?",
+    "MQTT_Host": "str?",
+    "MQTT_User": "str?",
+    "MQTT_Pass": "password?",
     "External_MQTT_TLS": "bool",
     "External_MQTT_TLS_PORT": "port"
   }

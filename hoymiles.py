@@ -1,4 +1,4 @@
-__author__ = 'dmslabs&cosik'
+__author__ = 'dmslabs&Cosik'
 __version__ = '0.24'
 __app_name__ = 'Hoymiles Gateway'
 
