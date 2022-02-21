@@ -27,10 +27,22 @@ class MqttApi():
         self.last_mid = None
         self.client_status = False
         self.connected = False
-        hostname = socket.gethostname()
-        self.host_ip = socket.gethostbyname(hostname)
+        self.host_ip = self.get_ip()
         self.publicate_time = None
 
+    def get_ip(self, change_dot = False, testIP = '192.168.1.1'):
+        ''' Get device IP '''
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect((testIP, 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '0.0.0.1'
+        finally:
+            s.close()
+        if change_dot: IP=IP.replace('.','-')
+        return str(IP)
 
     def start(self):
         ''' Start MQTT '''
