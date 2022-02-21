@@ -42,14 +42,20 @@ def get_secrets():
     # cp_pass = config.get('secrets', 'HOYMILES_PASSWORD')
     # if config.getboolean('developers', 'DEVELOPERS_MODE'):
     #     logger.setLevel(logging.DEBUG)
-    
+    try:
+        with open("/config.json") as json_file:
+            config = json.load(json_file)
+            logger.debug(config)
+    except:
+        logger.debug("Nothing - /config.json")
     json_path = ""
     if os.path.isfile("./config.json"):
         json_path = "config.json"
     else:
-        json_path = "/data/config.json"
+        json_path = "/data/options.json"
     with open(json_path) as json_file:
         config = json.load(json_file)
+        logger.debug(config)
     if config['options']['DEVELOPERS_MODE']:
         logger.setLevel(logging.DEBUG)
     return config['options']
