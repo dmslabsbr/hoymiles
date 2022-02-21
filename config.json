@@ -47,7 +47,7 @@
     "MQTT_Host": "str?",
     "MQTT_User": "str?",
     "MQTT_Pass": "password?",
-    "External_MQTT_TLS": "bool",
-    "External_MQTT_TLS_PORT": "port"
+    "MQTT_TLS": "bool",
+    "MQTT_TLS_PORT": "port"
   }
 }
