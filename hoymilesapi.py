@@ -2,6 +2,7 @@ import logging
 import hashlib
 from string import Template
 import json
+import sys
 import requests
 import time
 from datetime import datetime, date
@@ -40,8 +41,8 @@ class Hoymiles(object):
                 break
 
     def get_token(self):
-        user  = self._config.get('secrets', 'HOYMILES_USER')
-        pass_hash = hashlib.md5(self._config.get('secrets', 'HOYMILES_PASSWORD').encode()) # b'senhadohoymiles' 
+        user = self._config['HOYMILES_USER']
+        pass_hash = hashlib.md5(self._config['HOYMILES_PASSWORD'].encode()) # b'senhadohoymiles' 
         pass_hex = pass_hash.hexdigest()
 
         ret = False
@@ -169,6 +170,9 @@ class Hoymiles(object):
                     if (self.get_token()):
                         # chama pega solar novamente
                         solar['status'], solar['data'] = self.request_solar_data()
+                elif solar['status'] == "3":
+                    self.logger.error("Wrong plant id!!")
+                    sys.exit(0)
         else:
             self.logger.error("I can't connect!")
         return solar['status'], solar['data']

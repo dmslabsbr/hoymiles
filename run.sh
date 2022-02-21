@@ -8,7 +8,7 @@ CONFIG_PATH=/data/options.json
 SYSTEM_USER=/data/system_user.json
 
 bashio::log.red "Exporting config data..."
-cat /data/options.json
+
 export HOYMILES_USER=$(jq --raw-output '.HOYMILES_USER' $CONFIG_PATH)
 export HOYMILES_PASSWORD=$(jq --raw-output '.HOYMILES_PASSWORD' $CONFIG_PATH)
 export HOYMILES_PLANT_ID=$(jq --raw-output '.HOYMILES_PLANT_ID' $CONFIG_PATH)

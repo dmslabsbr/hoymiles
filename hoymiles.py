@@ -36,14 +36,23 @@ def getConfigParser(secrets_file):
 
 
 def get_secrets():
-    config = getConfigParser(SECRETS)
+    # config = getConfigParser(SECRETS)
 
-    logger.info("Reading secrets.ini")
-
-    if config.getboolean('developers', 'DEVELOPERS_MODE'):
+    # logger.info("Reading secrets.ini")
+    # cp_pass = config.get('secrets', 'HOYMILES_PASSWORD')
+    # if config.getboolean('developers', 'DEVELOPERS_MODE'):
+    #     logger.setLevel(logging.DEBUG)
+    
+    json_path = ""
+    if os.path.isfile("./config.json"):
+        json_path = "config.json"
+    else:
+        json_path = "/data/config.json"
+    with open(json_path) as json_file:
+        config = json.load(json_file)
+    if config['options']['DEVELOPERS_MODE']:
         logger.setLevel(logging.DEBUG)
-
-    return config
+    return config['options']
 
 
 def json_remove_void(strJson):
@@ -208,10 +217,10 @@ def main() -> int:
 
     config = get_secrets()
 
-    if int(config.get('secrets','HOYMILES_PLANT_ID')) < 100:
-        logger.warning(f"Wrong plant ID {config.get('secrets','HOYMILES_PLANT_ID')}")
+    if int(config['HOYMILES_PLANT_ID']) < 100:
+        logger.warning(f"Wrong plant ID {config['HOYMILES_PLANT_ID']}")
 
-    hoymiles = Hoymiles(plant_id=int(config.get('secrets','HOYMILES_PLANT_ID')), config=config, gEnvios=gEnvios)
+    hoymiles = Hoymiles(plant_id=int(config['HOYMILES_PLANT_ID']), config=config, gEnvios=gEnvios)
 
     if hoymiles.token != '':
         solar_data = hoymiles.get_solar_data()

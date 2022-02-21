@@ -4,6 +4,8 @@
 
         - Refactor of whole code
         - Optimization of whole flow.
+        - webserver is disabled
+        - switch to read config from json
 
 ## 0.23
 

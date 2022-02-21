@@ -38,17 +38,14 @@ class MqttApi():
         # client = mqtt.Client(transport="tcp") # "websockets"
         self._client = mqtt.Client(client_id = '', clean_session = True, userdata = None, protocol = MQTTversion, transport="tcp" ) # mqtt.MQTTv31
         port = 1883
-        if self._config.getboolean('external', 'External_MQTT_Server'):
-            user = self._config.get('external', 'External_MQTT_User')
-            passw = self._config.get('external', 'External_MQTT_Pass')
-            port = self._config.get('external', 'External_MQTT_TLS_PORT')
-        else:
-            user = self._config.get('secrets', 'MQTT_USER')
-            passw = self._config.get('secrets', 'MQTT_PASS')
-        self.logger.info(f"Starting MQTT {self._config.get('secrets', 'MQTT_HOST')}")
+        user = self._config['MQTT_User']
+        passw = self._config['MQTT_Pass']
+        if self._config['MQTT_TLS']:
+            port = self._config['MQTT_TLSPORT']
+
+        self.logger.info(f"Starting MQTT {self._config['MQTT_Host']}")
         self.logger.debug(f"SSL: {ssl.OPENSSL_VERSION}")
-        self.logger.debug(f"mqttStart External: {self._config.get('external', 'External_MQTT_Server')}")
-        self.logger.debug(f"mqttStart TLS: {self._config.get('external', 'External_MQTT_TLS')}")
+        self.logger.debug(f"mqttStart TLS: {self._config['MQTT_TLS']}")
         self.logger.debug(f"mqttStart MQTT_USERNAME: {user}")
         self.logger.debug(f"mqttStart MQTT_PASSWORD: {passw}")
         self.logger.debug(f"mqttStart MQTT_PORT: {port}")
@@ -59,9 +56,8 @@ class MqttApi():
         self._client.on_publish = self.on_publish
 
         #v.0.22 TLS
-        asd = self._config.getboolean('external', 'External_MQTT_Server')
-        if self._config.getboolean('external', 'External_MQTT_Server'):
-            self.logger.info(f"Trying TLS: {self._config.get('external', 'External_MQTT_TLS_PORT')}")
+        if self._config['MQTT_TLS']:
+            self.logger.info(f"Trying TLS: {self._config['MQTT_TLSPORT']}")
             self.logger.debug(f"TLS_protocol_version: {TLS_protocol_version}")
             context = ssl.SSLContext(protocol = TLS_protocol_version)
             self._client.tls_set_context(context)
@@ -69,7 +65,7 @@ class MqttApi():
         try:
             self.client_status = True
             #rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
-            rc = self._client.connect(host = self._config.get('secrets', 'MQTT_HOST'),
+            rc = self._client.connect(host = self._config['MQTT_Host'],
                 port = int(port),
                 keepalive = 60)  # 1883
 
@@ -90,7 +86,7 @@ class MqttApi():
             self.logger.error(f"MQTT connected with result code {rc}")
 
         if rc == 0:
-            self.logger.info(f"Connected to {self._config.get('secrets', 'MQTT_HOST')}")
+            self.logger.info(f"Connected to {self._config['MQTT_Host']}")
             self.connected = True
             self.status["mqtt"] = "on"
             self._client.connected_flag = True
