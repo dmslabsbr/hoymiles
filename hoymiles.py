@@ -45,9 +45,9 @@ def get_secrets():
     try:
         with open("/config.json") as json_file:
             config = json.load(json_file)
-            logger.debug(config)
+            logger.info(config)
     except:
-        logger.debug("Nothing - /config.json")
+        logger.info("Nothing - /config.json")
     json_path = ""
     if os.path.isfile("./config.json"):
         json_path = "config.json"
@@ -55,7 +55,7 @@ def get_secrets():
         json_path = "/data/options.json"
     with open(json_path) as json_file:
         config = json.load(json_file)
-        logger.debug(config)
+        logger.info(config)
     if config['options']['DEVELOPERS_MODE']:
         logger.setLevel(logging.DEBUG)
     return config['options']
