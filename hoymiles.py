@@ -36,18 +36,6 @@ def getConfigParser(secrets_file):
 
 
 def get_secrets():
-    # config = getConfigParser(SECRETS)
-
-    # logger.info("Reading secrets.ini")
-    # cp_pass = config.get('secrets', 'HOYMILES_PASSWORD')
-    # if config.getboolean('developers', 'DEVELOPERS_MODE'):
-    #     logger.setLevel(logging.DEBUG)
-    try:
-        with open("/config.json") as json_file:
-            config = json.load(json_file)
-            logger.info(config)
-    except:
-        logger.info("Nothing - /config.json")
     json_path = ""
     if os.path.isfile("./config.json"):
         json_path = "config.json"
@@ -55,10 +43,9 @@ def get_secrets():
         json_path = "/data/options.json"
     with open(json_path) as json_file:
         config = json.load(json_file)
-        logger.info(config)
-    if config['options']['DEVELOPERS_MODE']:
+    if config['DEVELOPERS_MODE']:
         logger.setLevel(logging.DEBUG)
-    return config['options']
+    return config
 
 
 def json_remove_void(strJson):
