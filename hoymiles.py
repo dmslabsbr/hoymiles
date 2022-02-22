@@ -23,18 +23,6 @@ logger = logging.getLogger('HoymilesAdd-on')
 logger.setLevel(logging.INFO)
 
 
-def getConfigParser(secrets_file):
-    logger.info("Getting Config Parser.")
-
-    config = ConfigParser()
-
-    try:
-        config.read(secrets_file)
-    except Exception as e:
-        logger.warning("Can't load config. Using default config.")
-    return config
-
-
 def get_secrets():
     json_path = ""
     if os.path.isfile("./config.json"):
@@ -43,6 +31,8 @@ def get_secrets():
         json_path = "/data/options.json"
     with open(json_path) as json_file:
         config = json.load(json_file)
+        if 'options' in config.keys():
+            config = config['options']
     if config['DEVELOPERS_MODE']:
         logger.setLevel(logging.DEBUG)
     return config
@@ -85,22 +75,17 @@ def monta_publica_topico(mqtt_h:MqttApi, component, sDict, varComuns):
             dados = Template(dados.safe_substitute(dic))
             varComuns_template = Template( json.dumps(varComuns) )
             varComuns_template = varComuns_template.safe_substitute(varComuns) 
-            #dados = Template(dados.safe_substitute(varComuns)) # faz ultimas substituições
             dados = Template(dados.safe_substitute(json.loads( varComuns_template)) ) # faz ultimas substituições
             dados = dados.safe_substitute(key_todos) # remove os não substituidos.
             topico = MQTT_HASS + "/" + component + "/" + NODE_ID + "/" + varComuns['uniq_id'] + "/config"
-            # print(topico)
-            # print(dados)
             dados = json_remove_void(dados)
             (rc, mid) = mqtt_h.public(topico, dados)
             if rc == 0:
-                # if DEVELOPERS_MODE:
                 topicoResumo = topico.replace(MQTT_HASS + "/" + component + "/" + NODE_ID, '...')
                 topicoResumo = topicoResumo.replace("/config", '')
                 logger.debug(topicoResumo)
                 logger.debug(dados)
             else:
-                # deu erro na publicação
                 logger.error("Erro monta_publica_topico")
                 logger.error(topico)
             ret_rc = ret_rc + rc
@@ -170,7 +155,7 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     mqtt_h.publicate_time = datetime.now()
     logger.info(f"Solar data publication...{datetime.now()}")
     # TODO: commented for tests
-    # mqtt_h.send_clients_status()
+    mqtt_h.send_clients_status()
     return jsonUPS
 
 
@@ -233,7 +218,7 @@ def main() -> int:
     publicate_data(hoymiles, mqtt)
 
     # TODO: commented for tests
-    # mqtt.send_clients_status()
+    mqtt.send_clients_status()
 
     # if WEB_SERVER:  # se tiver webserver, inicia o web server
     #     iniciaWebServer()

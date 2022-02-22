@@ -1,3 +1,4 @@
+from calendar import month
 import logging
 import hashlib
 from string import Template
@@ -5,7 +6,8 @@ import json
 import sys
 import requests
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+from dateutil.relativedelta import relativedelta
 
 from const import HTTP_STATUS_CODE, COOKIE_UID, COOKIE_EGG_SESS, PAYLOAD_T1, HEADER_LOGIN, HEADER_DATA
 from const import BASE_URL, LOGIN_API, GET_DATA_API, PAYLOAD_T2, LOCAL_TIMEZONE
@@ -145,12 +147,27 @@ class Hoymiles(object):
         solar_data['today_eq_Wh'] = solar_data['today_eq']
         solar_data['today_eq'] = str( round(float(solar_data['today_eq']) / 1000,2) )
         solar_data['month_eq'] = str( round(float(solar_data['month_eq']) / 1000,2) )
-        solar_data['total_eq'] = str( round(float(solar_data['total_eq']) / 1000,2) )
+        solar_data['year_eq'] = str( round(float(solar_data['total_eq']) / 1000,2) )
         
         last_data_time = solar_data['last_data_time']
         last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
         solar_data['last_data_time'] = last_data_time.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
         self.logger.info(f"last_data_time {solar_data['last_data_time']}")
+        
+        reset_date = last_data_time.replace(hour=0, minute=0, second=0)
+        reset_date += timedelta(days=1)
+
+        part1 = "reset_"
+        # TODO: Need to check values source
+        final_reset_date = reset_date.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
+        solar_data[part1+"today_eq"] = final_reset_date
+        solar_data[part1+"real_power_measurement"] = final_reset_date
+        solar_data[part1+"real_power_total_increasing"] = final_reset_date
+        solar_data[part1+"today_eq_Wh"] = final_reset_date
+        solar_data[part1+"total_eq"] = final_reset_date
+        reset_date = last_data_time.replace(day=1)
+        reset_date += relativedelta(months=1)
+        solar_data[part1+"month_eq"] = reset_date.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
         return solar_data
 
 

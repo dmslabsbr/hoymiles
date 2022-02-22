@@ -44,6 +44,7 @@ class MqttApi():
         if change_dot: IP=IP.replace('.','-')
         return str(IP)
 
+
     def start(self):
         ''' Start MQTT '''
         # MQTT Start
@@ -118,6 +119,7 @@ class MqttApi():
                 #raise SystemExit(0)
                 #sys.exit()
                 #quit()
+
 
     def send_clients_status(self):
         ''' send connected clients status '''

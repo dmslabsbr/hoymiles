@@ -6,6 +6,7 @@
         - Optimization of whole flow.
         - webserver is disabled
         - switch to read config from json
+        - changed sensor reset date to the begining of next day
 
 ## 0.23
 
