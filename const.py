@@ -108,8 +108,6 @@ json_hass = {"sensor": '''
   "state_class": "$state_class",
   "unit_of_measurement": "$unit_of_measurement",
   "expire_after": "$expire_after",
-  "last_reset_topic": "$last_reset_topic",
-  "last_reset_value_template": "{{ value_json.reset_$val_tpl }}",
   "device": { $device_dict }
 }'''}
 

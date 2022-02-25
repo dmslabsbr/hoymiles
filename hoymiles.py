@@ -104,7 +104,6 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                  'via_device': hoymiles_h.dtu,
                  'sid': SID,
                  'plant_id': str(hoymiles_h.plant_id),
-                 'last_reset_topic': 'home/$sid/json_$plant_id',
                  'uniq_id': mqtt_h.uuid } 
     
     logger.debug(f"Sensor_dic: {len(sensor_dic)}")
