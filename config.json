@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Data Gateway Add-on",
-  "version": "0.23a",
+  "version": "0.24",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -31,25 +31,23 @@
   "options": {
     "HOYMILES_USER": "HOYMILES_USER",
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
-    "HOYMILES_PLANT_ID": "01",
+    "HOYMILES_PLANT_ID": "123",
     "DEVELOPERS_MODE": false,
-    "External_MQTT_Server": false,
-    "External_MQTT_Host": "127.0.0.1",
-    "External_MQTT_User": "nda",
-    "External_MQTT_Pass": "nda",
-    "External_MQTT_TLS": false,
-    "External_MQTT_TLS_PORT": "8883"
+    "MQTT_Host": "127.0.0.1",
+    "MQTT_User": "nda",
+    "MQTT_Pass": "nda",
+    "MQTT_TLS": false,
+    "MQTT_TLS_PORT": "8883"
   },
   "schema": {
     "HOYMILES_USER": "str",
     "HOYMILES_PASSWORD": "password",
     "HOYMILES_PLANT_ID": "str",
     "DEVELOPERS_MODE": "bool",
-    "External_MQTT_Server": "bool",
-    "External_MQTT_Host": "str?",
-    "External_MQTT_User": "str?",
-    "External_MQTT_Pass": "password?",
-    "External_MQTT_TLS": "bool",
-    "External_MQTT_TLS_PORT": "port"
+    "MQTT_Host": "str?",
+    "MQTT_User": "str?",
+    "MQTT_Pass": "password?",
+    "MQTT_TLS": "bool",
+    "MQTT_TLS_PORT": "port"
   }
 }

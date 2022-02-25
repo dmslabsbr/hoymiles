@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.24
+
+        - Refactor of whole code
+        - Optimization of whole flow.
+        - webserver is disabled
+        - switch to read config from json
+        - changed sensor reset date to the begining of next day
+
 ## 0.23
 
         - Correct "Missing default value for External_MQTT_TLS bug' - issue #44
