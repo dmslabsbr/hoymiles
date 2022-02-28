@@ -58,7 +58,7 @@
    "real_power_total_increasing":{
       "name":"real_power_total_increasing",
       "icon":"mdi:solar-power",
-      "state_class":"total_increasing",
+      "state_class":"total",
       "device_class":"energy",
       "unit_of_measurement":"Wh"
    },

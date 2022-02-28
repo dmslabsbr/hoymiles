@@ -18,10 +18,9 @@ module_logger = logging.getLogger('HoymilesAdd-on.mqttapi')
 
 class MqttApi():
 
-    def __init__(self, config) -> None:
+    def __init__(self, config, hoymiles) -> None:
         self._client = None
         self._config = config
-        self.status = {}
         self.logger = logging.getLogger('HoymilesAdd-on.mqttapi.Mqtt')
         self.uuid = str(uuid.uuid1())
         self.last_mid = None
@@ -29,6 +28,12 @@ class MqttApi():
         self.connected = False
         self.host_ip = self.get_ip()
         self.publicate_time = None
+
+        self.status = {}
+        self.status['UUID'] = self.uuid
+        self.status['version'] = hoymiles.dtu.model_no
+        self.status['plant_id'] = hoymiles.plant_id
+        self.status['inHass'] = True
 
     def get_ip(self, change_dot = False, testIP = '192.168.1.1'):
         ''' Get device IP '''
@@ -124,11 +129,6 @@ class MqttApi():
     def send_clients_status(self):
         ''' send connected clients status '''
         mqtt_topic = MQTT_PUB + "/clients/" + self.host_ip
-        self.status['UUID'] = self.uuid
-        self.status['version'] = 123
-        #FIXME
-        self.status['plant_id'] = 1234
-        self.status['inHass'] = True
         jsonStatus = json.dumps(self.status)
         (rc, mid) = self.public(mqtt_topic, jsonStatus)
         return rc

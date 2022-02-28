@@ -53,6 +53,15 @@ PAYLOAD_T2 = '''
 }
 '''
 
+PAYLOAD_ID = '''
+{
+    "body": {
+        "id": $id
+    },
+    "WAITING_PROMISE": true
+}
+'''
+
 HEADER_LOGIN = {
   'Content-Type': 'application/json;charset=UTF-8',
   'Cookie': '' 
@@ -80,7 +89,10 @@ COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPnt
 
 BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
 LOGIN_API = "iam/auth_login"
+USER_ME = "iam/user_me"
 GET_DATA_API = "pvm-data/data_count_station_real_data"
+GET_ALL_DEVICE_API = "pvm/station_select_device_all"
+STATION_FIND = "pvm/station_find"
 
 # For MQTT
 MQTT_PUB = "home/solar"
@@ -99,7 +111,7 @@ LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinf
 
 json_hass = {"sensor": '''
 { 
-  "stat_t": "home/$sid/json_$plant_id",
+  "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
   "val_tpl": "{{ value_json.$val_tpl }}",
@@ -109,7 +121,21 @@ json_hass = {"sensor": '''
   "unit_of_measurement": "$unit_of_measurement",
   "expire_after": "$expire_after",
   "device": { $device_dict }
-}'''}
+}''',
+"binary_sensor": '''
+{ 
+  "stat_t": "home/$sid/json_$via_device",
+  "name": "$name",
+  "uniq_id": "$uniq_id",
+  "val_tpl": "{{ value_json.$val_tpl }}",
+  "icon": "$icon",
+  "device_class": "$device_class",
+  "device": { $device_dict }
+}''',
+
+
+
+}
 
 device_dict = ''' "name": "$device_name",
     "manufacturer": "$manufacturer",

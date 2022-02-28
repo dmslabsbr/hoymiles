@@ -8,12 +8,37 @@ import requests
 import time
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
+import uuid
 
 from const import HTTP_STATUS_CODE, COOKIE_UID, COOKIE_EGG_SESS, PAYLOAD_T1, HEADER_LOGIN, HEADER_DATA
-from const import BASE_URL, LOGIN_API, GET_DATA_API, PAYLOAD_T2, LOCAL_TIMEZONE
+from const import BASE_URL, LOGIN_API, GET_DATA_API, PAYLOAD_T2, LOCAL_TIMEZONE, PAYLOAD_ID, GET_ALL_DEVICE_API, USER_ME, STATION_FIND
 
 
 module_logger = logging.getLogger('HoymilesAdd-on.hoymilesapi')
+
+class PlantObject(object):
+
+    def __init__(self, data:dict) -> None:
+        self.id = data['id']
+        self.sn = data['sn']
+        self.soft_ver = data['soft_ver']
+        self.hard_ver = data['hard_ver']
+        self.connect = data['warn_data']['connect']
+        self.uuid = str(uuid.uuid1())
+
+class Dtu(PlantObject):
+
+    def __init__(self, dtu_data:dict) -> None:
+        super(Dtu, self).__init__(dtu_data)
+        self.model_no = dtu_data['model_no']
+
+
+class Micros(PlantObject):
+
+    def __init__(self, micro_data:dict) -> None:
+        super(Micros, self).__init__(micro_data)
+        self.init_hard_no = micro_data['init_hard_no']
+
 
 class Hoymiles(object):
 
@@ -27,9 +52,10 @@ class Hoymiles(object):
         self.count_station_real_data ={}
         self._config = config
         self.gEnvios = gEnvios
-        self.dtu = "DTU-W100"
         self.solar_data = {}
         self.load_cnt = 0
+        self.dtu = None
+        self.device_list = []
 
         cnt = 0
         while True:
@@ -104,11 +130,13 @@ class Hoymiles(object):
             self.logger.debug(f"content: {response.content}")
         return ret, response.status_code
 
+
     def get_solar_data(self):
         status, self.solar_data = self.request_solar_data()
 
         self.data_dict['load_time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
         self.data_dict['load_cnt'] += 1
+        self.solar_data['connect'] = self.dtu.connect
 
         self.logger.debug(f"solar_data: {self.solar_data}")
         if not self.solar_data['real_power']:
@@ -153,23 +181,8 @@ class Hoymiles(object):
         last_data_time = datetime.strptime(last_data_time, '%Y-%m-%d %H:%M:%S')
         solar_data['last_data_time'] = last_data_time.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
         self.logger.info(f"last_data_time {solar_data['last_data_time']}")
-        
-        reset_date = last_data_time.replace(hour=0, minute=0, second=0)
-        reset_date += timedelta(days=1)
 
-        part1 = "reset_"
-        # TODO: Need to check values source
-        final_reset_date = reset_date.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
-        solar_data[part1+"today_eq"] = final_reset_date
-        solar_data[part1+"real_power_measurement"] = final_reset_date
-        solar_data[part1+"real_power_total_increasing"] = final_reset_date
-        solar_data[part1+"today_eq_Wh"] = final_reset_date
-        solar_data[part1+"total_eq"] = final_reset_date
-        reset_date = last_data_time.replace(day=1)
-        reset_date += relativedelta(months=1)
-        solar_data[part1+"month_eq"] = reset_date.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
         return solar_data
-
 
     def request_solar_data(self):
         T2 = Template(PAYLOAD_T2)
@@ -178,18 +191,79 @@ class Hoymiles(object):
         header = HEADER_DATA
         header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
-        solar = self.pega_url_jsonDic(BASE_URL + GET_DATA_API, header, payload_t2)
-        if 'status' in solar.keys():
-            if solar['status'] != "0":
-                self.logger.debug(f"Solar Status Error: {solar['status']} {solar['message']}")
-                if solar['status'] == "100":
+
+        solar = self.send_payload(GET_DATA_API, header, payload_t2)
+        return solar['status'], solar['data']
+
+    def get_plant_hw(self):
+        status, hw_data = self.request_plant_hw()
+        hw_data = hw_data[0]
+        try:
+            dtu_data = hw_data['dtu']
+            self.dtu = Dtu(dtu_data)
+        except Exception as err:
+            self.logger.error(f"request_plant_hw dtu {err}")
+
+        if 'micros' in hw_data['repeater_list'][0].keys():
+            for micro in hw_data['repeater_list'][0]['micros']:
+                self.device_list.append(Micros(micro))
+    
+    def update_devices_status(self):
+        status, hw_data = self.request_plant_hw()
+        hw_data = hw_data[0]
+        try:
+            dtu_data = hw_data['dtu']
+            self.dtu.connect = hw_data['dtu']['warn_data']['connect']
+        except Exception as err:
+            self.logger.error(f"request_plant_hw dtu {err}")
+        
+        if 'micros' in hw_data['repeater_list'][0].keys():
+            for micro in hw_data['repeater_list'][0]['micros']:
+                for device in self.device_list:
+                    if  micro['sn'] == device.sn:
+                        if micro['warn_data']['connect']:
+                            device.connect = "ON"
+                        else:
+                            device.connect = "OFF"
+        
+
+    def request_plant_hw(self):
+        template = Template(PAYLOAD_ID)
+        payload = template.substitute(id = self.plant_id)
+        header = HEADER_DATA
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + "; Path=/; Domain=.global.hoymiles.com;" + \
+            f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
+        retv = self.send_payload(GET_ALL_DEVICE_API, header, payload)
+        return retv['status'], retv['data']
+
+
+    def send_payload(self, api, header, payload):
+        retv = self.pega_url_jsonDic(BASE_URL + api, header, payload)
+        if 'status' in retv.keys():
+            if retv['status'] != "0":
+                self.logger.debug(f"{api} Error: {retv['status']} {retv['message']}")
+                if retv['status'] == "100":
                     # request new token
                     if (self.get_token()):
                         # chama pega solar novamente
-                        solar['status'], solar['data'] = self.request_solar_data()
-                elif solar['status'] == "3":
+                        retv['status'], retv['data'] = self.request_solar_data()
+                elif retv['status'] == "3":
                     self.logger.error("Wrong plant id!!")
                     sys.exit(0)
         else:
             self.logger.error("I can't connect!")
-        return solar['status'], solar['data']
+        return retv
+
+
+    def verify_plant(self):
+        template = Template(PAYLOAD_ID)
+        payload = template.substitute(id = self.plant_id)
+        header = HEADER_DATA
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + "; Path=/; Domain=.global.hoymiles.com;" + \
+            f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
+        retv = self.send_payload(STATION_FIND, header, payload)
+        if retv['status'] == '0':
+            return True
+
+        return False
+     
