@@ -7,33 +7,6 @@ date
 CONFIG_PATH=/data/options.json
 SYSTEM_USER=/data/system_user.json
 
-bashio::log.red "Exporting config data..."
-
-export HOYMILES_USER=$(jq --raw-output '.HOYMILES_USER' $CONFIG_PATH)
-export HOYMILES_PASSWORD=$(jq --raw-output '.HOYMILES_PASSWORD' $CONFIG_PATH)
-export HOYMILES_PLANT_ID=$(jq --raw-output '.HOYMILES_PLANT_ID' $CONFIG_PATH)
-#export MQTT_HOST=$(jq --raw-output '.MQTT_HOST' $CONFIG_PATH)
-#export MQTT_USER=$(jq --raw-output '.MQTT_USER' $CONFIG_PATH)
-#export MQTT_PASSWORD=$(jq --raw-output '.MQTT_PASSWORD' $CONFIG_PATH)
-
-bashio::log.blue "Getting mqqt data..."
-
-# try to solve Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
-export MQTT_HOST=$(bashio::services mqtt "host")
-export MQTT_USER=$(bashio::services mqtt "username")
-export MQTT_PASSWORD=$(bashio::services mqtt "password")
-
-#export Use_kW_instead_W=$(jq --raw-output '.Use_kW_instead_W' $CONFIG_PATH)
-export DEVELOPERS_MODE=$(jq --raw-output '.DEVELOPERS_MODE' $CONFIG_PATH)
-
-export External_MQTT_Server=$(jq --raw-output '.External_MQTT_Server' $CONFIG_PATH)
-export External_MQTT_Host=$(jq --raw-output '.External_MQTT_Host' $CONFIG_PATH)
-export External_MQTT_User=$(jq --raw-output '.External_MQTT_User' $CONFIG_PATH)
-export External_MQTT_Pass=$(jq --raw-output '.External_MQTT_Pass' $CONFIG_PATH)
-# 0.22
-export External_MQTT_TLS=$(jq --raw-output '.External_MQTT_TLS' $CONFIG_PATH)
-export External_MQTT_TLS_PORT=$(jq --raw-output '.External_MQTT_TLS_PORT' $CONFIG_PATH)
-
 mkdir -p /data/templates
 cp /*.html /data/templates
 

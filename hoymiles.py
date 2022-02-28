@@ -94,69 +94,83 @@ def monta_publica_topico(mqtt_h:MqttApi, component, sDict, varComuns):
 
 def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     ''' Envia parametros para incluir device no hass.io '''
-    sensor_dic={}
+    
     # var comuns
-    varComuns = {'sw_version': __version__,
-                 'model': hoymiles_h.dtu,
+    varComuns = { 'dtu' : {'sw_version': hoymiles_h.dtu.soft_ver,
+                 'model': hoymiles_h.dtu.model_no,
                  'manufacturer': "asd",
                  'device_name': __app_name__,
                  'identifiers': SHORT_NAME + "_" + str(hoymiles_h.plant_id),
-                 'via_device': hoymiles_h.dtu,
+                 'via_device': hoymiles_h.dtu.id,
                  'sid': SID,
                  'plant_id': str(hoymiles_h.plant_id),
-                 'last_reset_topic': 'home/$sid/json_$plant_id',
-                 'uniq_id': mqtt_h.uuid } 
+                 'uniq_id': hoymiles_h.dtu.uuid }}
+    for micro in  hoymiles_h.device_list:
+        varComuns.update( {f"micro_{micro.id}" :{'sw_version': micro.soft_ver,
+                 'model': micro.init_hard_no,
+                 'manufacturer': "asd",
+                 'device_name': __app_name__,
+                 'identifiers': SHORT_NAME + "_" + str(micro.id),
+                 'via_device': micro.id,
+                 'sid': SID,
+                 'plant_id': str(hoymiles_h.plant_id),
+                 'uniq_id': micro.uuid } })
     
-    logger.debug(f"Sensor_dic: {len(sensor_dic)}")
 
-    if len(sensor_dic) == 0:
-        for k in json_hass.items():
-            json_file_path = k[0] + '.json'
-            if not os.path.isfile(json_file_path):
-                json_file_path = '/' + json_file_path  # to run on HASS.IO
-            if not os.path.isfile(json_file_path):
-                logger.error(json_file_path + " not found!")
-            json_file = open(json_file_path)
+    for device in varComuns.keys():
+        sensor_dic={}
+        if '_' in device:
+            json_file_path = device.split('_')[0] + '.json'
+        else:
+            json_file_path = device + '.json'
+        if not os.path.isfile(json_file_path):
+            json_file_path = '/' + json_file_path  # to run on HASS.IO
+        if not os.path.isfile(json_file_path):
+            logger.error(json_file_path + " not found!")
+        with open(json_file_path) as json_file: 
             if not json_file.readable():
                 logger.error("I can't read file")
-            json_str = json_file.read()
-            sensor_dic[k[0]] = json.loads(json_str)
+            
+            # json_str = json_file.read()
+            data = json.load(json_file)
+            for k in json_hass.items():
+                try:
+                    sensor_dic[k[0]] = data[k[0]]
+                except Exception as err:
+                    logger.debug(f"{err}")
 
-    if len(sensor_dic) == 0:
-        logger.error("Sensor_dic error")
-    rc = 0
-    for k in sensor_dic.items():
-        # print('Componente:' + k[0])
-        rc = monta_publica_topico(mqtt_h, k[0], sensor_dic[k[0]], varComuns)
-        if not rc == 0:
-            logger.error(f"Hass publish error: {rc}")
+        if len(sensor_dic) == 0:
+            logger.error("Sensor_dic error")
+        rc = 0
+        for k in sensor_dic.items():
+            # print('Componente:' + k[0])
+            rc = monta_publica_topico(mqtt_h, k[0], sensor_dic[k[0]], varComuns[device])
+            if not rc == 0:
+                logger.error(f"Hass publish error: {rc}")
 
-    if rc == 0:
-        logger.debug('Hass Sended')
-
-
-def publicaDadosWeb(hoymiles_h: Hoymiles, mqqt_t: MqttApi):
-    # publica dados na web por meio do webserver via JSON
-    jsonx = publicate_data(hoymiles_h, mqqt_t)
-    # add new data
-    json_load = json.loads(jsonx)
-    json_load['last_time'] = hoymiles_h.data_dict['last_time']  
-    json_load['load_cnt'] = hoymiles_h.data_dict['load_cnt']
-    json_load['load_time'] = hoymiles_h.data_dict['load_time']
-    json_x = json.dumps(json_load)
-    return json_x
+        if rc == 0:
+            logger.debug(f'Hass Sended for {device}')
 
 
 def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     # publica dados no MQTT  - MQTT_PUB/json
+    hoymiles_h.update_devices_status()
     hoymiles_h.get_solar_data()
     jsonUPS = json.dumps(hoymiles_h.solar_data)
-    (rc, mid) = mqtt_h.public(MQTT_PUB + "/json" + '_' + str(hoymiles_h.plant_id), jsonUPS)
+    (rc, mid) = mqtt_h.public(MQTT_PUB + "/json" + '_' + str(hoymiles_h.dtu.id), jsonUPS)
     mqtt_h.publicate_time = datetime.now()
     logger.info(f"Solar data publication...{datetime.now()}")
     # TODO: commented for tests
     mqtt_h.send_clients_status()
-    return jsonUPS
+    for device in hoymiles_h.device_list:
+        dict = {'connect': device.connect}
+        jsonUPS = json.dumps(dict)
+        (rc, mid) = mqtt_h.public(MQTT_PUB + "/json" + '_' + str(device.id), jsonUPS)
+        mqtt_h.publicate_time = datetime.now()
+        logger.info(f"{device.init_hard_no}_{device.id} data publication...{datetime.now()}")
+        # TODO: commented for tests
+        mqtt_h.send_clients_status()
+    return
 
 
 class ProgramKilled(Exception):
@@ -200,13 +214,20 @@ def main() -> int:
 
     hoymiles = Hoymiles(plant_id=int(config['HOYMILES_PLANT_ID']), config=config, gEnvios=gEnvios)
 
-    if hoymiles.token != '':
-        solar_data = hoymiles.get_solar_data()
-    else:
+    if hoymiles.token == '':
         logger.error("I can't get access token")
         quit()
 
-    mqtt = MqttApi(config)
+    if not hoymiles.verify_plant():
+        logger.error("User has no access to plant")
+        quit()       
+
+    hoymiles.get_plant_hw()
+    while not hoymiles.dtu.connect:
+        time.sleep(600)
+        hoymiles.get_plant_hw()
+
+    mqtt = MqttApi(config, hoymiles)
     mqtt.start()
     while not mqtt.connected:
         time.sleep(1)  # wait for connection
