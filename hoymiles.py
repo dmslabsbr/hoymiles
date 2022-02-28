@@ -115,6 +115,7 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                  'sid': SID,
                  'plant_id': str(hoymiles_h.plant_id),
                  'uniq_id': micro.uuid } })
+
     
 
     for device in varComuns.keys():
