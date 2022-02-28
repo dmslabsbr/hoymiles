@@ -1,3 +1,7 @@
+"""
+Module contain consts and templates used in addon.
+"""
+
 import datetime
 
 HTTP_STATUS_CODE = {
@@ -8,17 +12,15 @@ HTTP_STATUS_CODE = {
     308: "Permanent Redirect",
     400: "Bad Request",
     401: "Unauthorized",
-    403: "Forbidden",  
+    403: "Forbidden",
     404: "Not Found",
-    407: "Proxy Authentication Required",  
-    408: "Request Timeout",  
-    500: "Internal Server Error",  
-    502: "Bad Gateway",  
-    403: "Forbidden",  
-    403: "Forbidden",  
+    407: "Proxy Authentication Required",
+    408: "Request Timeout",
+    500: "Internal Server Error",
+    502: "Bad Gateway",
     504: "Gateway Timeout",
     1000: "Message not set."
-    }
+}
 
 MQTT_STATUS_CODE = {
     0: "Connection successful",
@@ -28,9 +30,9 @@ MQTT_STATUS_CODE = {
     4: "Connection refused – bad username or password",
     5: "Connection refused – not authorised",
     100: "Connection refused - other things"
-    }
+}
 
-PAYLOAD_T1= '''
+PAYLOAD_T1 = '''
    {
        "ERROR_BACK":true,
        "LOAD":{
@@ -63,21 +65,20 @@ PAYLOAD_ID = '''
 '''
 
 HEADER_LOGIN = {
-  'Content-Type': 'application/json;charset=UTF-8',
-  'Cookie': '' 
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Cookie': ''
 }
 
 HEADER_DATA = {
-  'Content-Type': 'application/json;charset=UTF-8',
-  'Cache-Control': 'no-cache',
-  'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0',
-  'Host': 'global.hoymiles.com',
-  'Connection': 'keep-alive',
-  'Accept': 'application/json, text/plain, */*',
-  'Accept-Encoding': 'gzip, deflate, br',
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36',
-  'Accept-Language': 'pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3',
-  'Cookie': 'hm_token_language=en_us; ' 
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Cache-Control': 'no-cache',
+    'Host': 'global.hoymiles.com',
+    'Connection': 'keep-alive',
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36',
+    'Accept-Language': 'pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3',
+    'Cookie': 'hm_token_language=en_us; '
 }
 
 
@@ -102,11 +103,12 @@ DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
 NODE_ID = 'dmslabs'
 SHORT_NAME = 'solarH'
 HASS_INTERVAL = 1200
-GETDATA_INTERVAL = 480 # How often do I read site data
+GETDATA_INTERVAL = 480  # How often do I read site data
 EXPIRE_TIME = int(GETDATA_INTERVAL) * 1.5
 
 
-LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+LOCAL_TIMEZONE = datetime.datetime.now(
+    datetime.timezone.utc).astimezone().tzinfo
 
 
 json_hass = {"sensor": '''
@@ -122,7 +124,7 @@ json_hass = {"sensor": '''
   "expire_after": "$expire_after",
   "device": { $device_dict }
 }''',
-"binary_sensor": '''
+             "binary_sensor": '''
 { 
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
@@ -131,13 +133,10 @@ json_hass = {"sensor": '''
   "icon": "$icon",
   "device_class": "$device_class",
   "device": { $device_dict }
-}''',
-
-
-
+}'''
 }
 
-device_dict = ''' "name": "$device_name",
+DEVICE_DICT = ''' "name": "$device_name",
     "manufacturer": "$manufacturer",
     "model": "$model",
     "sw_version": "$sw_version",

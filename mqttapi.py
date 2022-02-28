@@ -1,24 +1,32 @@
+"""
+API for mqtt communication
+"""
+
+import json
 import logging
-import paho.mqtt.client as mqtt
+import socket
 import ssl
 import time
-from datetime import datetime
-import json
 import uuid
-import socket
+from datetime import datetime
 
-from const import MQTT_STATUS_CODE, MQTT_PUB
-# from hoymiles import __version__
+import paho.mqtt.client as mqtt
+
+from const import MQTT_PUB, MQTT_STATUS_CODE
+from hoymilesapi import Hoymiles
 
 
-MQTTversion = mqtt.MQTTv31
-TLS_protocol_version = ssl.PROTOCOL_TLSv1_2
+MQTT_VERSION = mqtt.MQTTv31
+TLS_PROTOCOL_VERSION = ssl.PROTOCOL_TLSv1_2
 
 module_logger = logging.getLogger('HoymilesAdd-on.mqttapi')
 
-class MqttApi():
 
-    def __init__(self, config, hoymiles) -> None:
+class MqttApi():
+    """Mqtt API main calass
+    """
+
+    def __init__(self, config: dict, hoymiles: Hoymiles) -> None:
         self._client = None
         self._config = config
         self.logger = logging.getLogger('HoymilesAdd-on.mqttapi.Mqtt')
@@ -35,26 +43,27 @@ class MqttApi():
         self.status['plant_id'] = hoymiles.plant_id
         self.status['inHass'] = True
 
-    def get_ip(self, change_dot = False, testIP = '192.168.1.1'):
+    def get_ip(self, change_dot=False, test_ip='192.168.1.1'):
         ''' Get device IP '''
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # doesn't even have to be reachable
-            s.connect((testIP, 1))
-            IP = s.getsockname()[0]
+            soc.connect((test_ip, 1))
+            self_ip = soc.getsockname()[0]
         except Exception:
-            IP = '0.0.0.1'
+            self_ip = '0.0.0.1'
         finally:
-            s.close()
-        if change_dot: IP=IP.replace('.','-')
-        return str(IP)
-
+            soc.close()
+        if change_dot:
+            self_ip = self_ip.replace('.', '-')
+        return str(self_ip)
 
     def start(self):
         ''' Start MQTT '''
         # MQTT Start
         # client = mqtt.Client(transport="tcp") # "websockets"
-        self._client = mqtt.Client(client_id = '', clean_session = True, userdata = None, protocol = MQTTversion, transport="tcp" ) # mqtt.MQTTv31
+        self._client = mqtt.Client(client_id='', clean_session=True, userdata=None,
+                                   protocol=MQTT_VERSION, transport="tcp")  # mqtt.MQTTv31
         port = 1883
         user = self._config['MQTT_User']
         passw = self._config['MQTT_Pass']
@@ -67,103 +76,126 @@ class MqttApi():
         self.logger.debug(f"mqttStart MQTT_USERNAME: {user}")
         self.logger.debug(f"mqttStart MQTT_PASSWORD: {passw}")
         self.logger.debug(f"mqttStart MQTT_PORT: {port}")
-        
+
         self._client.username_pw_set(username=user, password=passw)
         self._client.on_connect = self.on_connect
         self._client.on_disconnect = self.on_disconnect
         self._client.on_publish = self.on_publish
 
-        #v.0.22 TLS
+        # v.0.22 TLS
         if self._config['MQTT_TLS']:
             self.logger.info(f"Trying TLS: {self._config['MQTT_TLSPORT']}")
-            self.logger.debug(f"TLS_protocol_version: {TLS_protocol_version}")
-            context = ssl.SSLContext(protocol = TLS_protocol_version)
+            self.logger.debug(f"TLS_protocol_version: {TLS_PROTOCOL_VERSION}")
+            context = ssl.SSLContext(protocol=TLS_PROTOCOL_VERSION)
             self._client.tls_set_context(context)
 
         try:
             self.client_status = True
-            #rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
-            rc = self._client.connect(host = self._config['MQTT_Host'],
-                port = int(port),
-                keepalive = 60)  # 1883
+            # rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
+            self._client.connect(host=self._config['MQTT_Host'],
+                                 port=int(port),
+                                 keepalive=60)  # 1883
 
-        except Exception as e:  # OSError
-            if e.__class__.__name__ == 'OSError':
+        except Exception as err:  # OSError
+            if err.__class__.__name__ == 'OSError':
                 self.client_status = False
-                self.logger.warning("Can't start MQTT")
                 self.logger.error("Can't start MQTT")
             else:
                 self.client_status = False
-        if self.client_status:  self._client.loop_start()  # start the loop
+                self.logger.error(f"{err}")
+        if self.client_status:
+            self._client.loop_start()  # start the loop
 
+    def on_connect(self, client, userdata, flags, ret_code):  # pylint: disable=unused-argument
+        """Mqtt on connect
 
-    def on_connect(self, client, userdata, flags, rc):
-        if rc == 0:
-            self.logger.info(f"MQTT connected with result code {rc}")
+        Args:
+            client (_type_): _description_
+            userdata (_type_): _description_
+            flags (_type_): _description_
+            ret_code (_type_): _description_
+        """
+        if ret_code == 0:
+            self.logger.info(f"MQTT connected with result code {ret_code}")
         else:
-            self.logger.error(f"MQTT connected with result code {rc}")
+            self.logger.error(f"MQTT connected with result code {ret_code}")
 
-        if rc == 0:
+        if ret_code == 0:
             self.logger.info(f"Connected to {self._config['MQTT_Host']}")
             self.connected = True
             self.status["mqtt"] = "on"
             self._client.connected_flag = True
             # Mostra clientes
-            self.status["ublish_time"] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+            self.status["ublish_time"] = datetime.today().strftime(
+                '%Y-%m-%d %H:%M:%S')
             self.send_clients_status()
         else:
             self.status["mqtt"] = "off"
-            if rc>5: rc=100
+            if ret_code > 5:
+                ret_code = 100
             #print (str(rc) + str(tp_c[rc]))
-            self.logger.error(str(rc) + str(MQTT_STATUS_CODE[rc]))
+            self.logger.error(f"{ret_code} {MQTT_STATUS_CODE[ret_code]}")
             # tratar quando for 3 e outros
-            if rc == 4 or rc == 5:
+            if ret_code == 4 or ret_code == 5:
                 # senha errada
-                self.logger.error(f"APP EXIT {rc}")
+                self.logger.error(f"APP EXIT {ret_code}")
                 time.sleep(60000)
                 #raise SystemExit(0)
-                #sys.exit()
-                #quit()
-
+                # sys.exit()
+                # quit()
 
     def send_clients_status(self):
         ''' send connected clients status '''
         mqtt_topic = MQTT_PUB + "/clients/" + self.host_ip
-        jsonStatus = json.dumps(self.status)
-        (rc, mid) = self.public(mqtt_topic, jsonStatus)
-        return rc
+        json_status = json.dumps(self.status)
+        return self.public(mqtt_topic, json_status)
 
     def public(self, topic, payload):
         "Publica no MQTT atual"
-        (rc, mid) = self._client.publish(topic, payload)
+        ret_code, mid = self._client.publish(topic, payload)
         self.last_mid = mid
-        if rc == mqtt.MQTT_ERR_NO_CONN:
+        if ret_code == mqtt.MQTT_ERR_NO_CONN:
             self.logger.debug("mqtt.MQTT_ERR_NO_CONN")
-        if rc == mqtt.MQTT_ERR_SUCCESS:
+        if ret_code == mqtt.MQTT_ERR_SUCCESS:
             self.last_mid = mid
-        if rc == mqtt.MQTT_ERR_QUEUE_SIZE:
+        if ret_code == mqtt.MQTT_ERR_QUEUE_SIZE:
             self.logger.debug("mqtt.MQTT_ERR_QUEUE_SIZE")
-        return rc, mid
+        return ret_code
 
-    def on_publish(self, client, userdata, mid):
-        # fazer o que aqui? 
+    def on_publish(self, client, userdata, mid): # pylint: disable=unused-argument
+        """Mqtt on publish
+
+        Args:
+            client (_type_): _description_
+            userdata (_type_): _description_
+            mid (_type_): _description_
+        """
+        # fazer o que aqui?
         # fazer uma pilha para ver se foi publicado ou não
         # aparentemente só vem aqui, se foi publicado.
-        if 1==2:
+        if 1 == 2:
             print("Published mid: " + str(mid), "last: " + str(self.last_mid))
-            if self.last_mid -1 != mid:
+            if self.last_mid - 1 != mid:
                 self.logger.error(f"Error mid: {mid} no publiation.")
 
+    def on_disconnect(self, client, userdata, ret_code): # pylint: disable=unused-argument
+        """Mqtt on disconnect
 
-    def on_disconnect(self, client, userdata, rc):
+        Args:
+            client (_type_): _description_
+            userdata (_type_): _description_
+            ret_code (_type_): _description_
+        """
         self.connected = False
-        print("disconnecting reason  "  + str(rc))
-        if rc>5: rc=100
-        print("disconnecting reason  "  + str(client) +  str(MQTT_STATUS_CODE[rc]))
+        print("disconnecting reason  " + str(ret_code))
+        if ret_code > 5:
+            ret_code = 100
+        print("disconnecting reason  " +
+              str(client) + str(MQTT_STATUS_CODE[ret_code]))
         client.connected_flag = False
         client.disconnect_flag = True
-        self.status.status['mqtt'] = "off"
+        self.status['mqtt'] = "off"
         try:
             self.send_clients_status()
-        except Exception as e:
-            self.logger.warning("on_disconnect")
+        except Exception as err:
+            self.logger.warning(f"on_disconnect {err}")
