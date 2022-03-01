@@ -1,3 +1,6 @@
+# <span style="color:red;">__WARNING!__</span>
+In nearest future will be released version 1.0. It redefine way how entities and devices are connect, so there is high risk that data collection will be from begining. To aviod it, please swith to special prepared branch __old_stable__ by switching repo to https://github.com/dmslabsbr/hoymiles/tree/old_stable but it will not be longer devlop so will not include new features.
+
 <img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
 
 
