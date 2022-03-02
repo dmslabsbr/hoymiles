@@ -7,17 +7,10 @@
   "url": "https://github.com/dmslabsbr/hoymiles",
   "startup": "application",
   "boot": "auto",
-  "ports": {
-    "5000/tcp": 5000
-  },
-  "ports_description": {
-    "5000/tcp": "Simple Web Interface"
-  },
   "hassio_api": false,
   "homeassistant_api": false,
   "hassio_role": "default",
   "devicetree": false,
-  "webui": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
   "watchdog": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
   "services": [
     "mqtt:need"
