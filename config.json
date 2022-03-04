@@ -11,7 +11,6 @@
   "homeassistant_api": false,
   "hassio_role": "default",
   "devicetree": false,
-  "watchdog": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
   "services": [
     "mqtt:need"
   ],

@@ -82,7 +82,8 @@ def monta_publica_topico(mqtt_h: MqttApi, component, s_dict, var_comuns):
             dados = Template(json_hass[component])  # sensor
             dados = Template(dados.safe_substitute(dic))
             var_comuns_template = Template(json.dumps(var_comuns))
-            var_comuns_template = var_comuns_template.safe_substitute(var_comuns)
+            var_comuns_template = var_comuns_template.safe_substitute(
+                var_comuns)
             # faz ultimas substituições
             dados = Template(dados.safe_substitute(
                 json.loads(var_comuns_template)))
@@ -109,32 +110,43 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     ''' Envia parametros para incluir device no hass.io '''
 
     var_comuns = {}
-    var_comuns = {'dtu': {'sw_version': hoymiles_h.dtu.soft_ver,
-                         'model': hoymiles_h.dtu.model_no,
-                         'manufacturer': "asd",
-                         'device_name': __app_name__,
-                         'identifiers': SHORT_NAME + "_" + str(hoymiles_h.plant_id),
-                         'via_device': hoymiles_h.dtu.id,
-                         'sid': SID,
-                         'plant_id': str(hoymiles_h.plant_id),
-                         'uniq_id': hoymiles_h.dtu.uuid}}
+    var_comuns = {
+        'plant': {'sw_version': __version__,
+                  'model': "Hoymiles add-on",
+                  'manufacturer': 'dmslabs',
+                  'device_name': __app_name__,
+                  'identifiers': SHORT_NAME + "_" + str(hoymiles_h.plant_id),
+                  'via_device': hoymiles_h.dtu.id,
+                  'sid': SID,
+                  'plant_id': str(hoymiles_h.plant_id),
+                  'uniq_id': hoymiles_h.uuid},
+        'dtu': {'sw_version': hoymiles_h.dtu.soft_ver,
+                'model': hoymiles_h.dtu.model_no,
+                'manufacturer': "Hoymiles",
+                'device_name': __app_name__,
+                'identifiers': SHORT_NAME + "_" + str(hoymiles_h.dtu.id),
+                'via_device': hoymiles_h.dtu.id,
+                'sid': SID,
+                'plant_id': str(hoymiles_h.plant_id),
+                'uniq_id': hoymiles_h.dtu.uuid}}
     for micro in hoymiles_h.device_list:
         var_comuns.update({f"micro_{micro.id}": {'sw_version': micro.soft_ver,
-                                                'model': micro.init_hard_no,
-                                                'manufacturer': "asd",
-                                                'device_name': __app_name__,
-                                                'identifiers': SHORT_NAME + "_" + str(micro.id),
-                                                'via_device': micro.id,
-                                                'sid': SID,
-                                                'plant_id': str(hoymiles_h.plant_id),
-                                                'uniq_id': micro.uuid}})
+                                                 'model': micro.init_hard_no,
+                                                 'manufacturer': "Hoymiles",
+                                                 'device_name': __app_name__,
+                                                 'identifiers': SHORT_NAME + "_" + str(micro.id),
+                                                 'via_device': micro.id,
+                                                 'sid': SID,
+                                                 'plant_id': str(hoymiles_h.plant_id),
+                                                 'uniq_id': micro.uuid}})
 
     for device in var_comuns:
         sensor_dic = {}
+        json_file_path = "jsons/"
         if '_' in device:
-            json_file_path = device.split('_')[0] + '.json'
+            json_file_path += device.split('_')[0] + '.json'
         else:
-            json_file_path = device + '.json'
+            json_file_path += device + '.json'
         if not os.path.isfile(json_file_path):
             json_file_path = '/' + json_file_path  # to run on HASS.IO
         if not os.path.isfile(json_file_path):
@@ -181,11 +193,12 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     mqtt_h.publicate_time = datetime.now()
     logger.info(f"Solar data publication...{datetime.now()}")
     mqtt_h.send_clients_status()
+    
     for device in hoymiles_h.device_list:
         data = {'connect': device.connect}
         json_ups = json.dumps(data)
         mqtt_h.public(MQTT_PUB +
-                                  "/json" + '_' + str(device.id), json_ups)
+                      "/json" + '_' + str(device.id), json_ups)
         mqtt_h.publicate_time = datetime.now()
         logger.info(
             f"{device.init_hard_no}_{device.id} data publication...{datetime.now()}")
@@ -215,6 +228,7 @@ def signal_handler(signum, frame):
 class Job(threading.Thread):
     """Custom class to handle running mathods and save resources
     """
+
     def __init__(self, interval, execute, *args, **kwargs):
         threading.Thread.__init__(self)
         self.daemon = False
@@ -246,8 +260,8 @@ def main() -> int:
         f"Starting up... {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}")
 
     g_envios = {'last_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S'),
-               'load_cnt': 0,
-               'load_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S')}
+                'load_cnt': 0,
+                'load_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S')}
 
     config = get_secrets()
 
@@ -269,6 +283,8 @@ def main() -> int:
     while not hoymiles.dtu.connect:
         time.sleep(600)
         hoymiles.get_plant_hw()
+
+    hoymiles.get_alarms()
 
     mqtt = MqttApi(config, hoymiles)
     mqtt.start()

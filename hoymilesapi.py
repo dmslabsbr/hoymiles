@@ -5,6 +5,8 @@ Main API for Hoymiles
 import hashlib
 import json
 import logging
+from pyexpat.errors import messages
+import re
 import sys
 import time
 import uuid
@@ -16,12 +18,12 @@ import requests
 from const import (BASE_URL, COOKIE_EGG_SESS, COOKIE_UID, GET_ALL_DEVICE_API,
                    GET_DATA_API, HEADER_DATA, HEADER_LOGIN, HTTP_STATUS_CODE,
                    LOCAL_TIMEZONE, LOGIN_API, PAYLOAD_ID, PAYLOAD_T1,
-                   PAYLOAD_T2, STATION_FIND)
+                   PAYLOAD_T2, STATION_FIND, PAYLOAD_DETAILS, DATA_FIND_DETAILS)
 
 module_logger = logging.getLogger('HoymilesAdd-on.hoymilesapi')
 
 
-class PlantObject(object):
+class PlantObject():
     """Generic class for devices in plant
     """
 
@@ -32,6 +34,8 @@ class PlantObject(object):
         self.hard_ver = data['hard_ver']
         self.connect = data['warn_data']['connect']
         self.uuid = str(uuid.uuid1())
+        self.err_code = 0
+        self.err_msg = ""
 
 
 class Dtu(PlantObject):
@@ -71,6 +75,7 @@ class Hoymiles(object):
         self.load_cnt = 0
         self.dtu = None
         self.device_list = []
+        self.uuid = str(uuid.uuid1())
 
         cnt = 0
         while True:
@@ -187,7 +192,6 @@ class Hoymiles(object):
             self.data_dict['load_time'] = datetime.today().strftime(
                 '%Y-%m-%d %H:%M:%S')
             self.data_dict['load_cnt'] += 1
-            self.solar_data['connect'] = self.dtu.connect
 
             self.logger.debug(f"solar_data: {self.solar_data}")
             if not self.solar_data['real_power']:
@@ -204,7 +208,7 @@ class Hoymiles(object):
                 self.solar_data = self.adjust_solar_data(self.solar_data)
         return self.solar_data
 
-    def adjust_solar_data(self, solar_data:dict) -> dict:
+    def adjust_solar_data(self, solar_data: dict) -> dict:
         """Adjust solar data like unifed measurements units
 
         Args:
@@ -267,7 +271,7 @@ class Hoymiles(object):
         """Get pland hardware layout and create objects
         """
         status, hw_data = self.request_plant_hw()
-        if status == 0:
+        if int(status) == 0:
             hw_data = hw_data[0]
             try:
                 dtu_data = hw_data['dtu']
@@ -314,7 +318,7 @@ class Hoymiles(object):
         retv = self.send_payload(GET_ALL_DEVICE_API, header, payload)
         return retv['status'], retv['data']
 
-    def send_payload(self, api:str, header: dict, payload: str) -> dict:
+    def send_payload(self, api: str, header: dict, payload: str) -> dict:
         """Send api payload
 
         Args:
@@ -363,3 +367,49 @@ class Hoymiles(object):
             return True
 
         return False
+
+    def get_alarms(self):
+        """_summary_
+        """
+        header = HEADER_DATA
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+            "; Path=/; Domain=.global.hoymiles.com;" + \
+            f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
+        for micro in self.device_list:
+            template = Template(PAYLOAD_DETAILS)
+            payload = template.substitute(
+                mi_id=micro.id, mi_sn=micro.sn, sid=self.plant_id,
+                time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            payload = template.substitute(
+                mi_id=micro.id, mi_sn=micro.sn, sid=self.plant_id,
+                time="2022-02-14 17:42")
+            retv = self.send_payload(DATA_FIND_DETAILS, header, payload)
+            if retv["data"]["warn_list"]:
+                micro.err_code = int(retv["data"]["warn_list"][0]["err_code"])
+                micro.err_msg = self.get_alarm_description(micro.err_code)
+                micro.err_msg += " " + retv["data"]["warn_list"][0]["wd1"]
+                micro.err_msg += " " + retv["data"]["warn_list"][0]["wdd2"]
+                micro.err_msg += " " + retv["data"]["warn_list"][0]["wd2"]
+            else:
+                micro.err_code = 0
+                micro.err_msg = ""
+
+
+    def get_alarm_description(self, code:int) -> str:
+        """Getting alarm description based on id
+
+        Args:
+            code (int): error code
+
+        Returns:
+            str: error description
+        """
+        try:
+            with open("jsons/micro_codes", 'r', encoding="utf-8") as infile:
+                for line in infile:
+                    error_set = line.split(':')
+                    if str(code) in error_set[-1]:
+                        return error_set[0]
+        except Exception as err:
+            self.logger.warning(f"There was a problem while opening error list {err}")
+        return ""

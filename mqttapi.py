@@ -136,7 +136,7 @@ class MqttApi():
             #print (str(rc) + str(tp_c[rc]))
             self.logger.error(f"{ret_code} {MQTT_STATUS_CODE[ret_code]}")
             # tratar quando for 3 e outros
-            if ret_code == 4 or ret_code == 5:
+            if ret_code in (4, 5):
                 # senha errada
                 self.logger.error(f"APP EXIT {ret_code}")
                 time.sleep(60000)

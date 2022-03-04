@@ -64,6 +64,20 @@ PAYLOAD_ID = '''
 }
 '''
 
+PAYLOAD_DETAILS = '''{
+    "body":{
+        "mi_id":$mi_id,
+        "mi_sn":"$mi_sn",
+        "port":1,
+        "sid":$sid,
+        "warn_code":1,
+        "time":"$time"
+    },
+    "WAITING_PROMISE":true
+}
+'''
+
+
 HEADER_LOGIN = {
     'Content-Type': 'application/json;charset=UTF-8',
     'Cookie': ''
@@ -76,17 +90,15 @@ HEADER_DATA = {
     'Connection': 'keep-alive',
     'Accept': 'application/json, text/plain, */*',
     'Accept-Encoding': 'gzip, deflate, br',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36',
-    'Accept-Language': 'pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36', # pylint: disable=line-too-long
+    'Accept-Language': 'pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3', # pylint: disable=line-too-long
     'Cookie': 'hm_token_language=en_us; '
 }
-
 
 SECRETS = 'secrets.ini'
 
 COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
-COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'"
-
+COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'" # pylint: disable=line-too-long
 
 BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
 LOGIN_API = "iam/auth_login"
@@ -94,6 +106,7 @@ USER_ME = "iam/user_me"
 GET_DATA_API = "pvm-data/data_count_station_real_data"
 GET_ALL_DEVICE_API = "pvm/station_select_device_all"
 STATION_FIND = "pvm/station_find"
+DATA_FIND_DETAILS = "pvm-data/data_find_details"
 
 # For MQTT
 MQTT_PUB = "home/solar"
@@ -134,7 +147,7 @@ json_hass = {"sensor": '''
   "device_class": "$device_class",
   "device": { $device_dict }
 }'''
-}
+             }
 
 DEVICE_DICT = ''' "name": "$device_name",
     "manufacturer": "$manufacturer",
