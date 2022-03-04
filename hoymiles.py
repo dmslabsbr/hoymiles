@@ -1,5 +1,5 @@
 __author__ = 'dmslabs&Cosik'
-__version__ = '0.24.1'
+__version__ = '0.24.2d'
 __app_name__ = 'Hoymiles Gateway'
 
 import logging
@@ -22,6 +22,15 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger('HoymilesAdd-on')
 logger.setLevel(logging.INFO)
 
+
+def getEnv(env):
+    ''' Get OS environment data'''
+    ret = ""
+    try:
+        ret = os.environ[env]
+    except:
+        ret = ""
+    return ret
 
 def get_secrets():
     json_path = ""
@@ -193,6 +202,16 @@ def main() -> int:
             'load_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S')} 
 
     config = get_secrets()
+
+    # v0.24.2 - by dms
+    if (not config['External_MQTT_Server']):
+        config['MQTT_Host'] = getEnv('MQTT_HOST_HA')
+        config['MQTT_Pass'] = getEnv('MQTT_PASSWORD_HA')
+        config['MQTT_User'] = getEnv('MQTT_USER_HA')
+        logger.info(f"Using Internal MQTT Server: {str(config['MQTT_Host'])}")
+        logger.info(f"Using Internal MQTT User: {str(config['MQTT_User'])}")
+    else:
+        logger.info(f"Using External MQTT Server: {str(config['External_MQTT_Server'])}")
 
     if int(config['HOYMILES_PLANT_ID']) < 100:
         logger.warning(f"Wrong plant ID {config['HOYMILES_PLANT_ID']}")
