@@ -15,7 +15,6 @@ import paho.mqtt.client as mqtt
 from const import MQTT_PUB, MQTT_STATUS_CODE
 from hoymilesapi import Hoymiles
 
-
 MQTT_VERSION = mqtt.MQTTv31
 TLS_PROTOCOL_VERSION = ssl.PROTOCOL_TLSv1_2
 
@@ -26,7 +25,7 @@ class MqttApi():
     """Mqtt API main calass
     """
 
-    def __init__(self, config: dict, hoymiles: Hoymiles) -> None:
+    def __init__(self, config: dict, hoymiles: Hoymiles, version) -> None:
         self._client = None
         self._config = config
         self.logger = logging.getLogger('HoymilesAdd-on.mqttapi.Mqtt')
@@ -39,7 +38,7 @@ class MqttApi():
 
         self.status = {}
         self.status['UUID'] = self.uuid
-        self.status['version'] = hoymiles.dtu.model_no
+        self.status['version'] = version
         self.status['plant_id'] = hoymiles.plant_id
         self.status['inHass'] = True
 

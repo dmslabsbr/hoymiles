@@ -32,7 +32,10 @@ class PlantObject():
         self.sn = data['sn']  # pylint: disable=invalid-name
         self.soft_ver = data['soft_ver']
         self.hard_ver = data['hard_ver']
-        self.connect = data['warn_data']['connect']
+        if data['warn_data']['connect']:
+            self.connect = "ON"
+        else:
+            self.connect = "OFF"
         self.uuid = str(uuid.uuid1())
         self.err_code = 0
         self.err_msg = ""
@@ -73,8 +76,8 @@ class Hoymiles(object):
         self.g_envios = g_envios
         self.solar_data = {}
         self.load_cnt = 0
-        self.dtu = None
-        self.device_list = []
+        self.dtu_list = []
+        self.micro_list = []
         self.uuid = str(uuid.uuid1())
 
         cnt = 0
@@ -270,38 +273,43 @@ class Hoymiles(object):
     def get_plant_hw(self):
         """Get pland hardware layout and create objects
         """
-        status, hw_data = self.request_plant_hw()
+        status, hws_data = self.request_plant_hw()
         if int(status) == 0:
-            hw_data = hw_data[0]
-            try:
-                dtu_data = hw_data['dtu']
-                self.dtu = Dtu(dtu_data)
-            except Exception as err:
-                self.logger.error(f"request_plant_hw dtu {err}")
+            for hw_data in hws_data:
+                try:
+                    dtu_data = hw_data['dtu']
+                    self.dtu_list.append(Dtu(dtu_data))
+                except Exception as err:
+                    self.logger.error(f"request_plant_hw dtu {err}")
 
-            if 'micros' in hw_data['repeater_list'][0].keys():
-                for micro in hw_data['repeater_list'][0]['micros']:
-                    self.device_list.append(Micros(micro))
+                if 'micros' in hw_data['repeater_list'][0].keys():
+                    for micro in hw_data['repeater_list'][0]['micros']:
+                        self.micro_list.append(Micros(micro))
 
     def update_devices_status(self):
         """Update status of all plant devices
         """
-        status, hw_data = self.request_plant_hw()
+        status, hws_data = self.request_plant_hw()
         if status == 0:
-            hw_data = hw_data[0]
-            try:
-                self.dtu.connect = hw_data['dtu']['warn_data']['connect']
-            except Exception as err:
-                self.logger.error(f"request_plant_hw dtu {err}")
-
-            if 'micros' in hw_data['repeater_list'][0].keys():
-                for micro in hw_data['repeater_list'][0]['micros']:
-                    for device in self.device_list:
-                        if micro['sn'] == device.sn:
-                            if micro['warn_data']['connect']:
-                                device.connect = "ON"
+            for hw_data in hws_data:
+                for dtu in self.dtu_list:
+                    try:
+                        if hw_data['dtu']['sn'] == dtu.sn:
+                            if hw_data['dtu']['warn_data']['connect']:
+                                dtu.connect = "ON"
                             else:
-                                device.connect = "OFF"
+                                dtu.connect = "OFF"
+                    except Exception as err:
+                        self.logger.error(f"request_plant_hw dtu {err}")
+
+                if 'micros' in hw_data['repeater_list'][0].keys():
+                    for micro in hw_data['repeater_list'][0]['micros']:
+                        for device in self.micro_list:
+                            if micro['sn'] == device.sn:
+                                if micro['warn_data']['connect']:
+                                    device.connect = "ON"
+                                else:
+                                    device.connect = "OFF"
 
     def request_plant_hw(self):
         """Send request for getting hardware plant list.
@@ -375,7 +383,7 @@ class Hoymiles(object):
         header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
-        for micro in self.device_list:
+        for micro in self.micro_list:
             template = Template(PAYLOAD_DETAILS)
             payload = template.substitute(
                 mi_id=micro.id, mi_sn=micro.sn, sid=self.plant_id,

@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = 'dmslabs&Cosik'
-__version__ = '0.24'
+__version__ = '1.0'
 __app_name__ = 'Hoymiles Gateway'
 
 import json
@@ -116,20 +116,22 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                   'manufacturer': 'dmslabs',
                   'device_name': __app_name__,
                   'identifiers': SHORT_NAME + "_" + str(hoymiles_h.plant_id),
-                  'via_device': hoymiles_h.dtu.id,
+                  'via_device': hoymiles_h.plant_id,
                   'sid': SID,
                   'plant_id': str(hoymiles_h.plant_id),
                   'uniq_id': hoymiles_h.uuid},
-        'dtu': {'sw_version': hoymiles_h.dtu.soft_ver,
-                'model': hoymiles_h.dtu.model_no,
-                'manufacturer': "Hoymiles",
-                'device_name': __app_name__,
-                'identifiers': SHORT_NAME + "_" + str(hoymiles_h.dtu.id),
-                'via_device': hoymiles_h.dtu.id,
-                'sid': SID,
-                'plant_id': str(hoymiles_h.plant_id),
-                'uniq_id': hoymiles_h.dtu.uuid}}
-    for micro in hoymiles_h.device_list:
+    }
+    for dtu in hoymiles_h.dtu_list:
+        var_comuns.update({f'dtu_{dtu.id}': {'sw_version': dtu.soft_ver,
+                                    'model': dtu.model_no,
+                                    'manufacturer': "Hoymiles",
+                                    'device_name': __app_name__,
+                                    'identifiers': SHORT_NAME + "_" + str(dtu.id),
+                                    'via_device': dtu.id,
+                                    'sid': SID,
+                                    'plant_id': str(hoymiles_h.plant_id),
+                                    'uniq_id': dtu.uuid}})
+    for micro in hoymiles_h.micro_list:
         var_comuns.update({f"micro_{micro.id}": {'sw_version': micro.soft_ver,
                                                  'model': micro.init_hard_no,
                                                  'manufacturer': "Hoymiles",
@@ -189,12 +191,22 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     hoymiles_h.get_solar_data()
     json_ups = json.dumps(hoymiles_h.solar_data)
     mqtt_h.public(MQTT_PUB + "/json" +
-                  '_' + str(hoymiles_h.dtu.id), json_ups)
+                  '_' + str(hoymiles_h.plant_id), json_ups)
     mqtt_h.publicate_time = datetime.now()
     logger.info(f"Solar data publication...{datetime.now()}")
     mqtt_h.send_clients_status()
-    
-    for device in hoymiles_h.device_list:
+
+    for device in hoymiles_h.dtu_list:
+        data = {'connect': device.connect}
+        json_ups = json.dumps(data)
+        mqtt_h.public(MQTT_PUB +
+                      "/json" + '_' + str(device.id), json_ups)
+        mqtt_h.publicate_time = datetime.now()
+        logger.info(
+            f"{device.model_no}_{device.id} data publication...{datetime.now()}")
+        mqtt_h.send_clients_status()
+
+    for device in hoymiles_h.micro_list:
         data = {'connect': device.connect}
         json_ups = json.dumps(data)
         mqtt_h.public(MQTT_PUB +
@@ -280,13 +292,20 @@ def main() -> int:
         quit()
 
     hoymiles.get_plant_hw()
-    while not hoymiles.dtu.connect:
-        time.sleep(600)
+
+    dtu_status_list = []
+    for dtu in hoymiles.dtu_list:
+        dtu_status_list.append(dtu.connect)
+    while not "ON" in dtu_status_list:
+        time.sleep(GETDATA_INTERVAL)
         hoymiles.get_plant_hw()
+        dtu_status_list = []
+        for dtu in hoymiles.dtu_list:
+            dtu_status_list.append(dtu.connect)
 
     hoymiles.get_alarms()
 
-    mqtt = MqttApi(config, hoymiles)
+    mqtt = MqttApi(config, hoymiles, __version__)
     mqtt.start()
     while not mqtt.connected:
         time.sleep(1)  # wait for connection
