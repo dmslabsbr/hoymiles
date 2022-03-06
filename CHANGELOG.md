@@ -1,11 +1,5 @@
 # CHANGELOG
 
-## 1.00
-
-        - Added support for reading all devices
-        - Each device is separate MQTT decvice.
-        - Bump image to alpine3.13
-
 ## 0.24
 
         - Refactor of whole code

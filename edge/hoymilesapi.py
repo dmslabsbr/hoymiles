@@ -268,7 +268,7 @@ class Hoymiles(object):
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
 
         solar = self.send_payload(GET_DATA_API, header, payload)
-        return solar['status'], solar['data']
+        return int(solar['status']), solar['data']
 
     def get_plant_hw(self):
         """Get pland hardware layout and create objects
