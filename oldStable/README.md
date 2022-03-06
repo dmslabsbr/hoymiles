@@ -1,22 +1,14 @@
-<TABLE bORDER=0>
-<Tr>
-<Td width=30%><img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
-<CENTER>HoyMiles Solar Data Gateway Add-on</CENTER></Td>
-<Td>
-<span style="color:red;">WARNING!<BR></span>
-In nearest future will be released version 1.0. It redefine way how entities and devices are connect, so there is high risk that data collection will be from begining. To aviod it, please swith to special prepared branch <B>old_stable</B> by switching repo to https://github.com/dmslabsbr/hoymiles/tree/master/oldStable but it will not be longer devlop so will not include new features.
-</Td>
-</Tr>
-</TABLE>
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
+
 
 # HoyMiles Solar Data Gateway Add-on
-Application to read Hoymiles Gateway Solar Data using unofficial API
+Application to read Hoymiles Gateway Solar Data
 
 I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
 
-But you can use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
+But you can use the application without using the Home Assistant. You just need a machine that runs Python3.
 
 <a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
 
@@ -44,14 +36,13 @@ python3 -m venv ./hoymiles/
 source ./bin/activate
 pip3 install paho-mqtt
 pip3 install requests
-pip3 install python-dateutil
 ```
 
 My solar panels communicate with the internet using a DTU-W100 gateway.
 
 <img src="https://github.com/dmslabsbr/hoymiles/raw/master/icon.png" alt="" width="300" />
 
-But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
+But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website
 
 
 ## PS:

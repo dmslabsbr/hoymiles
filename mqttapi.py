@@ -1,5 +1,5 @@
 import logging
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt  # pip3 install paho-mqtt
 import ssl
 import time
 from datetime import datetime
