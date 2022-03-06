@@ -14,11 +14,11 @@
 
 #### c) A new card for the repository will appear.
 
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass4.png" alt="Hass.io screen Add a new repository." width="400" /> 
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/Hass4.png" alt="Hass.io screen Add a new repository." width="400" /> 
 
 #### d) Click on the repository and proceed with add-on installation.
 
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass5.png" alt="Hass.io screen Add a new repository." width="200" /> 
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/Hass5.png" alt="Hass.io screen Add a new repository." width="200" /> 
 
 #### e) Before the 1st use you must configure the add-on, in the Configuration tab. Where:
 

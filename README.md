@@ -1,10 +1,10 @@
 <TABLE bORDER=0>
 <Tr>
-<Td width=30%><img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
+<Td width=35%><img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
 <CENTER>HoyMiles Solar Data Gateway Add-on</CENTER></Td>
 <Td>
-<span style="color:red;">WARNING!<BR></span>
-In nearest future will be released version 1.0. It redefine way how entities and devices are connect, so there is high risk that data collection will be from begining. To aviod it, please swith to special prepared branch <B>old_stable</B> by switching repo to https://github.com/dmslabsbr/hoymiles/tree/master/oldStable but it will not be longer devlop so will not include new features.
+<span style="color:red;"><H3><FONT COLOR="#FF0000">WARNING!</font></H3><BR></span>
+In nearest future will be released version 1.0. It redefine way how entities and devices are connect, so there is high risk that data collection will be from begining. To aviod it, please swith to special prepared folder <B>oldStable</B> by switching repo to <a href="https://github.com/dmslabsbr/hoymiles/tree/master/oldStable">https://github.com/dmslabsbr/hoymiles/tree/master/oldStable</a> but it will not be longer devlop so will not include new features.
 </Td>
 </Tr>
 </TABLE>
@@ -13,6 +13,8 @@ In nearest future will be released version 1.0. It redefine way how entities and
 Application to read Hoymiles Gateway Solar Data using unofficial API
 
 I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
+
+Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
 
