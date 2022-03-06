@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <TABLE>
+    {% for item, valor in itens.items() -%}
+        <TR></TR>
+        <TD><b>{{ item }}:</b></TD><td>{{ valor }}</td>
+    {% endfor %}
+    </TABLE>
+{% endblock %}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<style>
+    @media (prefers-color-scheme: dark) {
+      div, body {
+        background: black;
+        color: yellow;
+      }
+    }
+    @media (prefers-color-scheme: light) {
+      div,body {
+        background: white;
+        color: green;
+      }
+    }
+  </style>
+
+<script>
+window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+    console.log(`changed to ${e.matches ? "dark" : "light"} mode`)
+});
+
+</script>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+
+    <div>Hello, World!</div>
+  </body>
+</html>
