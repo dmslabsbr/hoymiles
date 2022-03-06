@@ -23,6 +23,11 @@ export MQTT_HOST=$(bashio::services mqtt "host")
 export MQTT_USER=$(bashio::services mqtt "username")
 export MQTT_PASSWORD=$(bashio::services mqtt "password")
 
+# v.0.24.2 by dms
+export MQTT_HOST_HA=$(bashio::services mqtt "host")
+export MQTT_USER_HA=$(bashio::services mqtt "username")
+export MQTT_PASSWORD_HA=$(bashio::services mqtt "password")
+
 #export Use_kW_instead_W=$(jq --raw-output '.Use_kW_instead_W' $CONFIG_PATH)
 export DEVELOPERS_MODE=$(jq --raw-output '.DEVELOPERS_MODE' $CONFIG_PATH)
 

@@ -7,18 +7,10 @@
   "url": "https://github.com/dmslabsbr/hoymiles",
   "startup": "application",
   "boot": "auto",
-  "ports": {
-    "5000/tcp": 5000
-  },
-  "ports_description": {
-    "5000/tcp": "Simple Web Interface"
-  },
   "hassio_api": false,
   "homeassistant_api": false,
   "hassio_role": "default",
   "devicetree": false,
-  "webui": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
-  "watchdog": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
   "services": [
     "mqtt:need"
   ],
@@ -33,6 +25,7 @@
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
     "HOYMILES_PLANT_ID": "123",
     "DEVELOPERS_MODE": false,
+    "External_MQTT_Server": false,
     "MQTT_Host": "127.0.0.1",
     "MQTT_User": "nda",
     "MQTT_Pass": "nda",
@@ -44,6 +37,7 @@
     "HOYMILES_PASSWORD": "password",
     "HOYMILES_PLANT_ID": "str",
     "DEVELOPERS_MODE": "bool",
+    "External_MQTT_Server": "bool",
     "MQTT_Host": "str?",
     "MQTT_User": "str?",
     "MQTT_Pass": "password?",
