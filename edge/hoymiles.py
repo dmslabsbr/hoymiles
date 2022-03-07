@@ -179,7 +179,7 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
             logger.error("Sensor_dic error")
         ret_code = 0
         for k in sensor_dic.items():
-            # print('Componente:' + k[0])
+            #print('Componente:' + k[0] + device)
             ret_code = monta_publica_topico(
                 mqtt_h, k[0], sensor_dic[k[0]], var_comuns[device])
             if not ret_code == 0:
@@ -199,6 +199,7 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     # publica dados no MQTT  - MQTT_PUB/json
     hoymiles_h.update_devices_status()
     hoymiles_h.get_solar_data()
+    hoymiles_h.get_alarms()
     json_ups = json.dumps(hoymiles_h.solar_data)
     mqtt_h.public(MQTT_PUB + "/json" +
                   '_' + str(hoymiles_h.plant_id), json_ups)
@@ -207,8 +208,7 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     mqtt_h.send_clients_status()
 
     for device in hoymiles_h.dtu_list:
-        data = {'connect': device.connect}
-        json_ups = json.dumps(data)
+        json_ups = json.dumps(device.data)
         mqtt_h.public(MQTT_PUB +
                       "/json" + '_' + str(device.id), json_ups)
         mqtt_h.publicate_time = datetime.now()
@@ -217,8 +217,7 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
         mqtt_h.send_clients_status()
 
     for device in hoymiles_h.micro_list:
-        data = {'connect': device.connect}
-        json_ups = json.dumps(data)
+        json_ups = json.dumps(device.data)
         mqtt_h.public(MQTT_PUB +
                       "/json" + '_' + str(device.id), json_ups)
         mqtt_h.publicate_time = datetime.now()
@@ -314,13 +313,13 @@ def main() -> int:
 
     dtu_status_list = []
     for dtu in hoymiles.dtu_list:
-        dtu_status_list.append(dtu.connect)
+        dtu_status_list.append(dtu.data['connect'])
     while not "ON" in dtu_status_list:
         time.sleep(GETDATA_INTERVAL)
         hoymiles.get_plant_hw()
         dtu_status_list = []
         for dtu in hoymiles.dtu_list:
-            dtu_status_list.append(dtu.connect)
+            dtu_status_list.append(dtu.data['connect'])
 
     hoymiles.get_alarms()
 
@@ -336,10 +335,6 @@ def main() -> int:
     publicate_data(hoymiles, mqtt)
 
     mqtt.send_clients_status()
-
-    # if WEB_SERVER:  # se tiver webserver, inicia o web server
-    #     iniciaWebServer()
-    #     dl.writeJsonFile(FILE_COMM, jsonx)
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)

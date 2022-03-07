@@ -10,5 +10,30 @@
             "device_class": "",
             "icon": ""
         }
+    },
+    "sensor": {
+        "alarm_code": {
+            "name": "alarm_code",
+            "native_value": "int",
+            "state_class": "",
+            "device_class": "",
+            "icon": "mdi:alarm-light-outline",
+            "unit_of_measurement": ""
+        },
+        "alarm_string": {
+            "name": "alarm_string",
+            "native_value": "string",
+            "state_class": "",
+            "device_class": "",
+            "icon": "mdi:alarm-light-outline",
+            "unit_of_measurement": ""
+        },
+        "todos": {
+            "name": "",
+            "device_class": "",
+            "state_class": "",
+            "icon": "",
+            "unit_of_measurement": ""
+        }
     }
 }

@@ -26,6 +26,8 @@ module_logger = logging.getLogger('HoymilesAdd-on.hoymilesapi')
 class PlantObject():
     """Generic class for devices in plant
     """
+    data = {'connect': ''
+            }
 
     def __init__(self, data: dict) -> None:
         self.id = data['id']  # pylint: disable=invalid-name
@@ -33,9 +35,9 @@ class PlantObject():
         self.soft_ver = data['soft_ver']
         self.hard_ver = data['hard_ver']
         if data['warn_data']['connect']:
-            self.connect = "ON"
+            self.data['connect'] = "ON"
         else:
-            self.connect = "OFF"
+            self.data['connect'] = "ON"
         self.uuid = str(uuid.uuid1())
         self.err_code = 0
         self.err_msg = ""
@@ -53,7 +55,10 @@ class Dtu(PlantObject):
 class Micros(PlantObject):
     """Class representig Microinverter device
     """
-
+    data = {'connect': '',
+            'alarm_code': 0,
+            'alarm_string': ''
+            }
     def __init__(self, micro_data: dict) -> None:
         super(Micros, self).__init__(micro_data)
         self.init_hard_no = micro_data['init_hard_no']
@@ -296,9 +301,9 @@ class Hoymiles(object):
                     try:
                         if hw_data['dtu']['sn'] == dtu.sn:
                             if hw_data['dtu']['warn_data']['connect']:
-                                dtu.connect = "ON"
+                                dtu.data['connect'] = "ON"
                             else:
-                                dtu.connect = "OFF"
+                                dtu.data['connect'] = "OFF"
                     except Exception as err:
                         self.logger.error(f"request_plant_hw dtu {err}")
 
@@ -307,9 +312,9 @@ class Hoymiles(object):
                         for device in self.micro_list:
                             if micro['sn'] == device.sn:
                                 if micro['warn_data']['connect']:
-                                    device.connect = "ON"
+                                    device.data['connect'] = "ON"
                                 else:
-                                    device.connect = "OFF"
+                                    device.data['connect'] = "OFF"
 
     def request_plant_hw(self):
         """Send request for getting hardware plant list.
@@ -387,23 +392,19 @@ class Hoymiles(object):
             template = Template(PAYLOAD_DETAILS)
             payload = template.substitute(
                 mi_id=micro.id, mi_sn=micro.sn, sid=self.plant_id,
-                time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            payload = template.substitute(
-                mi_id=micro.id, mi_sn=micro.sn, sid=self.plant_id,
-                time="2022-02-14 17:42")
+                time=datetime.now().strftime('%Y-%m-%d %H:%M'))
             retv = self.send_payload(DATA_FIND_DETAILS, header, payload)
             if retv["data"]["warn_list"]:
-                micro.err_code = int(retv["data"]["warn_list"][0]["err_code"])
-                micro.err_msg = self.get_alarm_description(micro.err_code)
-                micro.err_msg += " " + retv["data"]["warn_list"][0]["wd1"]
-                micro.err_msg += " " + retv["data"]["warn_list"][0]["wdd2"]
-                micro.err_msg += " " + retv["data"]["warn_list"][0]["wd2"]
+                micro.data['alarm_code'] = int(retv["data"]["warn_list"][0]["err_code"])
+                micro.data['alarm_string'] = self.get_alarm_description(micro.err_code)
+                micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wd1"]
+                micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wdd2"]
+                micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wd2"]
             else:
-                micro.err_code = 0
-                micro.err_msg = ""
+                micro.data['alarm_code'] = 0
+                micro.data['alarm_string'] = ""
 
-
-    def get_alarm_description(self, code:int) -> str:
+    def get_alarm_description(self, code: int) -> str:
         """Getting alarm description based on id
 
         Args:
@@ -419,5 +420,6 @@ class Hoymiles(object):
                     if str(code) in error_set[-1]:
                         return error_set[0]
         except Exception as err:
-            self.logger.warning(f"There was a problem while opening error list {err}")
+            self.logger.warning(
+                f"There was a problem while opening error list {err}")
         return ""
