@@ -1,0 +1,47 @@
+{
+  "name": "HoyMiles Solar Data Gateway Add-on",
+  "version": "1.0",
+  "slug": "hoymiles_solardata",
+  "description": "Read Hoymiles Gateway Solar Data.",
+  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "url": "https://github.com/dmslabsbr/hoymiles",
+  "startup": "application",
+  "boot": "auto",
+  "hassio_api": false,
+  "homeassistant_api": false,
+  "hassio_role": "default",
+  "devicetree": false,
+  "services": [
+    "mqtt:need"
+  ],
+  "ingress": true,
+  "ingress_port": 5000,
+  "host_network": true,
+  "panel_icon": "mdi:solar-power",
+  "panel_title": "HoyMiles Solar Data Gateway",
+  "panel_admin": false,
+  "options": {
+    "HOYMILES_USER": "HOYMILES_USER",
+    "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
+    "HOYMILES_PLANT_ID": "123",
+    "DEVELOPERS_MODE": false,
+    "External_MQTT_Server": false,
+    "MQTT_Host": "127.0.0.1",
+    "MQTT_User": "nda",
+    "MQTT_Pass": "nda",
+    "MQTT_TLS": false,
+    "MQTT_TLS_PORT": "8883"
+  },
+  "schema": {
+    "HOYMILES_USER": "str",
+    "HOYMILES_PASSWORD": "password",
+    "HOYMILES_PLANT_ID": "str",
+    "DEVELOPERS_MODE": "bool",
+    "External_MQTT_Server": "bool",
+    "MQTT_Host": "str?",
+    "MQTT_User": "str?",
+    "MQTT_Pass": "password?",
+    "MQTT_TLS": "bool",
+    "MQTT_TLS_PORT": "port"
+  }
+}

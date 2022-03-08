@@ -1,0 +1,109 @@
+{
+    "sensor": {
+        "capacitor": {
+            "name": "capacitor",
+            "device_class": "power",
+            "icon": "mdi:solar-panel",
+            "unit_of_measurement": "W"
+        },
+        "capacitor_kW": {
+            "name": "capacitor_kW",
+            "device_class": "power",
+            "icon": "mdi:solar-panel",
+            "unit_of_measurement": "kW"
+        },
+        "co2_emission_reduction": {
+            "name": "co2_emission_reduction",
+            "icon": "mdi:molecule-co2",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "t"
+        },
+        "is_balance": {
+            "name": "is_balance",
+            "icon": "mdi:crosshairs-question"
+        },
+        "is_reflux": {
+            "name": "is_reflux",
+            "icon": "mdi:crosshairs-question"
+        },
+        "last_data_time": {
+            "device_class": "timestamp",
+            "name": "last_data_time"
+        },
+        "month_eq": {
+            "name": "month_eq",
+            "device_class": "energy",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "plant_tree": {
+            "name": "plant_tree",
+            "icon": "mdi:tree",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "Trees"
+        },
+        "real_power": {
+            "name": "real_power",
+            "icon": "mdi:solar-power",
+            "state_class": "measurement",
+            "device_class": "power",
+            "unit_of_measurement": "W"
+        },
+        "real_power_measurement": {
+            "name": "real_power_measurement",
+            "icon": "mdi:solar-power",
+            "state_class": "measurement",
+            "device_class": "energy",
+            "unit_of_measurement": "Wh"
+        },
+        "real_power_total_increasing": {
+            "name": "real_power_total_increasing",
+            "icon": "mdi:solar-power",
+            "state_class": "total",
+            "device_class": "energy",
+            "unit_of_measurement": "Wh"
+        },
+        "reflux_station_data": {
+            "name": "reflux_station_data",
+            "icon": "mdi:crosshairs-question"
+        },
+        "today_eq": {
+            "name": "today_eq",
+            "device_class": "energy",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "today_eq_Wh": {
+            "name": "today_eq_Wh",
+            "device_class": "energy",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "Wh"
+        },
+        "year_eq": {
+            "name": "year_eq",
+            "device_class": "energy",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "total_eq": {
+            "name": "total_eq",
+            "device_class": "energy",
+            "icon": "mdi:infinity",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "power_ratio": {
+            "name": "power_ratio",
+            "device_class": "power_factor",
+            "icon": "mdi:gauge-full",
+            "unit_of_measurement": "%"
+        },
+        "todos": {
+            "name": "",
+            "device_class": "",
+            "state_class": "",
+            "icon": "",
+            "unit_of_measurement": ""
+        }
+    }
+}
