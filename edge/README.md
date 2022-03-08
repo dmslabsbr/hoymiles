@@ -1,15 +1,6 @@
-<TABLE bORDER=0>
-<Tr>
-<Td width=35%><img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
-<CENTER>HoyMiles Solar Data Gateway Add-on</CENTER></Td>
-<Td>
-<span style="color:red;"><H3><FONT COLOR="#FF0000">WARNING!</font></H3><BR></span>
+# HoyMiles Solar Data Gateway Add-on Edge version
 Development versions can be unstable.
-</Td>
-</Tr>
-</TABLE>
 
-# HoyMiles Solar Data Gateway Add-on
 Application to read Hoymiles Gateway Solar Data using unofficial API
 
 I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.

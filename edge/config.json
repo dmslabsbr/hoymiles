@@ -2,7 +2,7 @@
   "name": "HoyMiles Solar Gateway Edge Addon",
   "version": "1.0",
   "slug": "hoymiles_solardata_edge",
-  "description": "Read Hoymiles Gateway Solar Data.",
+  "description": "Read Hoymiles Gateway Solar Data Edge Version.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "url": "https://github.com/dmslabsbr/hoymiles/edge",
   "startup": "application",
@@ -18,7 +18,7 @@
   "ingress_port": 5000,
   "host_network": true,
   "panel_icon": "mdi:solar-power",
-  "panel_title": "HoyMiles Solar Data Gateway",
+  "panel_title": "HoyMiles Solar Data Gateway Edge version.",
   "panel_admin": false,
   "options": {
     "HOYMILES_USER": "HOYMILES_USER",

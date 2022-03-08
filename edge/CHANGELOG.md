@@ -4,8 +4,9 @@
 
         - Added support for reading all devices
         - Each device is separate MQTT decvice.
-        - Bump image to alpine3.13
-        - Added sending alarms form inverters
+        - Bump image to alpine3.13.
+        - Added sending alarms form inverters.
+        - Added year production read.
 
 ## 0.24
 
