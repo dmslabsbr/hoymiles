@@ -10,7 +10,6 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
 
-But you can use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
 
 <a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
 
@@ -23,7 +22,21 @@ But you can use the application without using the Home Assistant. You just need 
 
 # Instructions
 
-<img align="center" src="https://github.com/dmslabsbr/smsUps/raw/master/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
+<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
+
+There is three apps versions that you can choice.
+
+1 - The Old Stable Version
+[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="Old Stable figure" width="150" />](https://github.com/dmslabsbr/hoymiles/oldStable)
+
+2 - The Edge Version
+[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="Edge figure" width="150" />](https://github.com/dmslabsbr/hoymiles/edge)
+
+3 - The Stable Version
+[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="New Stable figure" width="150" />](https://github.com/dmslabsbr/hoymiles/stable)
+
+
+You also could use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
 
 
 Before run you need to install:
