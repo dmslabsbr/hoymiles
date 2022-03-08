@@ -1,15 +1,4 @@
-<TABLE bORDER=0>
-<Tr>
-<Td width=35%><img src="https://github.com/dmslabsbr/hoymiles/raw/master/logo.png" alt="" width="200" />
-<CENTER>HoyMiles Solar Data Gateway Add-on</CENTER></Td>
-<Td>
-<span style="color:red;"><H3><FONT COLOR="#FF0000">WARNING!</font></H3><BR></span>
-In nearest future will be released version 1.0. It redefine way how entities and devices are connect, so there is high risk that data collection will be from begining. To aviod it, please swith to special prepared folder <B>oldStable</B> by switching repo to <a href="https://github.com/dmslabsbr/hoymiles/tree/master/oldStable">https://github.com/dmslabsbr/hoymiles/tree/master/oldStable</a> but it will not be longer devlop so will not include new features.
-</Td>
-</Tr>
-</TABLE>
-
-# HoyMiles Solar Data Gateway Add-on
+# HoyMiles Solar Data Gateway Add-on Edge version
 Application to read Hoymiles Gateway Solar Data using unofficial API
 
 I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
