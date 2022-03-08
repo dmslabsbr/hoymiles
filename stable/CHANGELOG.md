@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.00
+
+        - Added support for reading all devices
+        - Each device is separate MQTT decvice.
+        - Bump image to alpine3.13
+        - Added sending alarms form inverters
+
 ## 0.24
 
         - Refactor of whole code

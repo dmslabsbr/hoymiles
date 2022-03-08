@@ -4,6 +4,10 @@
 # HoyMiles Solar Data Gateway Add-on
 Application to read Hoymiles Gateway Solar Data
 
+### OLD Stable Version
+
+In near future it will be removed!
+
 I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
@@ -21,7 +25,7 @@ But you can use the application without using the Home Assistant. You just need 
 
 # Instructions
 
-<img align="center" src="https://github.com/dmslabsbr/smsUps/raw/master/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
+<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
 
 
 Before run you need to install:
@@ -40,7 +44,7 @@ pip3 install requests
 
 My solar panels communicate with the internet using a DTU-W100 gateway.
 
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/dtu.png" alt="" width="300" />
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="" width="300" />
 
 But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website
 
@@ -50,11 +54,11 @@ I invite everyone to help in the this tool development.
 
 ## Screenshots
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass1.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/oldStable/img/Hass1.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass2.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/oldStable/img/Hass2.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass3.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/oldStable/img/Hass3.png?raw=true" alt="" width="400" />
 
 
 

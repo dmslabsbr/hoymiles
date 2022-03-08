@@ -1,0 +1,15 @@
+{
+    "binary_sensor": {
+        "connect": {
+            "name": "connect",
+            "device_class": "connectivity",
+            "icon": "mdi:solar-panel"
+        },
+        "todos": {
+            "name": "",
+            "device_class": "",
+            "icon": ""
+        }
+    }
+
+}

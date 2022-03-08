@@ -1,8 +1,9 @@
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/logo.png" alt="" width="200" />
-
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/stable/logo.png" alt="" width="200" />
 
 # HoyMiles Solar Data Gateway Add-on
 Application to read Hoymiles Gateway Solar Data using unofficial API
+
+## Stable version
 
 I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
 
@@ -10,6 +11,7 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
 
+But you can use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
 
 <a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
 
@@ -22,21 +24,7 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 # Instructions
 
-<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
-
-There is three apps versions that you can choice.
-
-1 - The Old Stable Version
-[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add1.png" alt="Old Stable figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/oldStable)
-
-2 - The Edge Version
-[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add2.png" alt="Edge figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/edge)
-
-3 - The Stable Version
-[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add3.png" alt="New Stable figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/stable)
-
-
-You also could use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
+<img align="center" src="https://github.com/dmslabsbr/smsUps/raw/master/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
 
 
 Before run you need to install:
@@ -56,7 +44,7 @@ pip3 install python-dateutil
 
 My solar panels communicate with the internet using a DTU-W100 gateway.
 
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/icon.png" alt="" width="300" />
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/icon.png" alt="" width="300" />
 
 But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
 
