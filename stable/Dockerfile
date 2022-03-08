@@ -21,8 +21,6 @@ WORKDIR /data
 # other copy
 COPY *.json /
 COPY *.py /
-COPY secrets.ini /data
-COPY secrets.ini /
 #COPY *.html /
 
 COPY templates /
