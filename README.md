@@ -27,13 +27,13 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 There is three apps versions that you can choice.
 
 1 - The Old Stable Version
-[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="Old Stable figure" width="150" />](https://github.com/dmslabsbr/hoymiles/oldStable)
+[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add1.png" alt="Old Stable figure" width="150" />](https://github.com/dmslabsbr/hoymiles/oldStable)
 
 2 - The Edge Version
-[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="Edge figure" width="150" />](https://github.com/dmslabsbr/hoymiles/edge)
+[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add2.png" alt="Edge figure" width="150" />](https://github.com/dmslabsbr/hoymiles/edge)
 
 3 - The Stable Version
-[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/dtu.png" alt="New Stable figure" width="150" />](https://github.com/dmslabsbr/hoymiles/stable)
+[<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add3.png" alt="New Stable figure" width="150" />](https://github.com/dmslabsbr/hoymiles/stable)
 
 
 You also could use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
