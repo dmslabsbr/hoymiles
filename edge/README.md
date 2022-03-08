@@ -4,7 +4,7 @@
 <CENTER>HoyMiles Solar Data Gateway Add-on</CENTER></Td>
 <Td>
 <span style="color:red;"><H3><FONT COLOR="#FF0000">WARNING!</font></H3><BR></span>
-In nearest future will be released version 1.0. It redefine way how entities and devices are connect, so there is high risk that data collection will be from begining. To aviod it, please swith to special prepared folder <B>oldStable</B> by switching repo to <a href="https://github.com/dmslabsbr/hoymiles/tree/master/oldStable">https://github.com/dmslabsbr/hoymiles/tree/master/oldStable</a> but it will not be longer devlop so will not include new features.
+Development versions can be unstable.
 </Td>
 </Tr>
 </TABLE>
@@ -61,11 +61,11 @@ I invite everyone to help in the this tool development.
 
 ## Screenshots
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass1.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass1.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass2.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass2.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass3.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass3.png?raw=true" alt="" width="400" />
 
 
 

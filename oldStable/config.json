@@ -1,7 +1,7 @@
 {
   "name": "Old Stable HoyMiles Gateway",
   "version": "0.23a",
-  "slug": "hoymiles_solardata",
+  "slug": "hoymiles_solardata_old",
   "description": "Read Hoymiles Gateway Solar Data Old Stable Version.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "url": "https://github.com/dmslabsbr/hoymiles/oldStable",

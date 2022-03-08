@@ -1,10 +1,10 @@
 {
-  "name": "HoyMiles Solar Data Gateway Add-on",
+  "name": "HoyMiles Solar Gateway Edge Addon",
   "version": "1.0",
-  "slug": "hoymiles_solardata",
+  "slug": "hoymiles_solardata_edge",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
-  "url": "https://github.com/dmslabsbr/hoymiles",
+  "url": "https://github.com/dmslabsbr/hoymiles/edge",
   "startup": "application",
   "boot": "auto",
   "hassio_api": false,
