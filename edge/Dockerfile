@@ -24,6 +24,7 @@ COPY *.py /
 #COPY *.html /
 
 COPY templates /
+COPY jsons /
 
 # Copy data for add-on
 COPY run.sh /
