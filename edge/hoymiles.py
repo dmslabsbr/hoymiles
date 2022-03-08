@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = 'dmslabs&Cosik'
-__version__ = '1.0.0'
+__version__ = '1.0.2'
 __app_name__ = 'Hoymiles Gateway'
 
 import json

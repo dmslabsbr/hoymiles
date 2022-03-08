@@ -7,10 +7,10 @@ date
 CONFIG_PATH=/data/options.json
 SYSTEM_USER=/data/system_user.json
 
+ls -la
+
 mkdir -p /data/templates
 cp /*.html /data/templates
-
-ls -la /data/templates
 
 mkdir -p /data/jsons
 cp /*.json /data/jsons
@@ -31,6 +31,11 @@ else
         cp /secrets.ini /data 
     fi    
 fi
+
+bashio::log.blue "Getting mqtt data..."
+export MQTT_HOST_HA=$(bashio::services mqtt "host")
+export MQTT_USER_HA=$(bashio::services mqtt "username")
+export MQTT_PASSWORD_HA=$(bashio::services mqtt "password")
 
 export HASS_USERNAME=$(bashio::config 'username')
 bashio::log.info "${HASS_USERNAME}"
