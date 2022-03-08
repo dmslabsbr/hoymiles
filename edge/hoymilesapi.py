@@ -247,6 +247,8 @@ class Hoymiles(object):
             round(float(solar_data['today_eq']) / 1000, 2))
         solar_data['month_eq'] = str(
             round(float(solar_data['month_eq']) / 1000, 2))
+        solar_data['year_eq'] = str(
+            round(float(solar_data['year_eq']) / 1000, 2))
         solar_data['total_eq'] = str(
             round(float(solar_data['total_eq']) / 1000, 2))
 
