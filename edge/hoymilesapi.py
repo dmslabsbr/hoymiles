@@ -309,14 +309,19 @@ class Hoymiles(object):
                     except Exception as err:
                         self.logger.error(f"request_plant_hw dtu {err}")
 
-                if 'micros' in hw_data['repeater_list'][0].keys():
-                    for micro in hw_data['repeater_list'][0]['micros']:
-                        for device in self.micro_list:
-                            if micro['sn'] == device.sn:
-                                if micro['warn_data']['connect']:
-                                    device.data['connect'] = "ON"
-                                else:
-                                    device.data['connect'] = "OFF"
+                try:
+                    if 'micros' in hw_data['repeater_list'][0].keys():
+                        for micro in hw_data['repeater_list'][0]['micros']:
+                            for device in self.micro_list:
+                                if micro['sn'] == device.sn:
+                                    if micro['warn_data']['connect']:
+                                        device.data['connect'] = "ON"
+                                    else:
+                                        device.data['connect'] = "OFF"
+                except Exception as err:
+                    self.logger.warning(f"Faild updating {err}")
+                    self.logger.warning("Dump data for analysis")
+                    self.logger.warning(f"{hws_data}")
 
     def request_plant_hw(self):
         """Send request for getting hardware plant list.
