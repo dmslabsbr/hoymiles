@@ -401,15 +401,18 @@ class Hoymiles(object):
                 mi_id=micro.id, mi_sn=micro.sn, sid=self.plant_id,
                 time=datetime.now().strftime('%Y-%m-%d %H:%M'))
             retv = self.send_payload(DATA_FIND_DETAILS, header, payload)
-            if retv["data"]["warn_list"]:
-                micro.data['alarm_code'] = int(retv["data"]["warn_list"][0]["err_code"])
-                micro.data['alarm_string'] = self.get_alarm_description(micro.err_code)
-                micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wd1"]
-                micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wdd2"]
-                micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wd2"]
-            else:
-                micro.data['alarm_code'] = 0
-                micro.data['alarm_string'] = ""
+            try:
+                if retv["data"]["warn_list"]:
+                    micro.data['alarm_code'] = int(retv["data"]["warn_list"][0]["err_code"])
+                    micro.data['alarm_string'] = self.get_alarm_description(micro.err_code)
+                    micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wd1"]
+                    micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wdd2"]
+                    micro.data['alarm_string'] += " " + retv["data"]["warn_list"][0]["wd2"]
+                else:
+                    micro.data['alarm_code'] = 0
+                    micro.data['alarm_string'] = ""
+            except Exception as err:
+                self.logger.warning(f"{err}")
 
     def get_alarm_description(self, code: int) -> str:
         """Getting alarm description based on id
