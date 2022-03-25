@@ -9,13 +9,6 @@ SYSTEM_USER=/data/system_user.json
 
 ls -la
 
-mkdir -p /data/templates
-cp /*.html /data/templates
-
-mkdir -p /data/jsons
-cp /*.json /data/jsons
-cp /micro_* /data/jsons
-
 ls -la /data/jsons
 
 if [ -e "secrets.ini" ]; then
@@ -47,4 +40,4 @@ bashio::log.info "${HASS_TIMEZONE_2}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 
-python3 ../hoymiles.py
+python3 hoymiles.py

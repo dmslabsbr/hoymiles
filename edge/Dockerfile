@@ -9,6 +9,7 @@ ENV LANG C.UTF-8
 # Install requirements for add-on
 #RUN apk add --no-cache python3 py3-pip 
 
+RUN python -m pip install --upgrade pip
 RUN pip3 install paho-mqtt
 RUN pip3 install requests
 RUN pip3 install flask
@@ -19,12 +20,12 @@ RUN pip3 install python-dateutil
 WORKDIR /data
 
 # other copy
-COPY *.json /
-COPY *.py /
+COPY *.json /data/
+COPY *.py /data/
 #COPY *.html /
 
-COPY templates /
-COPY jsons /
+COPY templates/* /data/templates/
+COPY jsons /data/jsons/
 
 # Copy data for add-on
 COPY run.sh /
