@@ -25,7 +25,7 @@ COPY *.py /data/
 #COPY *.html /
 
 COPY templates/* /data/templates/
-COPY jsons /data/jsons/
+COPY jsons/* /data/jsons/
 
 # Copy data for add-on
 COPY run.sh /
