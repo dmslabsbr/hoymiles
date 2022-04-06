@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Edge Addon",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "slug": "hoymiles_solardata_edge",
   "description": "Read Hoymiles Gateway Solar Data Edge Version.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -30,7 +30,9 @@
     "MQTT_User": "Automatically obtained from Home Assistant - Change here if you use another server",
     "MQTT_Pass": "Automatically obtained from Home Assistant - Change here if you use another server",
     "MQTT_TLS": false,
-    "MQTT_TLS_PORT": "8883"
+    "MQTT_TLS_PORT": "8883",
+    "LOG_TO_FILE": false,
+    "FILE_PATH": "hoymiles.log"
   },
   "schema": {
     "HOYMILES_USER": "str",
@@ -42,6 +44,8 @@
     "MQTT_User": "str?",
     "MQTT_Pass": "password?",
     "MQTT_TLS": "bool",
-    "MQTT_TLS_PORT": "port"
+    "MQTT_TLS_PORT": "port",
+    "LOG_TO_FILE": "bool",
+    "FILE_PATH": "str?"
   }
 }

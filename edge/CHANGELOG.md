@@ -9,6 +9,7 @@
         - Added year production read.
         - Added real power in kW.
         - Removed duplicated commands during build docker image.
+        - Added logging to file.
 
 ## 0.24
 
