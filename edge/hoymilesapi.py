@@ -235,6 +235,7 @@ class Hoymiles(object):
             self.logger.warning("real_power = 0")
 
         solar_data['real_power'] = str(real_power)
+        solar_data['real_power_kw'] = str(round(real_power/1000, 3))
         solar_data['real_power_measurement'] = str(real_power)
         solar_data['real_power_total_increasing'] = str(real_power)
         solar_data['power_ratio'] = str(power_ratio)
