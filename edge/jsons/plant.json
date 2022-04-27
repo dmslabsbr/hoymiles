@@ -49,6 +49,13 @@
             "device_class": "power",
             "unit_of_measurement": "W"
         },
+        "real_power_kw":{
+            "name":"real_power_kw",
+            "icon":"mdi:solar-power",
+            "state_class":"measurement",
+            "device_class":"power",
+            "unit_of_measurement":"kW"
+         },
         "real_power_measurement": {
             "name": "real_power_measurement",
             "icon": "mdi:solar-power",

@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = 'dmslabs&Cosik'
-__version__ = '1.0.4'
+__version__ = '1.0.7'
 __app_name__ = 'Hoymiles Gateway'
 
 import json
@@ -285,6 +285,13 @@ def main() -> int:
                 'load_time': datetime.today().strftime('%Y-%m-%d %H:%M:%S')}
 
     config = get_secrets()
+
+    if config['LOG_TO_FILE']:
+        fh = logging.FileHandler(config['FILE_PATH'])
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
 
     if (not config['External_MQTT_Server']):
         config['MQTT_Host'] = getEnv('MQTT_HOST_HA')

@@ -7,6 +7,9 @@
         - Bump image to alpine3.13.
         - Added sending alarms form inverters.
         - Added year production read.
+        - Added real power in kW.
+        - Removed duplicated commands during build docker image.
+        - Added logging to file.
 
 ## 0.24
 
