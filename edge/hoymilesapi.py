@@ -177,17 +177,21 @@ class Hoymiles(object):
         sess = requests.Session()
         prepped = req.prepare()
         self.logger.debug(prepped.headers)
-        response = sess.send(prepped)
-        ret = ""
-        if response.status_code != 200:
-            self.logger.error(f"Access error: {url}")
-            self.logger.error(
-                f"Status code: {response.status_code}" +
-                f"{HTTP_STATUS_CODE.get(response.status_code, 1000)}")
-        else:
-            ret = response.content
-            self.logger.debug(f"content: {response.content}")
-        return ret, response.status_code
+        try:
+            response = sess.send(prepped)
+            ret = ""
+            if response.status_code != 200:
+                self.logger.error(f"Access error: {url}")
+                self.logger.error(
+                    f"Status code: {response.status_code}" +
+                    f"{HTTP_STATUS_CODE.get(response.status_code, 1000)}")
+            else:
+                ret = response.content
+                self.logger.debug(f"content: {response.content}")
+            return ret, response.status_code
+        except Exception as err:
+            self.logger.error(err)
+            return "", -1
 
     def get_solar_data(self) -> dict:
         """Get solar data

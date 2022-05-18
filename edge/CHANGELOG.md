@@ -10,6 +10,7 @@
         - Added real power in kW.
         - Removed duplicated commands during build docker image.
         - Added logging to file.
+        - Added some additional error handling.
 
 ## 0.24
 
