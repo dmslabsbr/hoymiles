@@ -191,7 +191,7 @@ class Hoymiles(object):
             return ret, response.status_code
         except Exception as err:
             self.logger.error(err)
-            return "", -1
+            return {}, -1
 
     def get_solar_data(self) -> dict:
         """Get solar data
@@ -280,7 +280,9 @@ class Hoymiles(object):
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
 
         solar = self.send_payload(GET_DATA_API, header, payload)
-        return int(solar['status']), solar['data']
+        if 'status' in solar.keys():
+            return int(solar['status']), solar['data']
+        return -1, {}
 
     def get_plant_hw(self):
         """Get pland hardware layout and create objects
@@ -341,7 +343,9 @@ class Hoymiles(object):
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(GET_ALL_DEVICE_API, header, payload)
-        return retv['status'], retv['data']
+        if 'status' in retv.keys():
+            return retv['status'], retv['data']
+        return "-1", {}
 
     def send_payload(self, api: str, header: dict, payload: str) -> dict:
         """Send api payload
@@ -357,8 +361,8 @@ class Hoymiles(object):
         # retv = self.pega_url_json_dic(BASE_URL + api, header, payload)
         retv, s_code = self.send_request(
             BASE_URL + api, header, payload, 'POST')
-        retv = json.loads(retv)
         if s_code == 200:
+            retv = json.loads(retv)
             if 'status' in retv.keys():
                 if retv['status'] != "0":
                     self.logger.debug(
@@ -388,7 +392,7 @@ class Hoymiles(object):
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(STATION_FIND, header, payload)
-        if retv['status'] == '0':
+        if 'status' in retv.keys() and retv['status'] == '0':
             return True
 
         return False
