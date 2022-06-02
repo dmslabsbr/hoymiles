@@ -46,4 +46,4 @@ bashio::log.info "${HASS_TIMEZONE_2}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 
-python3 ../hoymiles.py
+python3 hoymiles.py
