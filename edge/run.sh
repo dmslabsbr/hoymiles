@@ -9,6 +9,13 @@ SYSTEM_USER=/data/system_user.json
 
 ls -la
 
+mkdir -p /data/templates
+cp /*.html /data/templates
+
+mkdir -p /data/jsons
+cp /*.json /data/jsons
+cp /micro_* /data/jsons
+
 ls -la /data/jsons
 
 if [ -e "secrets.ini" ]; then

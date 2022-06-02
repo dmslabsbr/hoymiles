@@ -19,12 +19,14 @@ RUN pip3 install python-dateutil
 WORKDIR /data
 
 # other copy
-COPY *.json /
-COPY *.py /
+COPY *.json /data/
+COPY *.py /data/
 #COPY *.html /
 
 COPY templates /
 COPY jsons /
+COPY templates/* /data/templates/
+COPY jsons/* /data/jsons/
 
 # Copy data for add-on
 COPY run.sh /
