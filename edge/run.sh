@@ -10,7 +10,6 @@ SYSTEM_USER=/data/system_user.json
 ls -la
 
 mkdir -p /data/templates
-cp /*.html /data/templates
 
 mkdir -p /data/jsons
 cp /*.json /data/jsons
