@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Addon",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
