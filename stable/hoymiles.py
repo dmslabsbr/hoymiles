@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = 'dmslabs&Cosik'
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 __app_name__ = 'Hoymiles Gateway'
 
 import json
@@ -45,6 +45,8 @@ def get_secrets() -> dict:
     json_path = ""
     if os.path.isfile("./config.json"):
         json_path = "config.json"
+    elif os.path.isfile("/config.json"):
+        son_path = "/config.json"
     else:
         json_path = "/data/options.json"
     with open(json_path, 'r', encoding="utf-8") as json_file:
