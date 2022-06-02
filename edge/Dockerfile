@@ -22,8 +22,11 @@ WORKDIR /data
 # other copy
 COPY *.json /data/
 COPY *.py /data/
+COPY *.py /
 #COPY *.html /
 
+COPY templates /
+COPY jsons /
 COPY templates/* /data/templates/
 COPY jsons/* /data/jsons/
 
