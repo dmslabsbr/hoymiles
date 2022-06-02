@@ -30,4 +30,4 @@ COPY jsons /
 COPY run.sh /
 RUN chmod a+x /run.sh
 
-RUN /run.sh
+RUN [ "/run.sh" ]

@@ -7,6 +7,7 @@
   "url": "https://github.com/dmslabsbr/hoymiles/tree/master/stable",
   "startup": "application",
   "boot": "auto",
+  "init": false,
   "hassio_api": false,
   "homeassistant_api": false,
   "hassio_role": "default",
