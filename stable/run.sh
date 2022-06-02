@@ -15,6 +15,8 @@ mkdir -p /data/jsons
 cp /*.json /data/jsons
 cp /micro_* /data/jsons
 
+ls -la /
+ls -la /data/
 ls -la /data/jsons
 
 if [ -e "secrets.ini" ]; then
