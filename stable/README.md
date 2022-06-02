@@ -5,7 +5,7 @@ Application to read Hoymiles Gateway Solar Data using unofficial API
 
 ## Stable version
 
-I developed this program to integrade my solar system data to the [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
+I developed this program to integrate my solar system data to [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
 
 Now, [Cosik](https://github.com/Cosik)  is helping too.
 
