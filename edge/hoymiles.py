@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = 'dmslabs&Cosik'
-__version__ = '1.0.11'
+__version__ = '1.0.12'
 __app_name__ = 'Hoymiles Gateway'
 
 import json
@@ -307,66 +307,75 @@ def main() -> int:
     else:
         logger.info(f"Using External MQTT Server: {str(config['External_MQTT_Server'])}")
 
-    if int(config['HOYMILES_PLANT_ID']) < 100:
-        logger.warning(f"Wrong plant ID {config['HOYMILES_PLANT_ID']}")
+    plant_list = {}
+    mqtt_list = {}
+    for id in config['HOYMILES_PLANT_ID'].split(','):
+        id = id.strip()
+        if int(id) < 100:
+            logger.warning(f"Wrong plant ID {id}")
 
-    hoymiles = Hoymiles(plant_id=int(
-        config['HOYMILES_PLANT_ID']), config=config, g_envios=g_envios)
+        plant_list[id] = Hoymiles(plant_id=int(id), config=config, g_envios=g_envios)
 
-    if hoymiles.token == '':
-        logger.error("I can't get access token")
-        quit()
+        if plant_list[id].connection.token == '':
+            logger.error("I can't get access token")
+            quit()
 
-    if not hoymiles.verify_plant():
-        logger.error("User has no access to plant")
-        quit()
+        if not plant_list[id].verify_plant():
+            logger.error("User has no access to plant")
+            quit()
 
-    hoymiles.get_plant_hw()
+        plant_list[id].get_plant_hw()
 
-    dtu_status_list = []
-    for dtu in hoymiles.dtu_list:
-        dtu_status_list.append(dtu.data['connect'])
-    while not "ON" in dtu_status_list:
-        time.sleep(GETDATA_INTERVAL)
-        hoymiles.get_plant_hw()
         dtu_status_list = []
-        for dtu in hoymiles.dtu_list:
+        for dtu in plant_list[id].dtu_list:
             dtu_status_list.append(dtu.data['connect'])
+        while not "ON" in dtu_status_list:
+            time.sleep(GETDATA_INTERVAL)
+            plant_list[id].get_plant_hw()
+            dtu_status_list = []
+            for dtu in plant_list[id].dtu_list:
+                dtu_status_list.append(dtu.data['connect'])
 
-    hoymiles.get_alarms()
+        plant_list[id].get_alarms()
 
-    mqtt = MqttApi(config, hoymiles, __version__)
-    mqtt.start()
-    while not mqtt.connected:
-        time.sleep(1)  # wait for connection
-        if not mqtt.client_status:
-            time.sleep(240)
+        mqtt_list[id] = MqttApi(config, plant_list[id], __version__)
+        mqtt_list[id].start()
+        while not mqtt_list[id].connected:
+            time.sleep(1)  # wait for connection
+            if not mqtt_list[id].client_status:
+                time.sleep(240)
 
-    send_hass(hoymiles, mqtt)
+        send_hass(plant_list[id], mqtt_list[id])
 
-    publicate_data(hoymiles, mqtt)
+        publicate_data(plant_list[id], mqtt_list[id])
 
-    mqtt.send_clients_status()
+        mqtt_list[id].send_clients_status()
 
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-    job_send_hass = Job(interval=timedelta(seconds=HASS_INTERVAL),
-                        execute=send_hass, hoymiles_h=hoymiles, mqtt_h=mqtt)
-    job_send_hass.start()
-    job_publica_dados = Job(interval=timedelta(
-        seconds=GETDATA_INTERVAL), execute=publicate_data, hoymiles_h=hoymiles, mqtt_h=mqtt)
-    job_publica_dados.start()
+        job_list = []
+
+        signal.signal(signal.SIGTERM, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
+        job_list.append(Job(interval=timedelta(seconds=HASS_INTERVAL),
+                            execute=send_hass, hoymiles_h=plant_list[id], mqtt_h=mqtt_list[id]))
+        
+        job_list.append(Job(interval=timedelta(
+            seconds=GETDATA_INTERVAL), execute=publicate_data, hoymiles_h=plant_list[id], mqtt_h=mqtt_list[id]))
+
+
+    for job in job_list:
+        job.start
 
     logger.info("Main loop start!")
     while True:
-        if not mqtt.connected:
-            sys.exit()
+        for mqtt in mqtt_list.values():
+            if not mqtt.connected:
+                sys.exit()
         try:
             time.sleep(10)
         except ProgramKilled:
             logger.info("Program killed: running cleanup code")
-            job_send_hass.stop()
-            job_publica_dados.stop()
+            for job in job_list:
+                job.stop
             break
 
     return 0
