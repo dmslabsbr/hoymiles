@@ -22,6 +22,23 @@ from const import (BASE_URL, COOKIE_EGG_SESS, COOKIE_UID, GET_ALL_DEVICE_API,
 
 module_logger = logging.getLogger('HoymilesAdd-on.hoymilesapi')
 
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+        Possible changes to the value of the `__init__` argument do not affect
+        the returned instance.
+        """
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class ConnectionHM(metaclass=SingletonMeta):
+    token = None
+
 
 class PlantObject():
     """Generic class for devices in plant
@@ -73,7 +90,7 @@ class Hoymiles(object):
 
     def __init__(self, plant_id, config, g_envios, tries=5) -> None:
         self.plant_id = plant_id
-        self.token = None
+        self.connection = ConnectionHM()
         self._tries = tries
         self.logger = logging.getLogger('HoymilesAdd-on.hoymilesapi.Hoymiles')
         self.count_station_real_data = {}
@@ -117,17 +134,17 @@ class Hoymiles(object):
         if s_code == 200:
             json_res = json.loads(login)
             if json_res['status'] == '0':
-                self.token = json_res['data']['token']
+                self.connection.token = json_res['data']['token']
                 ret = True
                 self.logger.info('I got the token!!  :-)')
-                if not self.token:
+                if not self.connection.token:
                     self.logger.error('No response')
                     ret = False
             elif json_res['status'] == '1':
-                self.token = ''
+                self.connection.token = ''
                 self.logger.error('Wrong user/password')
         else:
-            self.token = ''
+            self.connection.token = ''
             self.logger.error(
                 f'Wrong user/password {s_code} {HTTP_STATUS_CODE.get(s_code, 1000)}')
         return ret
@@ -275,7 +292,7 @@ class Hoymiles(object):
         payload = template.substitute(sid=self.plant_id)
 
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
 
@@ -339,7 +356,7 @@ class Hoymiles(object):
         template = Template(PAYLOAD_ID)
         payload = template.substitute(id=self.plant_id)
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(GET_ALL_DEVICE_API, header, payload)
@@ -388,7 +405,7 @@ class Hoymiles(object):
         template = Template(PAYLOAD_ID)
         payload = template.substitute(id=self.plant_id)
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(STATION_FIND, header, payload)
@@ -401,7 +418,7 @@ class Hoymiles(object):
         """_summary_
         """
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         for micro in self.micro_list:
