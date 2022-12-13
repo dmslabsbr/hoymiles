@@ -62,8 +62,11 @@ def get_secrets() -> dict:
         config = json.load(json_file)
         if "options" in config.keys():
             config = config["options"]
-    if config["DEVELOPERS_MODE"]:
-        logger.setLevel(logging.DEBUG)
+            log_level = config["LOG_LEVEL"]
+            if log_level in ['DEBUG','INFO','WARNING','ERROR','CRITICAL','NOTSET']:
+                logger.setLevel(log_level)
+            if config["DEVELOPERS_MODE"]:
+                logger.setLevel(logging.DEBUG)
     return config
 
 
