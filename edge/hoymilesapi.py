@@ -240,6 +240,8 @@ class Hoymiles(object):
     def adjust_solar_data(self, solar_data: dict) -> dict:
         """Adjust solar data like unifed measurements units
 
+        Rename keys: capacitor to array_size and capacitor_kW to array_size_kW
+
         Args:
             solar_data (dict): data retrun from API
 
@@ -260,8 +262,9 @@ class Hoymiles(object):
         solar_data['real_power_measurement'] = str(real_power)
         solar_data['real_power_total_increasing'] = str(real_power)
         solar_data['power_ratio'] = str(power_ratio)
-        solar_data['capacitor'] = str(capacidade)
-        solar_data['capacitor_kW'] = str(capacidade / 1000)
+        solar_data['array_size'] = str(capacidade)
+        solar_data['array_size_kW'] = str(capacidade / 1000)
+        del solar_data['capacitor']
         co2 = round(float(solar_data['co2_emission_reduction']) / 1000000, 5)
         solar_data['co2_emission_reduction'] = str(co2)
         solar_data['today_eq_Wh'] = solar_data['today_eq']
