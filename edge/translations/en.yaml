@@ -1,0 +1,46 @@
+---
+configuration:
+  HOYMILES_USER:
+    name: HOYMILES_USER
+    description: >-
+      S-Miles Cloud login username.
+  HOYMILES_PASSWORD:
+    name: HOYMILES_PASSWORD
+    description: >-
+      S-Miles Cloud login password.
+  HOYMILES_PLANT_ID:
+    name: HOYMILES_PLANT_ID
+    description: >-
+      S-Miles Cloud plant ID.  Multiple plants allowed, separated by ','
+  External_MQTT_Server:
+    name: External_MQTT_Server
+    description: >-
+      Select to use an external MQTT Server.  
+  MQTT_Host:
+    name: MQTT_Host
+    description: >-
+      Required if using an external MQTT Server.
+  MQTT_User:
+    name: MQTT_User
+    description: >-
+      Required if using an external MQTT Server.
+  MQTT_Pass:
+    name: MQTT_Pass
+    description: >-
+      Required if using an external MQTT Server.
+  DEVELOPERS_MODE:
+    name: Developer's Mode
+    description: >-
+      Set logging level to DEBUG.
+  LOG_LEVEL:
+    name: LOG_LEVEL
+    description: >-
+      Must be one of DEBUG, INFO, WARNING, ERROR, or CRITICAL
+  LOG_TO_FILE:
+    name: LOG_TO_FILE
+    description: >-
+      Enable logging to file.
+  FILE_PATH:
+    name: FILE_PATH
+    description : >-
+      File name to use for logging to file.
