@@ -238,19 +238,22 @@ class Hoymiles(object):
         return self.solar_data
 
     def adjust_solar_data(self, solar_data: dict) -> dict:
-        """Adjust solar data like unifed measurements units
+        """Adjust solar data like unifed measurements units.
+
+        Rename key: capacitor to array_size.  solar_data['capacitor':''] from
+        Hoymiles holds PV array size in watts.
 
         Args:
-            solar_data (dict): data retrun from API
+            solar_data (dict): data returned from API
 
         Returns:
             dict: adjusted solar data
         """
         real_power = float(solar_data['real_power'])
-        capacidade = float(solar_data['capacitor'])
-        if 0 < capacidade < 100:
-            capacidade = capacidade * 1000
-        power_ratio = (real_power / capacidade) * 100
+        array_size = float(solar_data['capacitor'])
+        if 0 < array_size < 100:
+            array_size = array_size * 1000
+        power_ratio = (real_power / array_size) * 100
         power_ratio = round(power_ratio, 1)
         if real_power == 0:
             self.logger.warning("real_power = 0")
@@ -260,8 +263,9 @@ class Hoymiles(object):
         solar_data['real_power_measurement'] = str(real_power)
         solar_data['real_power_total_increasing'] = str(real_power)
         solar_data['power_ratio'] = str(power_ratio)
-        solar_data['capacitor'] = str(capacidade)
-        solar_data['capacitor_kW'] = str(capacidade / 1000)
+        solar_data['array_size'] = str(array_size)
+        solar_data['array_size_kW'] = str(array_size / 1000)
+        del solar_data['capacitor']
         co2 = round(float(solar_data['co2_emission_reduction']) / 1000000, 5)
         solar_data['co2_emission_reduction'] = str(co2)
         solar_data['today_eq_Wh'] = solar_data['today_eq']

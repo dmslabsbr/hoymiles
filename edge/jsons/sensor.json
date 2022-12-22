@@ -1,12 +1,12 @@
 {
-   "capacitor":{
-      "name":"capacitor",
+   "array_size":{
+      "name":"array_size",
       "device_class":"power",
       "icon":"mdi:solar-panel",
       "unit_of_measurement":"W"
    },
-   "capacitor_kW":{
-      "name":"capacitor_kW",
+   "array_size_kW":{
+      "name":"array_size_kW",
       "device_class":"power",
       "icon":"mdi:solar-panel",
       "unit_of_measurement":"kW"
