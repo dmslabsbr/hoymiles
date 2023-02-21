@@ -22,7 +22,7 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 # Instructions
 
-<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](DOCS.md)
+<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](stable/DOCS.md)
 
 There is three apps versions that you can choice.
 
