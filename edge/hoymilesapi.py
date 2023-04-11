@@ -364,8 +364,10 @@ class Hoymiles(object):
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(GET_ALL_DEVICE_API, header, payload)
-        if 'status' in retv.keys():
-            return retv['status'], retv['data']
+
+        if type(retv) is dict:
+            if 'status' in retv.keys():
+                return retv['status'], retv['data']
         return "-1", {}
 
     def send_payload(self, api: str, header: dict, payload: str) -> dict:
