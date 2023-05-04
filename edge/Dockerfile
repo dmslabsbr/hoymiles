@@ -9,11 +9,11 @@ ENV LANG C.UTF-8
 # Install requirements for add-on
 #RUN apk add --no-cache python3 py3-pip 
 
+RUN echo addgroup -g 1000 group &&\
+    echo adduser -D -u 1000 -G group user
+
 RUN python -m pip install --upgrade pip
-RUN pip3 install paho-mqtt
-RUN pip3 install requests
-RUN pip3 install flask
-RUN pip3 install python-dateutil
+RUN pip3 install paho-mqtt requests flask python-dateutil
 
 # Python 3 HTTP Server serves the current working dir
 # So let's set it to our add-on persistent data directory.
@@ -32,6 +32,7 @@ COPY jsons/* /data/jsons/
 
 # Copy data for add-on
 COPY run.sh /
-RUN chmod a+x /run.sh
+RUN chown -R 1000 /data && chmod a+x /run.sh
 
+USER 1000
 CMD [ "/run.sh" ]
