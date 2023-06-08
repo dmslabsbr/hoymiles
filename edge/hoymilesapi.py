@@ -385,21 +385,25 @@ class Hoymiles(object):
         retv, s_code = self.send_request(
             BASE_URL + api, header, payload, 'POST')
         if s_code == 200:
-            retv = json.loads(retv)
-            if 'status' in retv.keys():
-                if retv['status'] != "0":
-                    self.logger.debug(
-                        f"{api} Error: {retv['status']} {retv['message']}")
-                    if retv['status'] == "100":
-                        # request new token
-                        if self.get_token():
-                            # chama pega solar novamente
-                            retv['status'], retv['data'] = self.request_solar_data()
-                    elif retv['status'] == "3":
-                        self.logger.error("Wrong plant id!!")
-                        sys.exit(0)
-            else:
-                self.logger.error("I can't connect!")
+            try:
+                retv = json.loads(retv)
+                if 'status' in retv.keys():
+                    if retv['status'] != "0":
+                        self.logger.debug(
+                            f"{api} Error: {retv['status']} {retv['message']}")
+                        if retv['status'] == "100":
+                            # request new token
+                            if self.get_token():
+                                # chama pega solar novamente
+                                retv['status'], retv['data'] = self.request_solar_data()
+                        elif retv['status'] == "3":
+                            self.logger.error("Wrong plant id!!")
+                            sys.exit(0)
+                else:
+                    self.logger.error("I can't connect!")
+            except Exception as err:
+                self.logger.error(f"There was an error in retv {retv}")
+                return {}
         return retv
 
     def verify_plant(self) -> bool:
