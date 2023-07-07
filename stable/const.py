@@ -104,7 +104,7 @@ BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
 LOGIN_API = "iam/auth_login"
 USER_ME = "iam/user_me"
 GET_DATA_API = "pvm-data/data_count_station_real_data"
-GET_ALL_DEVICE_API = "pvm/station_select_device_of_tree"
+GET_ALL_DEVICE_API = "pvm/station_select_device_all"
 STATION_FIND = "pvm/station_find"
 DATA_FIND_DETAILS = "pvm-data/data_find_details"
 

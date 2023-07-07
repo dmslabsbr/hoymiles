@@ -61,7 +61,7 @@ class Micros(PlantObject):
             }
     def __init__(self, micro_data: dict) -> None:
         super(Micros, self).__init__(micro_data)
-        self.init_hard_no = micro_data['model_no']
+        self.init_hard_no = micro_data['init_hard_no']
 
 
 class Hoymiles(object):
@@ -284,12 +284,12 @@ class Hoymiles(object):
         if int(status) == 0:
             for hw_data in hws_data:
                 try:
-                    dtu_data = hw_data
+                    dtu_data = hw_data['dtu']
                     self.dtu_list.append(Dtu(dtu_data))
                 except Exception as err:
                     self.logger.error(f"request_plant_hw dtu {err}")
-                if 'children' in hw_data.keys():
-                    for micro in hw_data['children']:
+                if 'micros' in hw_data['repeater_list'][0].keys():
+                    for micro in hw_data['repeater_list'][0]['micros']:
                         self.micro_list.append(Micros(micro))
 
     def update_devices_status(self):
