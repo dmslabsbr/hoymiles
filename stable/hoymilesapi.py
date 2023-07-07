@@ -288,6 +288,7 @@ class Hoymiles(object):
                     self.dtu_list.append(Dtu(dtu_data))
                 except Exception as err:
                     self.logger.error(f"request_plant_hw dtu {err}")
+
                 if 'micros' in hw_data['repeater_list'][0].keys():
                     for micro in hw_data['repeater_list'][0]['micros']:
                         self.micro_list.append(Micros(micro))
