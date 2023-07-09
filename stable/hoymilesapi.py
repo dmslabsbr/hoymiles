@@ -61,7 +61,7 @@ class Micros(PlantObject):
             }
     def __init__(self, micro_data: dict) -> None:
         super(Micros, self).__init__(micro_data)
-        self.init_hard_no = micro_data['init_hard_no']
+        self.init_hard_no = micro_data['model_no']
 
 
 class Hoymiles(object):
@@ -284,13 +284,13 @@ class Hoymiles(object):
         if int(status) == 0:
             for hw_data in hws_data:
                 try:
-                    dtu_data = hw_data['dtu']
+                    dtu_data = hw_data
                     self.dtu_list.append(Dtu(dtu_data))
                 except Exception as err:
                     self.logger.error(f"request_plant_hw dtu {err}")
 
-                if 'micros' in hw_data['repeater_list'][0].keys():
-                    for micro in hw_data['repeater_list'][0]['micros']:
+                if 'children' in hw_data.keys():
+                    for micro in hw_data['children']:
                         self.micro_list.append(Micros(micro))
 
     def update_devices_status(self):
@@ -301,16 +301,16 @@ class Hoymiles(object):
             for hw_data in hws_data:
                 for dtu in self.dtu_list:
                     try:
-                        if hw_data['dtu']['sn'] == dtu.sn:
-                            if hw_data['dtu']['warn_data']['connect']:
+                        if hw_data['sn'] == dtu.sn:
+                            if hw_data['warn_data']['connect']:
                                 dtu.data['connect'] = "ON"
                             else:
                                 dtu.data['connect'] = "OFF"
                     except Exception as err:
                         self.logger.error(f"request_plant_hw dtu {err}")
                 try:
-                    if 'micros' in hw_data['repeater_list'][0].keys():
-                        for micro in hw_data['repeater_list'][0]['micros']:
+                    if 'children' in hw_data.keys():
+                        for micro in hw_data['children']:
                             for device in self.micro_list:
                                 if micro['sn'] == device.sn:
                                     if micro['warn_data']['connect']:
