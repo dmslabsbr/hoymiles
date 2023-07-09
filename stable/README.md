@@ -1,9 +1,7 @@
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/stable/logo.png" alt="" width="200" />
+# HoyMiles Solar Data Gateway Add-on Edge version
+Development versions can be unstable.
 
-# HoyMiles Solar Data Gateway Add-on
 Application to read Hoymiles Gateway Solar Data using unofficial API
-
-## Stable version
 
 I developed this program to integrate my solar system data to [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
 
@@ -54,11 +52,11 @@ I invite everyone to help in the this tool development.
 
 ## Screenshots
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass1.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass1.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass2.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass2.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/img/Hass3.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass3.png?raw=true" alt="" width="400" />
 
 
 

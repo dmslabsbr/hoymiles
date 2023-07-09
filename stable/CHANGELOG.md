@@ -1,11 +1,21 @@
 # CHANGELOG
 
+## 1.1
+
+        - Release edge
+
 ## 1.00
 
         - Added support for reading all devices
         - Each device is separate MQTT decvice.
-        - Bump image to alpine3.13
-        - Added sending alarms form inverters
+        - Bump image to alpine3.13.
+        - Added sending alarms form inverters.
+        - Added year production read.
+        - Added real power in kW.
+        - Removed duplicated commands during build docker image.
+        - Added logging to file.
+        - Added some additional error handling.
+        - Added support for multi plants.
 
 ## 0.24
 

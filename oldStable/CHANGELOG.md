@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 1.00
+
+        - Added support for reading all devices
+        - Each device is separate MQTT decvice.
+        - Bump image to alpine3.13
+        - Added sending alarms form inverters
+
+## 0.24
+
+        - Refactor of whole code
+        - Optimization of whole flow.
+        - webserver is disabled
+        - switch to read config from json
+        - changed sensor reset date to the begining of next day
+
 ## 0.23
 
         - Correct "Missing default value for External_MQTT_TLS bug' - issue #44

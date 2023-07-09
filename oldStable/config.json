@@ -1,24 +1,17 @@
 {
-  "name": "Old Stable HoyMiles Gateway",
-  "version": "0.23a",
-  "slug": "hoymiles_solardata_old",
-  "description": "Read Hoymiles Gateway Solar Data Old Stable Version.",
+  "name": "HoyMiles Solar Gateway Addon",
+  "version": "1.0.8",
+  "slug": "hoymiles_solardata",
+  "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
-  "url": "https://github.com/dmslabsbr/hoymiles/tree/master/oldStable",
+  "url": "https://github.com/dmslabsbr/hoymiles/tree/master/stable",
   "startup": "application",
   "boot": "auto",
-  "ports": {
-    "5000/tcp": 5000
-  },
-  "ports_description": {
-    "5000/tcp": "Simple Web Interface"
-  },
+  "init": false,
   "hassio_api": false,
   "homeassistant_api": false,
   "hassio_role": "default",
   "devicetree": false,
-  "webui": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
-  "watchdog": "[PROTO:use_ssl]://[HOST]:[PORT:5000]/",
   "services": [
     "mqtt:need"
   ],
@@ -31,14 +24,14 @@
   "options": {
     "HOYMILES_USER": "HOYMILES_USER",
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
-    "HOYMILES_PLANT_ID": "01",
+    "HOYMILES_PLANT_ID": "123",
     "DEVELOPERS_MODE": false,
     "External_MQTT_Server": false,
-    "External_MQTT_Host": "127.0.0.1",
-    "External_MQTT_User": "nda",
-    "External_MQTT_Pass": "nda",
-    "External_MQTT_TLS": false,
-    "External_MQTT_TLS_PORT": "8883"
+    "MQTT_Host": "Internal - Change here if you use another server",
+    "MQTT_User": "Automatically obtained from Home Assistant - Change here if you use another server",
+    "MQTT_Pass": "Automatically obtained from Home Assistant - Change here if you use another server",
+    "MQTT_TLS": false,
+    "MQTT_TLS_PORT": "8883"
   },
   "schema": {
     "HOYMILES_USER": "str",
@@ -46,10 +39,10 @@
     "HOYMILES_PLANT_ID": "str",
     "DEVELOPERS_MODE": "bool",
     "External_MQTT_Server": "bool",
-    "External_MQTT_Host": "str?",
-    "External_MQTT_User": "str?",
-    "External_MQTT_Pass": "password?",
-    "External_MQTT_TLS": "bool",
-    "External_MQTT_TLS_PORT": "port"
+    "MQTT_Host": "str?",
+    "MQTT_User": "str?",
+    "MQTT_Pass": "password?",
+    "MQTT_TLS": "bool",
+    "MQTT_TLS_PORT": "port"
   }
 }

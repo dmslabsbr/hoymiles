@@ -1,7 +1,5 @@
 # <img align="center" src="https://github.com/dmslabsbr/smsUps/raw/master/img/hass.io.png" alt="" width="60" />  HoyMiles Solar Data Gateway Add-on instructions. 
 
-# OLD STABLE VERSION
-
 ## 1 - Add a new repository
 
 #### a) Inside *supervisor* tab, choice *Add-on store*.

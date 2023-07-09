@@ -115,7 +115,7 @@ MQTT_HASS = "homeassistant"
 DEFAULT_MQTT_PASS = "MQTT_PASSWORD"
 NODE_ID = 'dmslabs'
 SHORT_NAME = 'solarH'
-HASS_INTERVAL = 900
+HASS_INTERVAL = 1200
 GETDATA_INTERVAL = 480  # How often do I read site data
 EXPIRE_TIME = int(GETDATA_INTERVAL) * 1.5
 

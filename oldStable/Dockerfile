@@ -7,24 +7,28 @@ ENV LANG C.UTF-8
 # erro em amd64-base-python:3.9-alpine3.12
 
 # Install requirements for add-on
-#RUN apk add --no-cache python3 py3-pip 
+#RUN apk add --no-cache python3 py3-pip
 
+RUN python -m pip install --upgrade pip
 RUN pip3 install paho-mqtt
 RUN pip3 install requests
 RUN pip3 install flask
+RUN pip3 install python-dateutil
 
 # Python 3 HTTP Server serves the current working dir
 # So let's set it to our add-on persistent data directory.
 WORKDIR /data
 
 # other copy
-COPY *.json /
+COPY *.json /data/
+COPY *.py /data/
 COPY *.py /
-COPY secrets.ini /data
-COPY secrets.ini /
 #COPY *.html /
 
 COPY templates /
+COPY jsons /
+COPY templates/* /data/templates/
+COPY jsons/* /data/jsons/
 
 # Copy data for add-on
 COPY run.sh /
