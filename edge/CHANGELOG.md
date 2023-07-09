@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1
+
+        - Release edge
+        
 ## 1.00
 
         - Added support for reading all devices

@@ -1,13 +1,13 @@
 {
     "sensor": {
-        "array_size": {
-            "name": "array_size",
+        "capacitor": {
+            "name": "capacitor",
             "device_class": "power",
             "icon": "mdi:solar-panel",
             "unit_of_measurement": "W"
         },
-        "array_size_kW": {
-            "name": "array_size_kW",
+        "capacitor_kW": {
+            "name": "capacitor_kW",
             "device_class": "power",
             "icon": "mdi:solar-panel",
             "unit_of_measurement": "kW"
@@ -49,13 +49,6 @@
             "device_class": "power",
             "unit_of_measurement": "W"
         },
-        "real_power_kw":{
-            "name":"real_power_kw",
-            "icon":"mdi:solar-power",
-            "state_class":"measurement",
-            "device_class":"power",
-            "unit_of_measurement":"kW"
-         },
         "real_power_measurement": {
             "name": "real_power_measurement",
             "icon": "mdi:solar-power",
