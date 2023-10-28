@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Edge Addon",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "slug": "hoymiles_solardata_edge",
   "description": "Read Hoymiles Gateway Solar Data Edge Version.",
   "arch": [
@@ -31,6 +31,7 @@
     "HOYMILES_USER": "HOYMILES_USER",
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
     "HOYMILES_PLANT_ID": "123",
+    "Read_meter_data": true,
     "External_MQTT_Server": false,
     "MQTT_Host": "Internal - Change here if you use another server",
     "MQTT_User": "Automatically obtained from Home Assistant - Change here if you use another server",
@@ -46,6 +47,7 @@
     "HOYMILES_USER": "str",
     "HOYMILES_PASSWORD": "password",
     "HOYMILES_PLANT_ID": "str",
+    "Read_meter_data": "bool",
     "External_MQTT_Server": "bool",
     "MQTT_Host": "str?",
     "MQTT_User": "str?",

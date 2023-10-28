@@ -294,19 +294,19 @@ class Hoymiles(object):
         self.logger.info(f"last_data_time {solar_data['last_data_time']}")
         if self.meter:
             reflux_data = solar_data.get("reflux_station_data")
-
-            solar_data["meter_b_out_eq"] = str(
-                round(float(reflux_data.get("meter_b_out_eq")) / 1000, 2)
-            )
-            solar_data["meter_b_in_eq"] = str(
-                round(float(reflux_data.get("meter_b_in_eq")) / 1000, 2)
-            )
-            solar_data["self_eq"] = str(
-                round(float(reflux_data.get("self_eq")) / 1000, 2)
-            )
-            solar_data["pv_power"] = reflux_data.get("pv_power")
-            solar_data["grid_power"] = reflux_data.get("grid_power")
-            solar_data["load_power"] = reflux_data.get("load_power")
+            if reflux_data:
+                solar_data["meter_b_out_eq"] = str(
+                    round(float(reflux_data.get("meter_b_out_eq")) / 1000, 2)
+                )
+                solar_data["meter_b_in_eq"] = str(
+                    round(float(reflux_data.get("meter_b_in_eq")) / 1000, 2)
+                )
+                solar_data["self_eq"] = str(
+                    round(float(reflux_data.get("self_eq")) / 1000, 2)
+                )
+                solar_data["pv_power"] = reflux_data.get("pv_power")
+                solar_data["grid_power"] = reflux_data.get("grid_power")
+                solar_data["load_power"] = reflux_data.get("load_power")
 
         del solar_data["reflux_station_data"]
         return solar_data
