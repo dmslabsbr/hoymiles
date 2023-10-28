@@ -49,13 +49,13 @@
             "device_class": "power",
             "unit_of_measurement": "W"
         },
-        "real_power_kw":{
-            "name":"real_power_kw",
-            "icon":"mdi:solar-power",
-            "state_class":"measurement",
-            "device_class":"power",
-            "unit_of_measurement":"kW"
-         },
+        "real_power_kw": {
+            "name": "real_power_kw",
+            "icon": "mdi:solar-power",
+            "state_class": "measurement",
+            "device_class": "power",
+            "unit_of_measurement": "kW"
+        },
         "real_power_measurement": {
             "name": "real_power_measurement",
             "icon": "mdi:solar-power",
@@ -104,6 +104,48 @@
             "device_class": "power_factor",
             "icon": "mdi:gauge-full",
             "unit_of_measurement": "%"
+        },
+        "meter_pv_power": {
+            "name": "pv_power",
+            "icon": "mdi:solar-power",
+            "state_class": "measurement",
+            "device_class": "power",
+            "unit_of_measurement": "W"
+        },
+        "meter_grid_power": {
+            "name": "grid_power",
+            "icon": "mdi:solar-power",
+            "state_class": "measurement",
+            "device_class": "power",
+            "unit_of_measurement": "W"
+        },
+        "meter_load_power": {
+            "name": "load_power",
+            "icon": "mdi:solar-power",
+            "state_class": "measurement",
+            "device_class": "power",
+            "unit_of_measurement": "W"
+        },
+        "meter_to_grid": {
+            "name": "meter_b_out_eq",
+            "device_class": "energy",
+            "icon": "mdi:infinity",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "meter_from_grid": {
+            "name": "meter_b_in_eq",
+            "device_class": "energy",
+            "icon": "mdi:infinity",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "meter_self_eq": {
+            "name": "self_eq",
+            "device_class": "energy",
+            "icon": "mdi:infinity",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
         },
         "todos": {
             "name": "",

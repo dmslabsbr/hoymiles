@@ -12,6 +12,10 @@ configuration:
     name: HOYMILES_PLANT_ID
     description: >-
       S-Miles Cloud plant ID.  Multiple plants allowed, separated by ','
+  Read_meter_data:
+    name: Read_meter_data
+    description: >-
+      Check if you want getting data from meter installed in your plant.
   External_MQTT_Server:
     name: External_MQTT_Server
     description: >-
