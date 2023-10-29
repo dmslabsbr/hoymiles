@@ -1,4 +1,4 @@
-# HoyMiles Solar Data Gateway Add-on Edge version
+# HoyMiles Solar Data Gateway Add-on Stable version
 Development versions can be unstable.
 
 Application to read Hoymiles Gateway Solar Data using unofficial API
@@ -55,11 +55,11 @@ I invite everyone to help in the this tool development.
 
 ## Screenshots
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass1.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/stable/img/Hass1.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass2.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/stable/img/Hass2.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass3.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/stable/img/Hass3.png?raw=true" alt="" width="400" />
 
 
 
