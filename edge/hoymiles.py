@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = "dmslabs&Cosik"
-__version__ = "1.1.0"
+__version__ = "1.2.1"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -63,7 +63,7 @@ def get_secrets() -> dict:
         if "options" in config.keys():
             config = config["options"]
             log_level = config["LOG_LEVEL"]
-            if log_level in ['DEBUG','INFO','WARNING','ERROR','CRITICAL','NOTSET']:
+            if log_level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]:
                 logger.setLevel(log_level)
             if config["DEVELOPERS_MODE"]:
                 logger.setLevel(logging.DEBUG)
@@ -262,6 +262,7 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                 f"{device.init_hard_no}_{device.id} data publication...{datetime.now()}"
             )
             mqtt_h.send_clients_status()
+
     return
 
 
@@ -347,7 +348,12 @@ def main() -> int:
         if int(id) < 100:
             logger.warning(f"Wrong plant ID {id}")
 
-        plant_list[id] = Hoymiles(plant_id=int(id), config=config, g_envios=g_envios)
+        plant_list[id] = Hoymiles(
+            plant_id=int(id),
+            config=config,
+            g_envios=g_envios,
+            meter=config["Read_meter_data"],
+        )
 
         if plant_list[id].connection.token == "":
             logger.error("I can't get access token")
