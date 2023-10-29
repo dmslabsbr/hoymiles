@@ -10,7 +10,7 @@
     "amd64",
     "i386"
   ],
-  "url": "https://github.com/dmslabsbr/hoymiles/tree/master/edge",
+  "url": "https://github.com/dmslabsbr/hoymiles/tree/master/stable",
   "startup": "application",
   "boot": "auto",
   "init": false,
