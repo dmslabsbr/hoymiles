@@ -1,8 +1,8 @@
 {
-  "name": "HoyMiles Solar Gateway Edge Addon",
+  "name": "HoyMiles Solar Gateway Stable Addon",
   "version": "1.1.1",
-  "slug": "hoymiles_solardata_edge",
-  "description": "Read Hoymiles Gateway Solar Data Edge Version.",
+  "slug": "hoymiles_solardata_stable",
+  "description": "Read Hoymiles Gateway Solar Data Stable Version.",
   "arch": [
     "armhf",
     "armv7",
@@ -25,7 +25,7 @@
   "ingress_port": 5000,
   "host_network": true,
   "panel_icon": "mdi:solar-power",
-  "panel_title": "HoyMiles Solar Data Gateway Edge version.",
+  "panel_title": "HoyMiles Solar Data Gateway Stable version.",
   "panel_admin": false,
   "options": {
     "HOYMILES_USER": "HOYMILES_USER",

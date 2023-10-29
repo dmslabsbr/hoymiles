@@ -1,9 +1,9 @@
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/stable/logo.png" alt="" width="200" />
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/oldStable/logo.png" alt="" width="200" />
 
 # HoyMiles Solar Data Gateway Add-on
 Application to read Hoymiles Gateway Solar Data using unofficial API
 
-## Stable version
+## OldStable version
 
 I developed this program to integrate my solar system data to [Home Assistant](https://www.home-assistant.io/) Application through an add-on.
 
