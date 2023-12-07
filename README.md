@@ -63,6 +63,17 @@ My solar panels communicate with the internet using a DTU-W100 gateway.
 
 But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
 
+## Configuration:
+> UI is not working and could show "Bad Gateway" which is normal and expected.
+
+Add-on is desigend to use MQTT messages to send data to Home Assistant instance.
+By default credentials and server name is taken from Home Assistant. If
+you use other broker or using your own one it is required to make `external` and fill server and credentials for connection.
+
+To get it proper working you have also pass credentials for Hoymiles Cloud access and your plant ID.
+
+If evrything is set correctly new MQTT entities will be visible on HA.
+
 
 ## PS:
 I invite everyone to help in the this tool development.
