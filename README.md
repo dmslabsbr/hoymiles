@@ -38,14 +38,18 @@ There is three apps versions that you can choice.
 3 - The Stable Version
 [<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add3.png" alt="New Stable figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/stable)
 
+My solar panels communicate with the internet using a DTU-W100 gateway.
 
+<img src="https://github.com/dmslabsbr/hoymiles/raw/master/icon.png" alt="" width="300" />
+
+But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
+
+## Standalone running - short info
 You also could use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
-
 
 Before run you need to install:
    https://github.com/eclipse/paho.mqtt.python  ***and***
    https://github.com/psf/requests
-
 
 ```bash
 git clone https://github.com/dmslabsbr/hoymiles.git
@@ -56,12 +60,6 @@ pip3 install paho-mqtt
 pip3 install requests
 pip3 install python-dateutil
 ```
-
-My solar panels communicate with the internet using a DTU-W100 gateway.
-
-<img src="https://github.com/dmslabsbr/hoymiles/raw/master/icon.png" alt="" width="300" />
-
-But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
 
 ## Configuration:
 > UI is not working and could show "Bad Gateway" which is normal and expected.
