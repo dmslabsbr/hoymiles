@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Edge Addon",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "slug": "hoymiles_solardata_edge",
   "description": "Read Hoymiles Gateway Solar Data Edge Version.",
   "arch": [
@@ -21,7 +21,7 @@
   "services": [
     "mqtt:need"
   ],
-  "ingress": true,
+  "ingress": false,
   "ingress_port": 5000,
   "host_network": true,
   "panel_icon": "mdi:solar-power",

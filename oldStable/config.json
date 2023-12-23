@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Addon",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "slug": "hoymiles_solardata",
   "description": "Read Hoymiles Gateway Solar Data.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -15,7 +15,7 @@
   "services": [
     "mqtt:need"
   ],
-  "ingress": true,
+  "ingress": false,
   "ingress_port": 5000,
   "host_network": true,
   "panel_icon": "mdi:solar-power",
