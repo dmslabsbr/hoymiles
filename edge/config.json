@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Edge Addon",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "slug": "hoymiles_solardata_edge",
   "description": "Read Hoymiles Gateway Solar Data Edge Version.",
   "arch": [

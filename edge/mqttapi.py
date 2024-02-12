@@ -18,17 +18,16 @@ from hoymilesapi import Hoymiles
 MQTT_VERSION = mqtt.MQTTv31
 TLS_PROTOCOL_VERSION = ssl.PROTOCOL_TLSv1_2
 
-module_logger = logging.getLogger('HoymilesAdd-on.mqttapi')
+module_logger = logging.getLogger("HoymilesAdd-on.mqttapi")
 
 
-class MqttApi():
-    """Mqtt API main calass
-    """
+class MqttApi:
+    """Mqtt API main calass"""
 
     def __init__(self, config: dict, hoymiles: Hoymiles, version) -> None:
         self._client = None
         self._config = config
-        self.logger = logging.getLogger('HoymilesAdd-on.mqttapi.Mqtt')
+        self.logger = logging.getLogger("HoymilesAdd-on.mqttapi.Mqtt")
         self.uuid = str(uuid.uuid1())
         self.last_mid = None
         self.client_status = False
@@ -37,37 +36,42 @@ class MqttApi():
         self.publicate_time = None
 
         self.status = {}
-        self.status['UUID'] = self.uuid
-        self.status['version'] = version
-        self.status['plant_id'] = hoymiles.plant_id
-        self.status['inHass'] = True
+        self.status["UUID"] = self.uuid
+        self.status["version"] = version
+        self.status["plant_id"] = hoymiles.plant_id
+        self.status["inHass"] = True
 
-    def get_ip(self, change_dot=False, test_ip='192.168.1.1'):
-        ''' Get device IP '''
+    def get_ip(self, change_dot=False, test_ip="192.168.1.1"):
+        """Get device IP"""
         soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # doesn't even have to be reachable
             soc.connect((test_ip, 1))
             self_ip = soc.getsockname()[0]
         except Exception:
-            self_ip = '0.0.0.1'
+            self_ip = "0.0.0.1"
         finally:
             soc.close()
         if change_dot:
-            self_ip = self_ip.replace('.', '-')
+            self_ip = self_ip.replace(".", "-")
         return str(self_ip)
 
     def start(self):
-        ''' Start MQTT '''
+        """Start MQTT"""
         # MQTT Start
         # client = mqtt.Client(transport="tcp") # "websockets"
-        self._client = mqtt.Client(client_id='', clean_session=True, userdata=None,
-                                   protocol=MQTT_VERSION, transport="tcp")  # mqtt.MQTTv31
+        self._client = mqtt.Client(
+            client_id=self.uuid,
+            clean_session=True,
+            userdata=None,
+            protocol=MQTT_VERSION,
+            transport="tcp",
+        )  # mqtt.MQTTv31
         port = 1883
-        user = self._config['MQTT_User']
-        passw = self._config['MQTT_Pass']
-        if self._config['MQTT_TLS']:
-            port = self._config['MQTT_TLS_PORT']
+        user = self._config["MQTT_User"]
+        passw = self._config["MQTT_Pass"]
+        if self._config["MQTT_TLS"]:
+            port = self._config["MQTT_TLS_PORT"]
 
         self.logger.info(f"Starting MQTT {self._config['MQTT_Host']}")
         self.logger.debug(f"SSL: {ssl.OPENSSL_VERSION}")
@@ -82,7 +86,7 @@ class MqttApi():
         self._client.on_publish = self.on_publish
 
         # v.0.22 TLS
-        if self._config['MQTT_TLS']:
+        if self._config["MQTT_TLS"]:
             self.logger.info(f"Trying TLS: {self._config['MQTT_TLSPORT']}")
             self.logger.debug(f"TLS_protocol_version: {TLS_PROTOCOL_VERSION}")
             context = ssl.SSLContext(protocol=TLS_PROTOCOL_VERSION)
@@ -91,12 +95,12 @@ class MqttApi():
         try:
             self.client_status = True
             # rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
-            self._client.connect(host=self._config['MQTT_Host'],
-                                 port=int(port),
-                                 keepalive=60)  # 1883
+            self._client.connect(
+                host=self._config["MQTT_Host"], port=int(port), keepalive=60
+            )  # 1883
 
         except Exception as err:  # OSError
-            if err.__class__.__name__ == 'OSError':
+            if err.__class__.__name__ == "OSError":
                 self.client_status = False
                 self.logger.error("Can't start MQTT")
             else:
@@ -105,7 +109,9 @@ class MqttApi():
         if self.client_status:
             self._client.loop_start()  # start the loop
 
-    def on_connect(self, client, userdata, flags, ret_code):  # pylint: disable=unused-argument
+    def on_connect(
+        self, client, userdata, flags, ret_code
+    ):  # pylint: disable=unused-argument
         """Mqtt on connect
 
         Args:
@@ -125,26 +131,25 @@ class MqttApi():
             self.status["mqtt"] = "on"
             self._client.connected_flag = True
             # Mostra clientes
-            self.status["ublish_time"] = datetime.today().strftime(
-                '%Y-%m-%d %H:%M:%S')
+            self.status["ublish_time"] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
             self.send_clients_status()
         else:
             self.status["mqtt"] = "off"
             if ret_code > 5:
                 ret_code = 100
-            #print (str(rc) + str(tp_c[rc]))
+            # print (str(rc) + str(tp_c[rc]))
             self.logger.error(f"{ret_code} {MQTT_STATUS_CODE[ret_code]}")
             # tratar quando for 3 e outros
             if ret_code in (4, 5):
                 # senha errada
                 self.logger.error(f"APP EXIT {ret_code}")
                 time.sleep(60000)
-                #raise SystemExit(0)
+                # raise SystemExit(0)
                 # sys.exit()
                 # quit()
 
     def send_clients_status(self):
-        ''' send connected clients status '''
+        """send connected clients status"""
         mqtt_topic = MQTT_PUB + "/clients/" + self.host_ip
         json_status = json.dumps(self.status)
         return self.public(mqtt_topic, json_status)
@@ -161,7 +166,7 @@ class MqttApi():
             self.logger.debug("mqtt.MQTT_ERR_QUEUE_SIZE")
         return ret_code
 
-    def on_publish(self, client, userdata, mid): # pylint: disable=unused-argument
+    def on_publish(self, client, userdata, mid):  # pylint: disable=unused-argument
         """Mqtt on publish
 
         Args:
@@ -177,7 +182,9 @@ class MqttApi():
             if self.last_mid - 1 != mid:
                 self.logger.error(f"Error mid: {mid} no publiation.")
 
-    def on_disconnect(self, client, userdata, ret_code): # pylint: disable=unused-argument
+    def on_disconnect(
+        self, client, userdata, ret_code
+    ):  # pylint: disable=unused-argument
         """Mqtt on disconnect
 
         Args:
@@ -189,11 +196,10 @@ class MqttApi():
         print("disconnecting reason  " + str(ret_code))
         if ret_code > 5:
             ret_code = 100
-        print("disconnecting reason  " +
-              str(client) + str(MQTT_STATUS_CODE[ret_code]))
+        print("disconnecting reason  " + str(client) + str(MQTT_STATUS_CODE[ret_code]))
         client.connected_flag = False
         client.disconnect_flag = True
-        self.status['mqtt'] = "off"
+        self.status["mqtt"] = "off"
         try:
             self.send_clients_status()
         except Exception as err:

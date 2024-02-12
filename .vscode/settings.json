@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.yaml": "home-assistant"
+    },
+    "python.linting.pylintArgs": [
+        "--disable",
+        "broad-except,logging-fstring-interpolation,consider-using-dict-items"
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+}
