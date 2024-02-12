@@ -10,9 +10,8 @@ ENV LANG C.UTF-8
 #RUN apk add --no-cache python3 py3-pip 
 
 RUN python -m pip install --upgrade pip
-RUN pip3 install paho-mqtt
+RUN pip3 install paho-mqtt==1.6.1
 RUN pip3 install requests
-RUN pip3 install flask
 RUN pip3 install python-dateutil
 
 # Python 3 HTTP Server serves the current working dir
