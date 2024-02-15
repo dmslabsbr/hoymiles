@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.2
+
+        - Support for multiple installations
+        - Support HM meter reading
+
 ## 1.1
 
         - Release edge
