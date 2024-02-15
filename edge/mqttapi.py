@@ -24,7 +24,7 @@ module_logger = logging.getLogger("HoymilesAdd-on.mqttapi")
 class MqttApi:
     """Mqtt API main calass"""
 
-    def __init__(self, config: dict, hoymiles: Hoymiles, version) -> None:
+    def __init__(self, config: dict, plant_id: str, version) -> None:
         self._client = None
         self._config = config
         self.logger = logging.getLogger("HoymilesAdd-on.mqttapi.Mqtt")
@@ -38,8 +38,16 @@ class MqttApi:
         self.status = {}
         self.status["UUID"] = self.uuid
         self.status["version"] = version
-        self.status["plant_id"] = hoymiles.plant_id
+        self.status["plant_id"] = plant_id
         self.status["inHass"] = True
+
+        self._client = mqtt.Client(
+            client_id=self.uuid,
+            clean_session=True,
+            userdata=None,
+            protocol=MQTT_VERSION,
+            transport="tcp",
+        )  # mqtt.MQTTv31
 
     def get_ip(self, change_dot=False, test_ip="192.168.1.1"):
         """Get device IP"""
@@ -60,54 +68,50 @@ class MqttApi:
         """Start MQTT"""
         # MQTT Start
         # client = mqtt.Client(transport="tcp") # "websockets"
-        self._client = mqtt.Client(
-            client_id=self.uuid,
-            clean_session=True,
-            userdata=None,
-            protocol=MQTT_VERSION,
-            transport="tcp",
-        )  # mqtt.MQTTv31
-        port = 1883
-        user = self._config["MQTT_User"]
-        passw = self._config["MQTT_Pass"]
-        if self._config["MQTT_TLS"]:
-            port = self._config["MQTT_TLS_PORT"]
+        self.logger.info(f"mqtt.Client {self.uuid}")
 
-        self.logger.info(f"Starting MQTT {self._config['MQTT_Host']}")
-        self.logger.debug(f"SSL: {ssl.OPENSSL_VERSION}")
-        self.logger.debug(f"mqttStart TLS: {self._config['MQTT_TLS']}")
-        self.logger.debug(f"mqttStart MQTT_USERNAME: {user}")
-        self.logger.debug(f"mqttStart MQTT_PASSWORD: {passw}")
-        self.logger.debug(f"mqttStart MQTT_PORT: {port}")
+        if not self._client.is_connected():
+            port = 1883
+            user = self._config["MQTT_User"]
+            passw = self._config["MQTT_Pass"]
+            if self._config["MQTT_TLS"]:
+                port = self._config["MQTT_TLS_PORT"]
 
-        self._client.username_pw_set(username=user, password=passw)
-        self._client.on_connect = self.on_connect
-        self._client.on_disconnect = self.on_disconnect
-        self._client.on_publish = self.on_publish
+            self.logger.info(f"Starting MQTT {self._config['MQTT_Host']}")
+            self.logger.debug(f"SSL: {ssl.OPENSSL_VERSION}")
+            self.logger.debug(f"mqttStart TLS: {self._config['MQTT_TLS']}")
+            self.logger.debug(f"mqttStart MQTT_USERNAME: {user}")
+            self.logger.debug(f"mqttStart MQTT_PASSWORD: {passw}")
+            self.logger.debug(f"mqttStart MQTT_PORT: {port}")
 
-        # v.0.22 TLS
-        if self._config["MQTT_TLS"]:
-            self.logger.info(f"Trying TLS: {self._config['MQTT_TLSPORT']}")
-            self.logger.debug(f"TLS_protocol_version: {TLS_PROTOCOL_VERSION}")
-            context = ssl.SSLContext(protocol=TLS_PROTOCOL_VERSION)
-            self._client.tls_set_context(context)
+            self._client.username_pw_set(username=user, password=passw)
+            self._client.on_connect = self.on_connect
+            self._client.on_disconnect = self.on_disconnect
+            self._client.on_publish = self.on_publish
 
-        try:
-            self.client_status = True
-            # rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
-            self._client.connect(
-                host=self._config["MQTT_Host"], port=int(port), keepalive=60
-            )  # 1883
+            # v.0.22 TLS
+            if self._config["MQTT_TLS"]:
+                self.logger.info(f"Trying TLS: {self._config['MQTT_TLS_PORT']}")
+                self.logger.debug(f"TLS_protocol_version: {TLS_PROTOCOL_VERSION}")
+                context = ssl.SSLContext(protocol=TLS_PROTOCOL_VERSION)
+                self._client.tls_set_context(context)
 
-        except Exception as err:  # OSError
-            if err.__class__.__name__ == "OSError":
-                self.client_status = False
-                self.logger.error("Can't start MQTT")
-            else:
-                self.client_status = False
-                self.logger.error(f"{err}")
-        if self.client_status:
-            self._client.loop_start()  # start the loop
+            try:
+                self.client_status = True
+                # rc = client.connect(MQTT_HOST, MQTT_PORT, 60) # 1883
+                self._client.connect(
+                    host=self._config["MQTT_Host"], port=int(port), keepalive=60
+                )  # 1883
+
+            except Exception as err:  # OSError
+                if err.__class__.__name__ == "OSError":
+                    self.client_status = False
+                    self.logger.error("Can't start MQTT")
+                else:
+                    self.client_status = False
+                    self.logger.error(f"{err}")
+            if self.client_status:
+                self._client.loop_start()  # start the loop
 
     def on_connect(
         self, client, userdata, flags, ret_code

@@ -1,8 +1,9 @@
 """
 Main module of addon
 """
+
 __author__ = "dmslabs&Cosik"
-__version__ = "1.2.3"
+__version__ = "1.2.4"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -342,7 +343,14 @@ def main() -> int:
         )
 
     plant_list = {}
-    mqtt_list = {}
+    job_list = []
+    mqtt_h = MqttApi(config, config["HOYMILES_PLANT_ID"], __version__)
+    mqtt_h.start()
+    while not mqtt_h.connected:
+        time.sleep(1)  # wait for connection
+        if not mqtt_h.client_status:
+            time.sleep(240)
+
     for id in config["HOYMILES_PLANT_ID"].split(","):
         id = id.strip()
         if int(id) < 100:
@@ -377,20 +385,11 @@ def main() -> int:
 
         plant_list[id].get_alarms()
 
-        mqtt_list[id] = MqttApi(config, plant_list[id], __version__)
-        mqtt_list[id].start()
-        while not mqtt_list[id].connected:
-            time.sleep(1)  # wait for connection
-            if not mqtt_list[id].client_status:
-                time.sleep(240)
+        send_hass(plant_list[id], mqtt_h)
 
-        send_hass(plant_list[id], mqtt_list[id])
+        publicate_data(plant_list[id], mqtt_h)
 
-        publicate_data(plant_list[id], mqtt_list[id])
-
-        mqtt_list[id].send_clients_status()
-
-        job_list = []
+        mqtt_h.send_clients_status()
 
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
@@ -399,7 +398,7 @@ def main() -> int:
                 interval=timedelta(seconds=HASS_INTERVAL),
                 execute=send_hass,
                 hoymiles_h=plant_list[id],
-                mqtt_h=mqtt_list[id],
+                mqtt_h=mqtt_h,
             )
         )
 
@@ -408,7 +407,7 @@ def main() -> int:
                 interval=timedelta(seconds=GETDATA_INTERVAL),
                 execute=publicate_data,
                 hoymiles_h=plant_list[id],
-                mqtt_h=mqtt_list[id],
+                mqtt_h=mqtt_h,
             )
         )
 
@@ -417,9 +416,8 @@ def main() -> int:
 
     logger.info("Main loop start!")
     while True:
-        for mqtt in mqtt_list.values():
-            if not mqtt.connected:
-                sys.exit()
+        if not mqtt_h.connected:
+            sys.exit()
         try:
             time.sleep(10)
         except ProgramKilled:

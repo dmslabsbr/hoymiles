@@ -83,7 +83,7 @@ class MqttApi():
 
         # v.0.22 TLS
         if self._config['MQTT_TLS']:
-            self.logger.info(f"Trying TLS: {self._config['MQTT_TLSPORT']}")
+            self.logger.info(f"Trying TLS: {self._config['MQTT_TLS_PORT']}")
             self.logger.debug(f"TLS_protocol_version: {TLS_PROTOCOL_VERSION}")
             context = ssl.SSLContext(protocol=TLS_PROTOCOL_VERSION)
             self._client.tls_set_context(context)
