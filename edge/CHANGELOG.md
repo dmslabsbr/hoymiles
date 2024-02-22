@@ -4,7 +4,8 @@
 
         - Support for multiple installations
         - Support HM meter reading
-
+        - Reduce time of sending mqtt msg
+        
 ## 1.1
 
         - Release edge
