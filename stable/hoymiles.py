@@ -2,7 +2,7 @@
 Main module of addon
 """
 __author__ = "dmslabs&Cosik"
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -342,6 +342,7 @@ def main() -> int:
 
     plant_list = {}
     mqtt_list = {}
+    job_list = []
     for id in config["HOYMILES_PLANT_ID"].split(","):
         id = id.strip()
         if int(id) < 100:
@@ -383,8 +384,6 @@ def main() -> int:
         publicate_data(plant_list[id], mqtt_list[id])
 
         mqtt_list[id].send_clients_status()
-
-        job_list = []
 
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)

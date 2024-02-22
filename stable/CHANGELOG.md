@@ -3,6 +3,8 @@
 ## 1.1
 
         - Release edge
+        - Fix issue with many installation
+        - Reduce time of sending mqtt msg
 
 ## 1.00
 
