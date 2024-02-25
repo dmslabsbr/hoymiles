@@ -1,8 +1,9 @@
 """
 Main module of addon
 """
+
 __author__ = "dmslabs&Cosik"
-__version__ = "1.1.4"
+__version__ = "1.1.5"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -62,11 +63,11 @@ def get_secrets() -> dict:
         config = json.load(json_file)
         if "options" in config.keys():
             config = config["options"]
-            log_level = config["LOG_LEVEL"]
-            if log_level in ['DEBUG','INFO','WARNING','ERROR','CRITICAL','NOTSET']:
-                logger.setLevel(log_level)
-            if config["DEVELOPERS_MODE"]:
-                logger.setLevel(logging.DEBUG)
+        log_level = config["LOG_LEVEL"]
+        if log_level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]:
+            logger.setLevel(log_level)
+        if config["DEVELOPERS_MODE"]:
+            logger.setLevel(logging.DEBUG)
     return config
 
 
