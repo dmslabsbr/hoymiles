@@ -353,7 +353,7 @@ class Hoymiles(object):
     def update_devices_status(self):
         """Update status of all plant devices"""
         status, hws_data = self.request_plant_hw()
-        if status == 0:
+        if int(status) == 0:
             for hw_data in hws_data:
                 for dtu in self.dtu_list:
                     try:
