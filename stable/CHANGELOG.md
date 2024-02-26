@@ -1,4 +1,4 @@
- # CHANGELOG
+# CHANGELOG
 
 ## 1.1
 
@@ -6,6 +6,7 @@
         - Fix issue with many installation
         - Reduce time of sending mqtt msg
         - Fixed the problem that caused LOG level parameters not to be loaded.
+        - Fixed the issue that does not allow the connection status to be updated.
 
 ## 1.00
 

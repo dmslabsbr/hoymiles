@@ -6,6 +6,7 @@
         - Support HM meter reading
         - Reduce time of sending mqtt msg
         - Fixed the problem that caused LOG level parameters not to be loaded.
+        - Fixed the issue that does not allow the connection status to be updated.
 
 ## 1.1
 
