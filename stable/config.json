@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway Stable Addon",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "slug": "hoymiles_solardata_stable",
   "description": "Read Hoymiles Gateway Solar Data Stable Version.",
   "arch": [
