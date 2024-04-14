@@ -147,6 +147,26 @@
             "state_class": "total_increasing",
             "unit_of_measurement": "kWh"
         },
+        "bms_return": {
+            "name": "bms_out_eq",
+            "device_class": "energy",
+            "icon": "mdi:infinity",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "bms_charging": {
+            "name": "bms_in_eq",
+            "device_class": "energy",
+            "icon": "mdi:infinity",
+            "state_class": "total_increasing",
+            "unit_of_measurement": "kWh"
+        },
+        "bms_soc": {
+            "name": "bms_soc",
+            "device_class": "battery",
+            "icon": "mdi:infinity",
+            "unit_of_measurement": "%"
+        },
         "todos": {
             "name": "",
             "device_class": "",

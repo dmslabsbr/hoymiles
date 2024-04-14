@@ -144,6 +144,15 @@ json_hass = {
   "device_class": "$device_class",
   "device": { $device_dict }
 }""",
+    "switch": """
+{ 
+  "stat_t": "home/$sid/json_$via_device",
+  "name": "$name",
+  "uniq_id": "$uniq_id",
+  "val_tpl": "{{ value_json.$val_tpl }}",
+  "command_topic": "hoymiles/$via_device/set/$val_tpl",
+  "device": { $device_dict }
+}""",
 }
 
 DEVICE_DICT = """ "name": "$device_name",

@@ -34,6 +34,7 @@ from mqttapi import MqttApi
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("HoymilesAdd-on")
 logger.setLevel(logging.INFO)
+mqtt_h = MqttApi(__version__)
 
 
 def getEnv(env):
@@ -122,6 +123,12 @@ def monta_publica_topico(mqtt_h: MqttApi, component, s_dict, var_comuns):
                 + var_comuns["uniq_id"]
                 + "/config"
             )
+            if component == "switch":
+                mqtt_h._client.subscribe(json.loads(dados).get("command_topic"))
+                logger.debug(
+                    f"subscribe topic {json.loads(dados).get('command_topic')}"
+                )
+                pass
             dados = json_remove_void(dados)
             ret_code = mqtt_h.public(topico, dados)
             if ret_code == 0:
@@ -184,6 +191,23 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                     "sid": SID,
                     "plant_id": str(hoymiles_h.plant_id),
                     "uniq_id": micro.uuid,
+                }
+            }
+        )
+
+    for bms in hoymiles_h.bms_list:
+        var_comuns.update(
+            {
+                f"bms_{bms.id}": {
+                    "sw_version": bms.soft_ver,
+                    "model": bms.model,
+                    "manufacturer": "Hoymiles",
+                    "device_name": __app_name__,
+                    "identifiers": SHORT_NAME + "_" + str(bms.id),
+                    "via_device": bms.id,
+                    "sid": SID,
+                    "plant_id": str(hoymiles_h.plant_id),
+                    "uniq_id": bms.uuid,
                 }
             }
         )
@@ -264,6 +288,13 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
             )
             mqtt_h.send_clients_status()
 
+    for bms in hoymiles_h.bms_list:
+        if len(bms.data):
+            json_ups = json.dumps(bms.data)
+            mqtt_h.public(MQTT_PUB + "/json" + "_" + str(bms.id), json_ups)
+            mqtt_h.publicate_time = datetime.now()
+            logger.info(f"{bms.model}_{bms.id} data publication...{datetime.now()}")
+            mqtt_h.send_clients_status()
     return
 
 
@@ -289,8 +320,8 @@ def signal_handler(signum, frame):
 class Job(threading.Thread):
     """Custom class to handle running mathods and save resources"""
 
-    def __init__(self, interval, execute, *args, **kwargs):
-        threading.Thread.__init__(self)
+    def __init__(self, interval, execute, name, *args, **kwargs):
+        threading.Thread.__init__(self, name=name)
         self.daemon = False
         self.stopped = threading.Event()
         self.interval = interval
@@ -307,6 +338,11 @@ class Job(threading.Thread):
         """Run job"""
         while not self.stopped.wait(self.interval.total_seconds()):
             self.execute(*self.args, **self.kwargs)
+
+
+@mqtt_h.on_topic("hoymiles/+/set/+")
+def get_msg(client, userdata, message):
+    logger.debug("handling topic %s", message.topic)
 
 
 def main() -> int:
@@ -344,8 +380,8 @@ def main() -> int:
 
     plant_list = {}
     job_list = []
-    mqtt_h = MqttApi(config, config["HOYMILES_PLANT_ID"], __version__)
-    mqtt_h.start()
+
+    mqtt_h.start(config)
     while not mqtt_h.connected:
         time.sleep(1)  # wait for connection
         if not mqtt_h.client_status:
@@ -376,12 +412,12 @@ def main() -> int:
         dtu_status_list = []
         for dtu in plant_list[id].dtu_list:
             dtu_status_list.append(dtu.data["connect"])
-        while not "ON" in dtu_status_list:
-            time.sleep(GETDATA_INTERVAL)
-            plant_list[id].get_plant_hw()
-            dtu_status_list = []
-            for dtu in plant_list[id].dtu_list:
-                dtu_status_list.append(dtu.data["connect"])
+        # while not "ON" in dtu_status_list:
+        #     time.sleep(GETDATA_INTERVAL)
+        #     plant_list[id].get_plant_hw()
+        #     dtu_status_list = []
+        #     for dtu in plant_list[id].dtu_list:
+        #         dtu_status_list.append(dtu.data["connect"])
 
         plant_list[id].get_alarms()
 
@@ -397,6 +433,7 @@ def main() -> int:
             Job(
                 interval=timedelta(seconds=HASS_INTERVAL),
                 execute=send_hass,
+                name="send_hass",
                 hoymiles_h=plant_list[id],
                 mqtt_h=mqtt_h,
             )
@@ -406,6 +443,7 @@ def main() -> int:
             Job(
                 interval=timedelta(seconds=GETDATA_INTERVAL),
                 execute=publicate_data,
+                name="publicate_data",
                 hoymiles_h=plant_list[id],
                 mqtt_h=mqtt_h,
             )

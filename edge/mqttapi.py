@@ -9,6 +9,7 @@ import ssl
 import time
 import uuid
 from datetime import datetime
+from typing import Callable
 
 import paho.mqtt.client as mqtt
 
@@ -24,9 +25,9 @@ module_logger = logging.getLogger("HoymilesAdd-on.mqttapi")
 class MqttApi:
     """Mqtt API main calass"""
 
-    def __init__(self, config: dict, plant_id: str, version) -> None:
+    def __init__(self, version) -> None:
         self._client = None
-        self._config = config
+
         self.logger = logging.getLogger("HoymilesAdd-on.mqttapi.Mqtt")
         self.uuid = str(uuid.uuid1())
         self.last_mid = None
@@ -38,7 +39,7 @@ class MqttApi:
         self.status = {}
         self.status["UUID"] = self.uuid
         self.status["version"] = version
-        self.status["plant_id"] = plant_id
+
         self.status["inHass"] = True
 
         self._client = mqtt.Client(
@@ -64,10 +65,13 @@ class MqttApi:
             self_ip = self_ip.replace(".", "-")
         return str(self_ip)
 
-    def start(self):
+    def start(self, config: dict):
         """Start MQTT"""
         # MQTT Start
         # client = mqtt.Client(transport="tcp") # "websockets"
+        self.status["plant_id"] = config["HOYMILES_PLANT_ID"]
+        self._config = config
+
         self.logger.info(f"mqtt.Client {self.uuid}")
 
         if not self._client.is_connected():
@@ -112,6 +116,14 @@ class MqttApi:
                     self.logger.error(f"{err}")
             if self.client_status:
                 self._client.loop_start()  # start the loop
+
+    def on_topic(self, topic: str) -> Callable:
+
+        def decorator(handler: Callable[[str], None]) -> Callable[[str], None]:
+            self._client.message_callback_add(topic, handler)
+            return handler
+
+        return decorator
 
     def on_connect(
         self, client, userdata, flags, ret_code

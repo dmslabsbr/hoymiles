@@ -65,10 +65,10 @@ class PlantObject:
         self.sn = data["sn"]  # pylint: disable=invalid-name
         self.soft_ver = data["soft_ver"]
         self.hard_ver = data["hard_ver"]
-        if data["warn_data"]["connect"]:
+        if data["warn_data"].get("connect", False):
             self.data["connect"] = "ON"
         else:
-            self.data["connect"] = "ON"
+            self.data["connect"] = "OFF"
         self.uuid = str(uuid.uuid1())
         self.err_code = 0
         self.err_msg = ""
@@ -92,6 +92,16 @@ class Micros(PlantObject):
         self.init_hard_no = micro_data["model_no"]
 
 
+class BMS(PlantObject):
+    """Class representig Microinverter device"""
+
+    data = {"connect": "", "alarm_code": 0, "alarm_string": ""}
+
+    def __init__(self, bms_data: dict) -> None:
+        super(BMS, self).__init__(bms_data)
+        self.model = "battery"
+
+
 class Hoymiles(object):
     """Class for getting data from S-Miles Cloud"""
 
@@ -109,6 +119,8 @@ class Hoymiles(object):
         self.load_cnt = 0
         self.dtu_list = []
         self.micro_list = []
+        self.bms_list = []
+        self.bms_present = False
         self.meter = meter
         self.uuid = str(uuid.uuid1())
 
@@ -261,7 +273,8 @@ class Hoymiles(object):
         Returns:
             dict: adjusted solar data
         """
-        real_power = float(solar_data["real_power"])
+
+        real_power = float(solar_data["real_power"]) if solar_data["real_power"] else 0
         array_size = float(solar_data["capacitor"])
         if 0 < array_size < 100:
             array_size = array_size * 1000
@@ -283,7 +296,8 @@ class Hoymiles(object):
         solar_data["today_eq_Wh"] = solar_data["today_eq"]
         solar_data["today_eq"] = str(round(float(solar_data["today_eq"]) / 1000, 2))
         solar_data["month_eq"] = str(round(float(solar_data["month_eq"]) / 1000, 2))
-        solar_data["year_eq"] = str(round(float(solar_data["year_eq"]) / 1000, 2))
+        if solar_data["year_eq"]:
+            solar_data["year_eq"] = str(round(float(solar_data["year_eq"]) / 1000, 2))
         solar_data["total_eq"] = str(round(float(solar_data["total_eq"]) / 1000, 2))
 
         last_data_time = solar_data["last_data_time"]
@@ -307,6 +321,18 @@ class Hoymiles(object):
                 solar_data["pv_power"] = reflux_data.get("pv_power")
                 solar_data["grid_power"] = reflux_data.get("grid_power")
                 solar_data["load_power"] = reflux_data.get("load_power")
+
+        if self.bms_present:
+            reflux_data = solar_data.get("reflux_station_data")
+            if reflux_data:
+                solar_data["bms_out_eq"] = str(
+                    round(float(reflux_data.get("bms_out_eq")) / 1000, 2)
+                )
+                solar_data["bms_in_eq"] = str(
+                    round(float(reflux_data.get("bms_in_eq")) / 1000, 2)
+                )
+                solar_data["bms_power"] = reflux_data.get("bms_power")
+                solar_data["bms_soc"] = reflux_data.get("bms_soc")
 
         del solar_data["reflux_station_data"]
         return solar_data
@@ -349,6 +375,10 @@ class Hoymiles(object):
                 if "children" in hw_data.keys():
                     for micro in hw_data["children"]:
                         self.micro_list.append(Micros(micro))
+                        if "children" in hw_data.keys():
+                            self.bms_present = True
+                            for bms in micro["children"]:
+                                self.bms_list.append(BMS(bms))
 
     def update_devices_status(self):
         """Update status of all plant devices"""
