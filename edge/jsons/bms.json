@@ -41,13 +41,42 @@
             "name": "force_charge",
             "payload_off": "OFF",
             "payload_on": "ON",
-            "command_topic": "zigbee2mqtt/living_left/set/backlight_mode"
+            "command_topic": "hoymiles/bms/set/force_charge"
+        },
+        "self_consumption": {
+            "name": "self_consumption",
+            "payload_off": "OFF",
+            "payload_on": "ON",
+            "command_topic": "hoymiles/bms/set/self_consumption"
         },
         "todos": {
             "name": "",
             "payload_off": "",
             "payload_on": "",
             "command_topic": ""
+        }
+    },
+    "number": {
+        "reserve_soc": {
+            "name": "reserve_soc",
+            "min": 0,
+            "max": 100,
+            "command_topic": "hoymiles/bms/set/reserve_soc",
+            "unit_of_meas": "%"
+        },
+        "max_power": {
+            "name": "max_power",
+            "min": 0,
+            "max": 100,
+            "command_topic": "hoymiles/bms/set/max_power",
+            "unit_of_meas": "%"
+        },
+        "todos": {
+            "name": "",
+            "min": "",
+            "max": "",
+            "command_topic": "",
+            "unit_of_meas": ""
         }
     }
 }

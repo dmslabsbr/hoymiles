@@ -35,6 +35,7 @@ logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger("HoymilesAdd-on")
 logger.setLevel(logging.INFO)
 mqtt_h = MqttApi(__version__)
+plant_list = {}
 
 
 def getEnv(env):
@@ -123,7 +124,7 @@ def monta_publica_topico(mqtt_h: MqttApi, component, s_dict, var_comuns):
                 + var_comuns["uniq_id"]
                 + "/config"
             )
-            if component == "switch":
+            if component == "switch" or component == "number":
                 mqtt_h._client.subscribe(json.loads(dados).get("command_topic"))
                 logger.debug(
                     f"subscribe topic {json.loads(dados).get('command_topic')}"
@@ -340,12 +341,40 @@ class Job(threading.Thread):
             self.execute(*self.args, **self.kwargs)
 
 
-@mqtt_h.on_topic("hoymiles/+/set/+")
+@mqtt_h.on_topic("hoymiles/+/set/self_consumption")
+@mqtt_h.on_topic("hoymiles/+/set/force_charge")
 def get_msg(client, userdata, message):
-    logger.debug("handling topic %s", message.topic)
+    logger.debug("handling bms %s", message.topic)
+    bms_sn = message.topic.split("/")[1]
+    for plant_id, plant_obj in plant_list.items():
+        if plant_obj.bms_present:
+            for bms in plant_obj.bms_list:
+                if int(bms.sn) == int(bms_sn):
+                    mode = message.topic.split("/")[-1]
+                    if mode == "self_consumption":
+                        plant_obj.set_bms_mode(1, bms.reserve_soc)
+                    elif mode == "force_charge":
+                        plant_obj.set_bms_mode(5, bms.reserve_soc, bms.max_power)
+
+
+@mqtt_h.on_topic("hoymiles/+/set/reserve_soc")
+@mqtt_h.on_topic("hoymiles/+/set/max_power")
+def get_msg(client, userdata, message):
+    logger.debug("handling bms %s", message.topic)
+    bms_sn = message.topic.split("/")[1]
+    for plant_id, plant_obj in plant_list.items():
+        if plant_obj.bms_present:
+            for bms in plant_obj.bms_list:
+                if int(bms.sn) == int(bms_sn):
+                    mode = message.topic.split("/")[-1]
+                    if mode == "reserve_soc":
+                        bms.reserve_soc = int(message.payload)
+                    elif mode == "max_power":
+                        bms.max_power = int(message.payload)
 
 
 def main() -> int:
+    global plant_list
     """Main function of script"""
     logger.info(f"********** {__author__} {__app_name__}  v.{__version__}")
     logger.info(f"Starting up... {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -378,7 +407,6 @@ def main() -> int:
             f"Using External MQTT Server: {str(config['External_MQTT_Server'])}"
         )
 
-    plant_list = {}
     job_list = []
 
     mqtt_h.start(config)

@@ -32,6 +32,7 @@ from const import (
     STATION_FIND,
     PAYLOAD_DETAILS,
     DATA_FIND_DETAILS,
+    SETTING_BATTERY_CONFIG,
 )
 
 module_logger = logging.getLogger("HoymilesAdd-on.hoymilesapi")
@@ -100,6 +101,8 @@ class BMS(PlantObject):
     def __init__(self, bms_data: dict) -> None:
         super(BMS, self).__init__(bms_data)
         self.model = "battery"
+        self.reserve_soc = 30
+        self.max_power = 80
 
 
 class Hoymiles(object):
@@ -212,6 +215,7 @@ class Hoymiles(object):
         """
         self.logger.info(f"Loading: {url}")
         sess = requests.Session()
+        self.logger.debug(f"payload: {payload}")
         req = requests.Request(
             rtype, url, headers=header, data=payload.replace("\n", "").encode("utf-8")
         )
@@ -553,3 +557,30 @@ class Hoymiles(object):
         except Exception as err:
             self.logger.warning(f"There was a problem while opening error list {err}")
         return ""
+
+    def set_bms_mode(self, mode: int, reserve_soc: int, max_power: int = 0):
+        payload = {
+            "ERROR_BACK": True,
+            "body": {
+                "mode": mode,
+                "data": {"reserve_soc": reserve_soc},
+                "sid": self.plant_id,
+            },
+            "WAITING_PROMISE": True,
+        }
+        if max_power:
+            payload["body"]["data"]["max_power"] = max_power
+
+        header = HEADER_DATA
+        header["Cookie"] = (
+            COOKIE_UID
+            + "; hm_token="
+            + self.connection.token
+            + "; Path=/; Domain=.global.hoymiles.com;"
+            + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
+            + "'"
+        )
+
+        retv = self.send_payload(
+            SETTING_BATTERY_CONFIG, header, str(json.dumps(payload))
+        )
