@@ -1,5 +1,8 @@
 <img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/logo.png" alt="" width="200" />
 
+## Important Info
+
+Addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it could not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This mean that it **required rewriting from scratch**. Without support from community it **is not predicted soon**.
 
 # HoyMiles Solar Data Gateway Add-on
 Application to read Hoymiles Gateway Solar Data using unofficial API
@@ -10,11 +13,6 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
 
-
-<a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9S3JYKPHR3XQ6)
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/micro/1MAC9RBnPYT9ua1zsgvhwfRoASTBKr4QL8)](https://www.blockchain.com/btc/address/1MAC9RBnPYT9ua1zsgvhwfRoASTBKr4QL8)
 
 Donate Cosik -> 
 [![Donate Cosik](https://img.shields.io/badge/Donate-PayPal-green.svg)](paypal.me/cosik3d)
@@ -72,6 +70,15 @@ To get it proper working you have also pass credentials for Hoymiles Cloud acces
 
 If evrything is set correctly new MQTT entities will be visible on HA.
 
+# Supported devies
+
+So far it is confirmed that addon support Hoymiles devices:
+- micro inverters
+- standard inverters
+- energy meters
+- bms (with some restrictions) - edge version with details
+- batteries (with some restrictions) - edge version with details
+- multiple instalattions - edge version
 
 ## PS:
 I invite everyone to help in the this tool development.
