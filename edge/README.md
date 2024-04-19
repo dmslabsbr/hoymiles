@@ -4,6 +4,9 @@
 
 Addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it could not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This mean that it **required rewriting from scratch**. Without support from community it **is not predicted soon**.
 
+Br,
+Cosik.
+
 ## Info
 
 Development versions can be unstable.
