@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3
+
+        - Support bms/batteries
+
+
 ## 1.2
 
         - Support for multiple installations
