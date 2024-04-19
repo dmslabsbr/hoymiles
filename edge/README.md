@@ -1,4 +1,11 @@
 # HoyMiles Solar Data Gateway Add-on Edge version
+
+## Important Info
+
+Addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it could not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This mean that it **required rewriting from scratch**. Without support from community it **is not predicted soon**.
+
+## Info
+
 Development versions can be unstable.
 
 Application to read Hoymiles Gateway Solar Data using unofficial API
@@ -10,8 +17,6 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdmslabsbr%2Fhoymiles)
 
 But you can use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
-
-<a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
 
 
 Donate Cosik -> 
@@ -46,6 +51,25 @@ My solar panels communicate with the internet using a DTU-W100 gateway.
 <img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/icon.png" alt="" width="300" />
 
 But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
+
+
+# Supported devies
+
+So far it is confirmed that addon support Hoymiles devices:
+- micro inverters
+- standard inverters
+- energy meters
+- bms (with some restrictions)
+- batteries (with some restrictions)
+- multiple instalattions
+
+## Restrictions
+
+Addon support batteries and bms. Present is support only two modes:
+- self consumption
+- force charge
+
+Due to technical dept there **is no feedback about enabled mode and set values.**
 
 
 ## PS:

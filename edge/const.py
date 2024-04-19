@@ -104,6 +104,7 @@ GET_DATA_API = "pvm-data/data_count_station_real_data"
 GET_ALL_DEVICE_API = "pvm/station_select_device_of_tree"
 STATION_FIND = "pvm/station_find"
 DATA_FIND_DETAILS = "pvm-data/data_find_details"
+SETTING_BATTERY_CONFIG = "pvm/setting_battery_config"
 
 # For MQTT
 MQTT_PUB = "home/solar"
@@ -142,6 +143,26 @@ json_hass = {
   "val_tpl": "{{ value_json.$val_tpl }}",
   "icon": "$icon",
   "device_class": "$device_class",
+  "device": { $device_dict }
+}""",
+    "switch": """
+{ 
+  "stat_t": "home/$sid/json_$via_device",
+  "name": "$name",
+  "uniq_id": "$uniq_id",
+  "val_tpl": "{{ value_json.$val_tpl }}",
+  "command_topic": "hoymiles/$via_device/set/$val_tpl",
+  "device": { $device_dict }
+}""",
+    "number": """
+{ 
+  "stat_t": "home/$sid/json_$via_device",
+  "name": "$name",
+  "uniq_id": "$uniq_id",
+  "min": "$min",
+  "max": "$max",
+  "val_tpl": "{{ value_json.$val_tpl }}",
+  "command_topic": "hoymiles/$via_device/set/$val_tpl",
   "device": { $device_dict }
 }""",
 }

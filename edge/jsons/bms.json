@@ -1,0 +1,82 @@
+{
+    "binary_sensor": {
+        "connect": {
+            "name": "connect",
+            "device_class": "connectivity",
+            "icon": "mdi:solar-panel"
+        },
+        "todos": {
+            "name": "",
+            "device_class": "",
+            "icon": ""
+        }
+    },
+    "sensor": {
+        "alarm_code": {
+            "name": "alarm_code",
+            "native_value": "int",
+            "state_class": "",
+            "device_class": "",
+            "icon": "mdi:alarm-light-outline",
+            "unit_of_measurement": ""
+        },
+        "alarm_string": {
+            "name": "alarm_string",
+            "native_value": "string",
+            "state_class": "",
+            "device_class": "",
+            "icon": "mdi:alarm-light-outline",
+            "unit_of_measurement": ""
+        },
+        "todos": {
+            "name": "",
+            "device_class": "",
+            "state_class": "",
+            "icon": "",
+            "unit_of_measurement": ""
+        }
+    },
+    "switch": {
+        "force_charge": {
+            "name": "force_charge",
+            "payload_off": "OFF",
+            "payload_on": "ON",
+            "command_topic": "hoymiles/bms/set/force_charge"
+        },
+        "self_consumption": {
+            "name": "self_consumption",
+            "payload_off": "OFF",
+            "payload_on": "ON",
+            "command_topic": "hoymiles/bms/set/self_consumption"
+        },
+        "todos": {
+            "name": "",
+            "payload_off": "",
+            "payload_on": "",
+            "command_topic": ""
+        }
+    },
+    "number": {
+        "reserve_soc": {
+            "name": "reserve_soc",
+            "min": 0,
+            "max": 100,
+            "command_topic": "hoymiles/bms/set/reserve_soc",
+            "unit_of_meas": "%"
+        },
+        "max_power": {
+            "name": "max_power",
+            "min": 0,
+            "max": 100,
+            "command_topic": "hoymiles/bms/set/max_power",
+            "unit_of_meas": "%"
+        },
+        "todos": {
+            "name": "",
+            "min": "",
+            "max": "",
+            "command_topic": "",
+            "unit_of_meas": ""
+        }
+    }
+}
