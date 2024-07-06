@@ -348,7 +348,11 @@ class Hoymiles(object):
             _type_: _description_
         """
         template = Template(PAYLOAD_T2)
-        payload = template.substitute(sid=self.plant_id)
+        payload = template.substitute(
+            sid=self.plant_id,
+            mode=1,
+            date=datetime.now().strftime("%Y-%m-%d"),
+        )
 
         header = HEADER_DATA
         header["Cookie"] = (

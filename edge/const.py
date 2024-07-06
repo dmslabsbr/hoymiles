@@ -49,7 +49,9 @@ PAYLOAD_T1 = """
 PAYLOAD_T2 = """
 {
     "body": {
-        "sid": $sid
+        "sid": $sid,
+        "mode": $mode,
+        "date": "$date"
     },
     "WAITING_PROMISE": true
 }
