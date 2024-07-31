@@ -123,7 +123,7 @@ LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinf
 
 json_hass = {
     "sensor": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
@@ -136,7 +136,7 @@ json_hass = {
   "device": { $device_dict }
 }""",
     "binary_sensor": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
@@ -146,7 +146,7 @@ json_hass = {
   "device": { $device_dict }
 }""",
     "switch": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
@@ -155,7 +155,7 @@ json_hass = {
   "device": { $device_dict }
 }""",
     "number": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",

@@ -1,4 +1,11 @@
-#!/usr/bin/with-contenv bashio
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start Hoymiles service
+# ==============================================================================
+ALPINE_VERSION=$(cat /etc/alpine-release)
+PYTHON_VERION=$(python3 --version)
+
 set +u
 
 bashio::log.green "Starting add-on container..."
@@ -25,8 +32,8 @@ else
     bashio::log.info "/data/secrets.ini not exists!"
     if [ -e "/secrets.ini" ]; then
         bashio::log.info "Copying..."
-        cp /secrets.ini /data 
-    fi    
+        cp /secrets.ini /data
+    fi
 fi
 
 bashio::log.blue "Getting mqtt data..."
@@ -41,6 +48,9 @@ bashio::log.info "${HASS_TIMEZONE}"
 
 export HASS_TIMEZONE_2=$(bashio::info "timezone")
 bashio::log.info "${HASS_TIMEZONE_2}"
+
+bashio::log.info "OS Alpine Linux ${ALPINE_VERSION}"
+bashio::log.info "${PYTHON_VERION}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 

@@ -1,68 +1,72 @@
 # CHANGELOG
 
+## 1.4
+
+- In the Edge release, we’ve upgraded the minimal image base to Python 3.10-alpine3.18.
+- Additionally, we’ve addressed an issue related to internet failures when sending payloads.
+
 ## 1.3
 
-        - Support bms/batteries
-
+- Support bms/batteries
 
 ## 1.2
 
-        - Support for multiple installations
-        - Support HM meter reading
-        - Reduce time of sending mqtt msg
-        - Fixed the problem that caused LOG level parameters not to be loaded.
-        - Fixed the issue that does not allow the connection status to be updated.
+- Support for multiple installations
+- Support HM meter reading
+- Reduce time of sending mqtt msg
+- Fixed the problem that caused LOG level parameters not to be loaded.
+- Fixed the issue that does not allow the connection status to be updated.
 
 ## 1.1
 
-        - Release edge
+- Release edge
 
 ## 1.00
 
-        - Added support for reading all devices
-        - Each device is separate MQTT decvice.
-        - Bump image to alpine3.13.
-        - Added sending alarms form inverters.
-        - Added year production read.
-        - Added real power in kW.
-        - Removed duplicated commands during build docker image.
-        - Added logging to file.
-        - Added some additional error handling.
-        - Added support for multi plants.
+- Added support for reading all devices
+- Each device is separate MQTT decvice.
+- Bump image to alpine3.13.
+- Added sending alarms form inverters.
+- Added year production read.
+- Added real power in kW.
+- Removed duplicated commands during build docker image.
+- Added logging to file.
+- Added some additional error handling.
+- Added support for multi plants.
 
 ## 0.24
 
-        - Refactor of whole code
-        - Optimization of whole flow.
-        - webserver is disabled
-        - switch to read config from json
-        - changed sensor reset date to the begining of next day
+- Refactor of whole code
+- Optimization of whole flow.
+- webserver is disabled
+- switch to read config from json
+- changed sensor reset date to the begining of next day
 
 ## 0.23
 
-        - Correct "Missing default value for External_MQTT_TLS bug' - issue #44
-        - Try to solve issue #40 - 'dict object' has no attribute
+- Correct "Missing default value for External_MQTT_TLS bug' - issue #44
+- Try to solve issue #40 - 'dict object' has no attribute
 
 ## 0.22
 
-        - Correct - Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
-        - Add device_class: power and state_class: measurement to real_power template
-        - TLS external server test
-        - Add timezone to last_data_time - issue #42
+- Correct - Option 'MQTT_HOST' does not exist in the schema for HoyMiles Solar Data Gateway Add-on
+- Add device_class: power and state_class: measurement to real_power template
+- TLS external server test
+- Add timezone to last_data_time - issue #42
 
 ## 0.21
 
-        - External MQTT bug fix
-        - New sensors magnitude
+- External MQTT bug fix
+- New sensors magnitude
 
 ### 0.20
 
 "0.20i" - Support to the HA Energy Management dashboard (BETA)
 
-        - Change some sensors config (testing)
-        - Automatically receives login data from the mqqt server and ignores the config.
-        - Load HASS.IO MQTT host, user and pass
-        - Dark mode bug fix
+- Change some sensors config (testing)
+- Automatically receives login data from the mqqt server and ignores the config.
+- Load HASS.IO MQTT host, user and pass
+- Dark mode bug fix
 
 ### 0.19
 

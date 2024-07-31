@@ -361,8 +361,9 @@ class Hoymiles(object):
         )
 
         solar = self.send_payload(GET_DATA_API, header, payload)
-        if "status" in solar.keys():
-            return int(solar["status"]), solar["data"]
+        if type(solar) is dict:
+            if "status" in solar.keys():
+                return int(solar["status"]), solar["data"]
         return -1, {}
 
     def get_plant_hw(self):
@@ -491,8 +492,9 @@ class Hoymiles(object):
             + "'"
         )
         retv = self.send_payload(STATION_FIND, header, payload)
-        if "status" in retv.keys() and retv["status"] == "0":
-            return True
+        if type(retv) is dict:
+            if "status" in retv.keys() and retv["status"] == "0":
+                return True
 
         return False
 
