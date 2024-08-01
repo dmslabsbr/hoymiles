@@ -14,6 +14,9 @@ RUN pip3 install paho-mqtt==1.6.1
 RUN pip3 install requests
 RUN pip3 install python-dateutil
 
+# Copy root filesystem
+COPY rootfs /
+
 # Python 3 HTTP Server serves the current working dir
 # So let's set it to our add-on persistent data directory.
 WORKDIR /data
@@ -29,8 +32,8 @@ COPY jsons /
 COPY templates/* /data/templates/
 COPY jsons/* /data/jsons/
 
-# Copy data for add-on
-COPY run.sh /
-RUN chmod a+x /run.sh
+# # Copy data for add-on
+# COPY run.sh /
+# RUN chmod a+x /run.sh
 
-CMD [ "/run.sh" ]
+# CMD [ "/run.sh" ]

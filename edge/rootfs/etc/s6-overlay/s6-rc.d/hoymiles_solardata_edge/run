@@ -1,7 +1,8 @@
-#!/command/with-contenv bashio
+#!/usr/bin/with-contenv bashio
 # shellcheck shell=bash
 # ==============================================================================
-# Start Hoymiles service
+# Start hoymiles_solardata_edge service
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 ALPINE_VERSION=$(cat /etc/alpine-release)
 PYTHON_VERION=$(python3 --version)
@@ -14,9 +15,9 @@ date
 CONFIG_PATH=/data/options.json
 SYSTEM_USER=/data/system_user.json
 
-ls -la
+cd /data || exit
 
-pwd
+ls -la
 
 mkdir -p /data/templates
 
@@ -56,4 +57,4 @@ bashio::log.info "${PYTHON_VERION}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 
-python3 /hoymiles.py
+exec python3 /hoymiles.py

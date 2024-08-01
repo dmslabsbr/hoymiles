@@ -15,7 +15,6 @@ secrets.ini
 hoymiles.log
 .vscode/launch.json
 workspace.code-workspace
-hoymiles/
 bin/
 /bin
 
