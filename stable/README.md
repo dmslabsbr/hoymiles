@@ -1,4 +1,4 @@
-# HoyMiles Solar Data Gateway Add-on Edge version
+# HoyMiles Solar Data Gateway Add-on Stable version
 
 ## Important Info
 
