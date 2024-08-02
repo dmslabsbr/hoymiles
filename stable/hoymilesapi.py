@@ -196,7 +196,7 @@ class Hoymiles(object):
         self.logger.debug(prepped.headers)
         try:
             response = sess.send(prepped)
-            ret = ""
+            ret = {}
             if response.status_code != 200:
                 self.logger.error(f"Access error: {url}")
                 self.logger.error(
