@@ -1,12 +1,25 @@
 # CHANGELOG
 
-## 1.1
+## 1.4
 
         - Release edge
-        - Fix issue with many installation
+
+## 1.3
+
+        - Support bms/batteries
+
+
+## 1.2
+
+        - Support for multiple installations
+        - Support HM meter reading
         - Reduce time of sending mqtt msg
         - Fixed the problem that caused LOG level parameters not to be loaded.
         - Fixed the issue that does not allow the connection status to be updated.
+
+## 1.1
+
+        - Release edge
 
 ## 1.00
 

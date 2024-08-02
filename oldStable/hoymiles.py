@@ -3,7 +3,7 @@ Main module of addon
 """
 
 __author__ = "dmslabs&Cosik"
-__version__ = "1.0.11"
+__version__ = "1.1.7"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -56,15 +56,18 @@ def get_secrets() -> dict:
     if os.path.isfile("./config.json"):
         json_path = "config.json"
     elif os.path.isfile("/config.json"):
-        son_path = "/config.json"
+        json_path = "/config.json"
     else:
         json_path = "/data/options.json"
     with open(json_path, "r", encoding="utf-8") as json_file:
         config = json.load(json_file)
         if "options" in config.keys():
             config = config["options"]
-    if config["DEVELOPERS_MODE"]:
-        logger.setLevel(logging.DEBUG)
+        log_level = config["LOG_LEVEL"]
+        if log_level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]:
+            logger.setLevel(log_level)
+        if config["DEVELOPERS_MODE"]:
+            logger.setLevel(logging.DEBUG)
     return config
 
 
@@ -234,29 +237,32 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
     hoymiles_h.update_devices_status()
     hoymiles_h.get_solar_data()
     hoymiles_h.get_alarms()
-    json_ups = json.dumps(hoymiles_h.solar_data)
-    mqtt_h.public(MQTT_PUB + "/json" + "_" + str(hoymiles_h.plant_id), json_ups)
-    mqtt_h.publicate_time = datetime.now()
-    logger.info(f"Solar data publication...{datetime.now()}")
-    mqtt_h.send_clients_status()
+    if len(hoymiles_h.solar_data):
+        json_ups = json.dumps(hoymiles_h.solar_data)
+        mqtt_h.public(MQTT_PUB + "/json" + "_" + str(hoymiles_h.plant_id), json_ups)
+        mqtt_h.publicate_time = datetime.now()
+        logger.info(f"Solar data publication...{datetime.now()}")
+        mqtt_h.send_clients_status()
 
     for device in hoymiles_h.dtu_list:
-        json_ups = json.dumps(device.data)
-        mqtt_h.public(MQTT_PUB + "/json" + "_" + str(device.id), json_ups)
-        mqtt_h.publicate_time = datetime.now()
-        logger.info(
-            f"{device.model_no}_{device.id} data publication...{datetime.now()}"
-        )
-        mqtt_h.send_clients_status()
+        if len(device.data):
+            json_ups = json.dumps(device.data)
+            mqtt_h.public(MQTT_PUB + "/json" + "_" + str(device.id), json_ups)
+            mqtt_h.publicate_time = datetime.now()
+            logger.info(
+                f"{device.model_no}_{device.id} data publication...{datetime.now()}"
+            )
+            mqtt_h.send_clients_status()
 
     for device in hoymiles_h.micro_list:
-        json_ups = json.dumps(device.data)
-        mqtt_h.public(MQTT_PUB + "/json" + "_" + str(device.id), json_ups)
-        mqtt_h.publicate_time = datetime.now()
-        logger.info(
-            f"{device.init_hard_no}_{device.id} data publication...{datetime.now()}"
-        )
-        mqtt_h.send_clients_status()
+        if len(device.data):
+            json_ups = json.dumps(device.data)
+            mqtt_h.public(MQTT_PUB + "/json" + "_" + str(device.id), json_ups)
+            mqtt_h.publicate_time = datetime.now()
+            logger.info(
+                f"{device.init_hard_no}_{device.id} data publication...{datetime.now()}"
+            )
+            mqtt_h.send_clients_status()
     return
 
 
@@ -315,6 +321,15 @@ def main() -> int:
 
     config = get_secrets()
 
+    if config["LOG_TO_FILE"]:
+        fh = logging.FileHandler(config["FILE_PATH"])
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
     if not config["External_MQTT_Server"]:
         config["MQTT_Host"] = getEnv("MQTT_HOST_HA")
         config["MQTT_Pass"] = getEnv("MQTT_PASSWORD_HA")
@@ -326,75 +341,85 @@ def main() -> int:
             f"Using External MQTT Server: {str(config['External_MQTT_Server'])}"
         )
 
-    if int(config["HOYMILES_PLANT_ID"]) < 100:
-        logger.warning(f"Wrong plant ID {config['HOYMILES_PLANT_ID']}")
+    plant_list = {}
+    mqtt_list = {}
+    job_list = []
+    for id in config["HOYMILES_PLANT_ID"].split(","):
+        id = id.strip()
+        if int(id) < 100:
+            logger.warning(f"Wrong plant ID {id}")
 
-    hoymiles = Hoymiles(
-        plant_id=int(config["HOYMILES_PLANT_ID"]), config=config, g_envios=g_envios
-    )
+        plant_list[id] = Hoymiles(plant_id=int(id), config=config, g_envios=g_envios)
 
-    if hoymiles.token == "":
-        logger.error("I can't get access token")
-        quit()
+        if plant_list[id].connection.token == "":
+            logger.error("I can't get access token")
+            quit()
 
-    if not hoymiles.verify_plant():
-        logger.error("User has no access to plant")
-        quit()
+        if not plant_list[id].verify_plant():
+            logger.error("User has no access to plant")
+            quit()
 
-    hoymiles.get_plant_hw()
+        plant_list[id].get_plant_hw()
 
-    dtu_status_list = []
-    for dtu in hoymiles.dtu_list:
-        dtu_status_list.append(dtu.data["connect"])
-    while not "ON" in dtu_status_list:
-        time.sleep(GETDATA_INTERVAL)
-        hoymiles.get_plant_hw()
         dtu_status_list = []
-        for dtu in hoymiles.dtu_list:
+        for dtu in plant_list[id].dtu_list:
             dtu_status_list.append(dtu.data["connect"])
+        while not "ON" in dtu_status_list:
+            time.sleep(GETDATA_INTERVAL)
+            plant_list[id].get_plant_hw()
+            dtu_status_list = []
+            for dtu in plant_list[id].dtu_list:
+                dtu_status_list.append(dtu.data["connect"])
 
-    hoymiles.get_alarms()
+        plant_list[id].get_alarms()
 
-    mqtt = MqttApi(config, hoymiles, __version__)
-    mqtt.start()
-    while not mqtt.connected:
-        time.sleep(1)  # wait for connection
-        if not mqtt.client_status:
-            time.sleep(240)
+        mqtt_list[id] = MqttApi(config, plant_list[id], __version__)
+        mqtt_list[id].start()
+        while not mqtt_list[id].connected:
+            time.sleep(1)  # wait for connection
+            if not mqtt_list[id].client_status:
+                time.sleep(240)
 
-    send_hass(hoymiles, mqtt)
+        send_hass(plant_list[id], mqtt_list[id])
 
-    publicate_data(hoymiles, mqtt)
+        publicate_data(plant_list[id], mqtt_list[id])
 
-    mqtt.send_clients_status()
+        mqtt_list[id].send_clients_status()
 
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-    job_send_hass = Job(
-        interval=timedelta(seconds=HASS_INTERVAL),
-        execute=send_hass,
-        hoymiles_h=hoymiles,
-        mqtt_h=mqtt,
-    )
-    job_send_hass.start()
-    job_publica_dados = Job(
-        interval=timedelta(seconds=GETDATA_INTERVAL),
-        execute=publicate_data,
-        hoymiles_h=hoymiles,
-        mqtt_h=mqtt,
-    )
-    job_publica_dados.start()
+        signal.signal(signal.SIGTERM, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
+        job_list.append(
+            Job(
+                interval=timedelta(seconds=HASS_INTERVAL),
+                execute=send_hass,
+                hoymiles_h=plant_list[id],
+                mqtt_h=mqtt_list[id],
+            )
+        )
+
+        job_list.append(
+            Job(
+                interval=timedelta(seconds=GETDATA_INTERVAL),
+                execute=publicate_data,
+                hoymiles_h=plant_list[id],
+                mqtt_h=mqtt_list[id],
+            )
+        )
+
+    for job in job_list:
+        job.start()
 
     logger.info("Main loop start!")
     while True:
-        if not mqtt.connected:
-            sys.exit()
+        for mqtt in mqtt_list.values():
+            if not mqtt.connected:
+                sys.exit()
         try:
             time.sleep(10)
         except ProgramKilled:
             logger.info("Program killed: running cleanup code")
-            job_send_hass.stop()
-            job_publica_dados.stop()
+            for job in job_list:
+                job.stop()
             break
 
     return 0

@@ -1,12 +1,25 @@
 # CHANGELOG
 
+## 1.1
+
+        - Release edge
+        - Fix issue with many installation
+        - Reduce time of sending mqtt msg
+        - Fixed the problem that caused LOG level parameters not to be loaded.
+        - Fixed the issue that does not allow the connection status to be updated.
+
 ## 1.00
 
         - Added support for reading all devices
         - Each device is separate MQTT decvice.
-        - Bump image to alpine3.13
-        - Added sending alarms form inverters
-        - Fixed the issue that does not allow the connection status to be updated.
+        - Bump image to alpine3.13.
+        - Added sending alarms form inverters.
+        - Added year production read.
+        - Added real power in kW.
+        - Removed duplicated commands during build docker image.
+        - Added logging to file.
+        - Added some additional error handling.
+        - Added support for multi plants.
 
 ## 0.24
 
