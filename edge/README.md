@@ -1,5 +1,7 @@
 # HoyMiles Solar Data Gateway Add-on Edge version
 
+# Branch in full full development mode - will be rewritten from scratch
+
 ## Important Info
 
 Addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it could not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This mean that it **required rewriting from scratch**. Without support from community it **is not predicted soon**.
@@ -22,7 +24,7 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 But you can use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
 
 
-Donate Cosik -> 
+Donate Cosik ->
 [![Donate Cosik](https://img.shields.io/badge/Donate-PayPal-green.svg)](paypal.me/cosik3d)
 
 <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/dmslabsbr/hoymiles">

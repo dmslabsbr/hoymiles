@@ -1,4 +1,16 @@
-# HoyMiles Solar Data Gateway Add-on Stable version
+# HoyMiles Solar Data Gateway Add-on Edge version
+
+## Important Info
+
+## EDGE goes to full development mode - will be rewritten from scratch
+
+Addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it could not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This mean that it **required rewriting from scratch**. Without support from community it **is not predicted soon**.
+
+Br,
+Cosik.
+
+## Info
+
 Development versions can be unstable.
 
 Application to read Hoymiles Gateway Solar Data using unofficial API
@@ -11,10 +23,8 @@ Now, [Cosik](https://github.com/Cosik)  is helping too.
 
 But you can use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
 
-<a href="https://www.buymeacoffee.com/dmslabs"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=dmslabs&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"></a>
 
-
-Donate Cosik -> 
+Donate Cosik ->
 [![Donate Cosik](https://img.shields.io/badge/Donate-PayPal-green.svg)](paypal.me/cosik3d)
 
 <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/dmslabsbr/hoymiles">
@@ -48,16 +58,35 @@ My solar panels communicate with the internet using a DTU-W100 gateway.
 But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
 
 
+# Supported devies
+
+So far it is confirmed that addon support Hoymiles devices:
+- micro inverters
+- standard inverters
+- energy meters
+- bms (with some restrictions)
+- batteries (with some restrictions)
+- multiple instalattions
+
+## Restrictions
+
+Addon support batteries and bms. Present is support only two modes:
+- self consumption
+- force charge
+
+Due to technical dept there **is no feedback about enabled mode and set values.**
+
+
 ## PS:
 I invite everyone to help in the this tool development.
 
 ## Screenshots
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/stable/img/Hass1.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass1.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/stable/img/Hass2.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass2.png?raw=true" alt="" width="400" />
 
-<img src="https://github.com/dmslabsbr/hoymiles/blob/master/stable/img/Hass3.png?raw=true" alt="" width="400" />
+<img src="https://github.com/dmslabsbr/hoymiles/blob/master/edge/img/Hass3.png?raw=true" alt="" width="400" />
 
 
 

@@ -22,6 +22,23 @@ from const import (BASE_URL, COOKIE_EGG_SESS, COOKIE_UID, GET_ALL_DEVICE_API,
 
 module_logger = logging.getLogger('HoymilesAdd-on.hoymilesapi')
 
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+        Possible changes to the value of the `__init__` argument do not affect
+        the returned instance.
+        """
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class ConnectionHM(metaclass=SingletonMeta):
+    token = None
+
 
 class PlantObject():
     """Generic class for devices in plant
@@ -73,7 +90,7 @@ class Hoymiles(object):
 
     def __init__(self, plant_id, config, g_envios, tries=5) -> None:
         self.plant_id = plant_id
-        self.token = None
+        self.connection = ConnectionHM()
         self._tries = tries
         self.logger = logging.getLogger('HoymilesAdd-on.hoymilesapi.Hoymiles')
         self.count_station_real_data = {}
@@ -117,17 +134,17 @@ class Hoymiles(object):
         if s_code == 200:
             json_res = json.loads(login)
             if json_res['status'] == '0':
-                self.token = json_res['data']['token']
+                self.connection.token = json_res['data']['token']
                 ret = True
                 self.logger.info('I got the token!!  :-)')
-                if not self.token:
+                if not self.connection.token:
                     self.logger.error('No response')
                     ret = False
             elif json_res['status'] == '1':
-                self.token = ''
+                self.connection.token = ''
                 self.logger.error('Wrong user/password')
         else:
-            self.token = ''
+            self.connection.token = ''
             self.logger.error(
                 f'Wrong user/password {s_code} {HTTP_STATUS_CODE.get(s_code, 1000)}')
         return ret
@@ -177,17 +194,21 @@ class Hoymiles(object):
         sess = requests.Session()
         prepped = req.prepare()
         self.logger.debug(prepped.headers)
-        response = sess.send(prepped)
-        ret = ""
-        if response.status_code != 200:
-            self.logger.error(f"Access error: {url}")
-            self.logger.error(
-                f"Status code: {response.status_code}" +
-                f"{HTTP_STATUS_CODE.get(response.status_code, 1000)}")
-        else:
-            ret = response.content
-            self.logger.debug(f"content: {response.content}")
-        return ret, response.status_code
+        try:
+            response = sess.send(prepped)
+            ret = {}
+            if response.status_code != 200:
+                self.logger.error(f"Access error: {url}")
+                self.logger.error(
+                    f"Status code: {response.status_code}" +
+                    f"{HTTP_STATUS_CODE.get(response.status_code, 1000)}")
+            else:
+                ret = response.content
+                self.logger.debug(f"content: {response.content}")
+            return ret, response.status_code
+        except Exception as err:
+            self.logger.error(err)
+            return {}, -1
 
     def get_solar_data(self) -> dict:
         """Get solar data
@@ -217,29 +238,34 @@ class Hoymiles(object):
         return self.solar_data
 
     def adjust_solar_data(self, solar_data: dict) -> dict:
-        """Adjust solar data like unifed measurements units
+        """Adjust solar data like unifed measurements units.
+
+        Rename key: capacitor to array_size.  solar_data['capacitor':''] from
+        Hoymiles holds PV array size in watts.
 
         Args:
-            solar_data (dict): data retrun from API
+            solar_data (dict): data returned from API
 
         Returns:
             dict: adjusted solar data
         """
         real_power = float(solar_data['real_power'])
-        capacidade = float(solar_data['capacitor'])
-        if 0 < capacidade < 100:
-            capacidade = capacidade * 1000
-        power_ratio = (real_power / capacidade) * 100
+        array_size = float(solar_data['capacitor'])
+        if 0 < array_size < 100:
+            array_size = array_size * 1000
+        power_ratio = (real_power / array_size) * 100
         power_ratio = round(power_ratio, 1)
         if real_power == 0:
             self.logger.warning("real_power = 0")
 
         solar_data['real_power'] = str(real_power)
+        solar_data['real_power_kw'] = str(round(real_power/1000, 3))
         solar_data['real_power_measurement'] = str(real_power)
         solar_data['real_power_total_increasing'] = str(real_power)
         solar_data['power_ratio'] = str(power_ratio)
-        solar_data['capacitor'] = str(capacidade)
-        solar_data['capacitor_kW'] = str(capacidade / 1000)
+        solar_data['array_size'] = str(array_size)
+        solar_data['array_size_kW'] = str(array_size / 1000)
+        del solar_data['capacitor']
         co2 = round(float(solar_data['co2_emission_reduction']) / 1000000, 5)
         solar_data['co2_emission_reduction'] = str(co2)
         solar_data['today_eq_Wh'] = solar_data['today_eq']
@@ -270,12 +296,14 @@ class Hoymiles(object):
         payload = template.substitute(sid=self.plant_id)
 
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
 
         solar = self.send_payload(GET_DATA_API, header, payload)
-        return int(solar['status']), solar['data']
+        if 'status' in solar.keys():
+            return int(solar['status']), solar['data']
+        return -1, {}
 
     def get_plant_hw(self):
         """Get pland hardware layout and create objects
@@ -308,6 +336,7 @@ class Hoymiles(object):
                                 dtu.data['connect'] = "OFF"
                     except Exception as err:
                         self.logger.error(f"request_plant_hw dtu {err}")
+
                 try:
                     if 'children' in hw_data.keys():
                         for micro in hw_data['children']:
@@ -331,11 +360,15 @@ class Hoymiles(object):
         template = Template(PAYLOAD_ID)
         payload = template.substitute(id=self.plant_id)
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(GET_ALL_DEVICE_API, header, payload)
-        return retv['status'], retv['data']
+
+        if type(retv) is dict:
+            if 'status' in retv.keys():
+                return retv['status'], retv['data']
+        return "-1", {}
 
     def send_payload(self, api: str, header: dict, payload: str) -> dict:
         """Send api payload
@@ -351,22 +384,26 @@ class Hoymiles(object):
         # retv = self.pega_url_json_dic(BASE_URL + api, header, payload)
         retv, s_code = self.send_request(
             BASE_URL + api, header, payload, 'POST')
-        retv = json.loads(retv)
         if s_code == 200:
-            if 'status' in retv.keys():
-                if retv['status'] != "0":
-                    self.logger.debug(
-                        f"{api} Error: {retv['status']} {retv['message']}")
-                    if retv['status'] == "100":
-                        # request new token
-                        if self.get_token():
-                            # chama pega solar novamente
-                            retv['status'], retv['data'] = self.request_solar_data()
-                    elif retv['status'] == "3":
-                        self.logger.error("Wrong plant id!!")
-                        sys.exit(0)
-            else:
-                self.logger.error("I can't connect!")
+            try:
+                retv = json.loads(retv)
+                if 'status' in retv.keys():
+                    if retv['status'] != "0":
+                        self.logger.debug(
+                            f"{api} Error: {retv['status']} {retv['message']}")
+                        if retv['status'] == "100":
+                            # request new token
+                            if self.get_token():
+                                # chama pega solar novamente
+                                retv['status'], retv['data'] = self.request_solar_data()
+                        elif retv['status'] == "3":
+                            self.logger.error("Wrong plant id!!")
+                            sys.exit(0)
+                else:
+                    self.logger.error("I can't connect!")
+            except Exception as err:
+                self.logger.error(f"There was an error in retv {retv}")
+                return {}
         return retv
 
     def verify_plant(self) -> bool:
@@ -378,11 +415,11 @@ class Hoymiles(object):
         template = Template(PAYLOAD_ID)
         payload = template.substitute(id=self.plant_id)
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         retv = self.send_payload(STATION_FIND, header, payload)
-        if retv['status'] == '0':
+        if 'status' in retv.keys() and retv['status'] == '0':
             return True
 
         return False
@@ -391,7 +428,7 @@ class Hoymiles(object):
         """_summary_
         """
         header = HEADER_DATA
-        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.token + \
+        header['Cookie'] = COOKIE_UID + "; hm_token=" + self.connection.token + \
             "; Path=/; Domain=.global.hoymiles.com;" + \
             f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;" + "'"
         for micro in self.micro_list:

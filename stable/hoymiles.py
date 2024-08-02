@@ -3,7 +3,7 @@ Main module of addon
 """
 
 __author__ = "dmslabs&Cosik"
-__version__ = "1.1.7"
+__version__ = "1.4.0"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -34,6 +34,8 @@ from mqttapi import MqttApi
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("HoymilesAdd-on")
 logger.setLevel(logging.INFO)
+mqtt_h = MqttApi(__version__)
+plant_list = {}
 
 
 def getEnv(env):
@@ -122,6 +124,12 @@ def monta_publica_topico(mqtt_h: MqttApi, component, s_dict, var_comuns):
                 + var_comuns["uniq_id"]
                 + "/config"
             )
+            if component == "switch" or component == "number":
+                mqtt_h._client.subscribe(json.loads(dados).get("command_topic"))
+                logger.debug(
+                    f"subscribe topic {json.loads(dados).get('command_topic')}"
+                )
+                pass
             dados = json_remove_void(dados)
             ret_code = mqtt_h.public(topico, dados)
             if ret_code == 0:
@@ -184,6 +192,23 @@ def send_hass(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                     "sid": SID,
                     "plant_id": str(hoymiles_h.plant_id),
                     "uniq_id": micro.uuid,
+                }
+            }
+        )
+
+    for bms in hoymiles_h.bms_list:
+        var_comuns.update(
+            {
+                f"bms_{bms.id}": {
+                    "sw_version": bms.soft_ver,
+                    "model": bms.model,
+                    "manufacturer": "Hoymiles",
+                    "device_name": __app_name__,
+                    "identifiers": SHORT_NAME + "_" + str(bms.id),
+                    "via_device": bms.id,
+                    "sid": SID,
+                    "plant_id": str(hoymiles_h.plant_id),
+                    "uniq_id": bms.uuid,
                 }
             }
         )
@@ -263,6 +288,14 @@ def publicate_data(hoymiles_h: Hoymiles, mqtt_h: MqttApi):
                 f"{device.init_hard_no}_{device.id} data publication...{datetime.now()}"
             )
             mqtt_h.send_clients_status()
+
+    for bms in hoymiles_h.bms_list:
+        if len(bms.data):
+            json_ups = json.dumps(bms.data)
+            mqtt_h.public(MQTT_PUB + "/json" + "_" + str(bms.id), json_ups)
+            mqtt_h.publicate_time = datetime.now()
+            logger.info(f"{bms.model}_{bms.id} data publication...{datetime.now()}")
+            mqtt_h.send_clients_status()
     return
 
 
@@ -288,8 +321,8 @@ def signal_handler(signum, frame):
 class Job(threading.Thread):
     """Custom class to handle running mathods and save resources"""
 
-    def __init__(self, interval, execute, *args, **kwargs):
-        threading.Thread.__init__(self)
+    def __init__(self, interval, execute, name, *args, **kwargs):
+        threading.Thread.__init__(self, name=name)
         self.daemon = False
         self.stopped = threading.Event()
         self.interval = interval
@@ -308,7 +341,40 @@ class Job(threading.Thread):
             self.execute(*self.args, **self.kwargs)
 
 
+@mqtt_h.on_topic("hoymiles/+/set/self_consumption")
+@mqtt_h.on_topic("hoymiles/+/set/force_charge")
+def get_msg(client, userdata, message):
+    logger.debug("handling bms %s", message.topic)
+    bms_sn = message.topic.split("/")[1]
+    for plant_id, plant_obj in plant_list.items():
+        if plant_obj.bms_present:
+            for bms in plant_obj.bms_list:
+                if int(bms.sn) == int(bms_sn):
+                    mode = message.topic.split("/")[-1]
+                    if mode == "self_consumption":
+                        plant_obj.set_bms_mode(1, bms.reserve_soc)
+                    elif mode == "force_charge":
+                        plant_obj.set_bms_mode(5, bms.reserve_soc, bms.max_power)
+
+
+@mqtt_h.on_topic("hoymiles/+/set/reserve_soc")
+@mqtt_h.on_topic("hoymiles/+/set/max_power")
+def get_msg(client, userdata, message):
+    logger.debug("handling bms %s", message.topic)
+    bms_sn = message.topic.split("/")[1]
+    for plant_id, plant_obj in plant_list.items():
+        if plant_obj.bms_present:
+            for bms in plant_obj.bms_list:
+                if int(bms.sn) == int(bms_sn):
+                    mode = message.topic.split("/")[-1]
+                    if mode == "reserve_soc":
+                        bms.reserve_soc = int(message.payload)
+                    elif mode == "max_power":
+                        bms.max_power = int(message.payload)
+
+
 def main() -> int:
+    global plant_list
     """Main function of script"""
     logger.info(f"********** {__author__} {__app_name__}  v.{__version__}")
     logger.info(f"Starting up... {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -341,15 +407,25 @@ def main() -> int:
             f"Using External MQTT Server: {str(config['External_MQTT_Server'])}"
         )
 
-    plant_list = {}
-    mqtt_list = {}
     job_list = []
+
+    mqtt_h.start(config)
+    while not mqtt_h.connected:
+        time.sleep(1)  # wait for connection
+        if not mqtt_h.client_status:
+            time.sleep(240)
+
     for id in config["HOYMILES_PLANT_ID"].split(","):
         id = id.strip()
         if int(id) < 100:
             logger.warning(f"Wrong plant ID {id}")
 
-        plant_list[id] = Hoymiles(plant_id=int(id), config=config, g_envios=g_envios)
+        plant_list[id] = Hoymiles(
+            plant_id=int(id),
+            config=config,
+            g_envios=g_envios,
+            meter=config["Read_meter_data"],
+        )
 
         if plant_list[id].connection.token == "":
             logger.error("I can't get access token")
@@ -364,27 +440,20 @@ def main() -> int:
         dtu_status_list = []
         for dtu in plant_list[id].dtu_list:
             dtu_status_list.append(dtu.data["connect"])
-        while not "ON" in dtu_status_list:
-            time.sleep(GETDATA_INTERVAL)
-            plant_list[id].get_plant_hw()
-            dtu_status_list = []
-            for dtu in plant_list[id].dtu_list:
-                dtu_status_list.append(dtu.data["connect"])
+        # while not "ON" in dtu_status_list:
+        #     time.sleep(GETDATA_INTERVAL)
+        #     plant_list[id].get_plant_hw()
+        #     dtu_status_list = []
+        #     for dtu in plant_list[id].dtu_list:
+        #         dtu_status_list.append(dtu.data["connect"])
 
         plant_list[id].get_alarms()
 
-        mqtt_list[id] = MqttApi(config, plant_list[id], __version__)
-        mqtt_list[id].start()
-        while not mqtt_list[id].connected:
-            time.sleep(1)  # wait for connection
-            if not mqtt_list[id].client_status:
-                time.sleep(240)
+        send_hass(plant_list[id], mqtt_h)
 
-        send_hass(plant_list[id], mqtt_list[id])
+        publicate_data(plant_list[id], mqtt_h)
 
-        publicate_data(plant_list[id], mqtt_list[id])
-
-        mqtt_list[id].send_clients_status()
+        mqtt_h.send_clients_status()
 
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
@@ -392,8 +461,9 @@ def main() -> int:
             Job(
                 interval=timedelta(seconds=HASS_INTERVAL),
                 execute=send_hass,
+                name="send_hass",
                 hoymiles_h=plant_list[id],
-                mqtt_h=mqtt_list[id],
+                mqtt_h=mqtt_h,
             )
         )
 
@@ -401,8 +471,9 @@ def main() -> int:
             Job(
                 interval=timedelta(seconds=GETDATA_INTERVAL),
                 execute=publicate_data,
+                name="publicate_data",
                 hoymiles_h=plant_list[id],
-                mqtt_h=mqtt_list[id],
+                mqtt_h=mqtt_h,
             )
         )
 
@@ -411,9 +482,8 @@ def main() -> int:
 
     logger.info("Main loop start!")
     while True:
-        for mqtt in mqtt_list.values():
-            if not mqtt.connected:
-                sys.exit()
+        if not mqtt_h.connected:
+            sys.exit()
         try:
             time.sleep(10)
         except ProgramKilled:

@@ -1,8 +1,8 @@
 {
-  "name": "HoyMiles Solar Gateway Addon",
-  "version": "1.0.11",
-  "slug": "hoymiles_solardata",
-  "description": "Read Hoymiles Gateway Solar Data.",
+  "name": "HoyMiles Solar Gateway oldStable Addon",
+  "version": "1.1.7",
+  "slug": "hoymiles_solardata_oldStable",
+  "description": "Read Hoymiles Gateway Solar Data oldStable Version.",
   "arch": [
     "armhf",
     "armv7",
@@ -25,30 +25,36 @@
   "ingress_port": 5000,
   "host_network": true,
   "panel_icon": "mdi:solar-power",
-  "panel_title": "HoyMiles Solar Data Gateway",
+  "panel_title": "HoyMiles Solar Data Gateway oldStable version.",
   "panel_admin": false,
   "options": {
     "HOYMILES_USER": "HOYMILES_USER",
     "HOYMILES_PASSWORD": "HOYMILES_PASSWORD",
     "HOYMILES_PLANT_ID": "123",
-    "DEVELOPERS_MODE": false,
     "External_MQTT_Server": false,
     "MQTT_Host": "Internal - Change here if you use another server",
     "MQTT_User": "Automatically obtained from Home Assistant - Change here if you use another server",
     "MQTT_Pass": "Automatically obtained from Home Assistant - Change here if you use another server",
     "MQTT_TLS": false,
-    "MQTT_TLS_PORT": "8883"
+    "MQTT_TLS_PORT": "8883",
+    "DEVELOPERS_MODE": false,
+    "LOG_LEVEL": "INFO",
+    "LOG_TO_FILE": false,
+    "FILE_PATH": "hoymiles.log"
   },
   "schema": {
     "HOYMILES_USER": "str",
     "HOYMILES_PASSWORD": "password",
     "HOYMILES_PLANT_ID": "str",
-    "DEVELOPERS_MODE": "bool",
     "External_MQTT_Server": "bool",
     "MQTT_Host": "str?",
     "MQTT_User": "str?",
     "MQTT_Pass": "password?",
     "MQTT_TLS": "bool",
-    "MQTT_TLS_PORT": "port"
+    "MQTT_TLS_PORT": "port",
+    "DEVELOPERS_MODE": "bool",
+    "LOG_LEVEL": "list(DEBUG|INFO|WARNING|ERROR|CRITICAL)?",
+    "LOG_TO_FILE": "bool",
+    "FILE_PATH": "str?"
   }
 }
