@@ -1,0 +1,133 @@
+{
+    "status": "0",
+    "message": "success",
+    "data": {
+        "id": 103281,
+        "gid": 102894,
+        "name": "name",
+        "type": 1,
+        "tz_id": 41,
+        "city_code": "PL01011000000000",
+        "status": 40,
+        "create_by": 76100,
+        "create_at": "2022-02-03 15:12:11",
+        "classify": 1,
+        "tz_name": "UTC+01",
+        "pic_path": "",
+        "capacitor": "4.5",
+        "address": "address",
+        "layout_step": 2,
+        "is_balance": 0,
+        "is_reflux": 0,
+        "remarks": "",
+        "config": {
+            "sun_spec_num": 0,
+            "power_limit": "",
+            "power_limit_pf": "",
+            "power_limit_re": "",
+            "module_max_power": 0,
+            "owner_is_show_layout": 1,
+            "owner_is_modify_dev": 0,
+            "third_party_user": [],
+            "billing_type": 1,
+            "billing_start": "2022-04-01",
+            "billing_every": 1,
+            "client_type": 300,
+            "layout_show": 1,
+            "fcs": 0,
+            "ess_cfg_edit": 0,
+            "grid_type": 0,
+            "diy": 0,
+            "weather": 0,
+            "au": 0,
+            "cr": 0
+        },
+        "is_stars": 0,
+        "money_unit": "PLN",
+        "electricity_price": 0.74,
+        "in_price": 0,
+        "usd": "",
+        "nk_name": null,
+        "int5m": 0,
+        "is_3rd": 0,
+        "dc": 0,
+        "city_id": 1418,
+        "weather_of_cid": 3081368,
+        "timezone": {
+            "id": 41,
+            "dis_name": "(UTC+01:00) Sarajevo,Skopje,Warsaw,Zagreb",
+            "name": "Europe/Sarajevo",
+            "tz_name": "UTC+01",
+            "offset": 7200000
+        },
+        "local_time": "2024-08-01 20:48:15",
+        "parent_city": [
+            {
+                "id": 155,
+                "pid": 0,
+                "code": "PL00000000000000",
+                "weather_of_cid": 0,
+                "city_name": "Poland",
+                "country_code": "PL",
+                "level": 1
+            },
+            {
+                "id": 809,
+                "pid": 155,
+                "code": "PL01000000000000",
+                "weather_of_cid": 0,
+                "city_name": "city_name",
+                "country_code": "PL",
+                "level": 2
+            },
+            {
+                "id": 1418,
+                "pid": 809,
+                "code": "PL01011000000000",
+                "weather_of_cid": 3081368,
+                "city_name": "city_name",
+                "country_code": "PL",
+                "level": 3
+            }
+        ],
+        "latitude": "1.2345",
+        "longitude": "1.2345",
+        "meter_location": 0,
+        "owner_list": [
+            {
+                "uid": 114609,
+                "name": "name",
+                "user_name": "user_name"
+            }
+        ],
+        "group": {
+            "id": 102894,
+            "name": "name",
+            "pid": 52222,
+            "type": 4,
+            "contact": "",
+            "phone": "",
+            "area": "",
+            "icon": ""
+        },
+        "money_data": {
+            "code": "PLN",
+            "unit":"z\xc5\x82"
+        },
+        "warn_data": {
+            "s_uoff": true,
+            "s_ustable": false,
+            "s_uid": false,
+            "l3_warn": false,
+            "g_warn": false,
+            "me_warn": false
+        },
+        "bms_capacitor": "0",
+        "inv_mode": 0,
+        "create_by_name": "Name",
+        "lack": 0,
+        "ak": "YqH7WPECeHsdfHDzpZj2",
+        "flag_map": {}
+    },
+    "systemNotice": null
+}

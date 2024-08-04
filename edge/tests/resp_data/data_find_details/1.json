@@ -1,0 +1,12 @@
+{
+    "status": "0",
+    "message": "success",
+    "data": {
+        "mi_sn": null,
+        "net_state": 1,
+        "warn_list": [],
+        "dbg": false,
+        "warn_shield_set": []
+    },
+    "systemNotice": null
+}

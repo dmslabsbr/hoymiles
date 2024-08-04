@@ -1,0 +1,116 @@
+{
+    "status": "0",
+    "message": "success",
+    "data": {
+        "id": 3971440,
+        "gid": 105395,
+        "name": "Some name",
+        "type": 1,
+        "tz_id": 38,
+        "city_code": "DE07000000000000",
+        "status": 40,
+        "create_by": 104972,
+        "create_at": "2024-03-25 20:49:06",
+        "classify": 4,
+        "tz_name": "UTC+01",
+        "pic_path": "jpg",
+        "capacitor": "4.6",
+        "address": "address",
+        "layout_step": 0,
+        "is_balance": 0,
+        "is_reflux": 1,
+        "remarks": "",
+        "config": {
+            "sun_spec_num": 0,
+            "power_limit": "",
+            "power_limit_pf": "",
+            "power_limit_re": "",
+            "module_max_power": 0,
+            "owner_is_show_layout": 1,
+            "owner_is_modify_dev": 0,
+            "third_party_user": [],
+            "billing_type": 0,
+            "billing_start": "",
+            "billing_every": 0,
+            "client_type": 100,
+            "layout_show": 1,
+            "fcs": 0,
+            "ess_cfg_edit": 0,
+            "grid_type": 0
+        },
+        "is_stars": 0,
+        "money_unit": "EUR",
+        "electricity_price": 0.38,
+        "in_price": 0.76,
+        "usd": "",
+        "nk_name": null,
+        "int5m": 1,
+        "city_id": 41509,
+        "weather_of_cid": 0,
+        "timezone": {
+            "id": 38,
+            "dis_name": "(UTC+01:00) Amsterdam,Berlin,Bern,Rome,Stockholm,Vienna",
+            "name": "Europe/Amsterdam",
+            "tz_name": "UTC+01",
+            "offset": 3600000
+        },
+        "local_time": "2024-03-26 19:05:57",
+        "parent_city": [
+            {
+                "id": 52,
+                "pid": 0,
+                "code": "DE00000000000000",
+                "weather_of_cid": 0,
+                "city_name": "Germany",
+                "country_code": "DE",
+                "level": 1
+            },
+            {
+                "id": 41509,
+                "pid": 52,
+                "code": "DE07000000000000",
+                "weather_of_cid": 0,
+                "city_name": "Hessen",
+                "country_code": "DE",
+                "level": 2
+            }
+        ],
+        "latitude": "0.0",
+        "longitude": "0.0",
+        "meter_location": 0,
+        "owner_list": [
+            {
+                "uid": 1178500,
+                "name": "name",
+                "user_name": "user_name"
+            }
+        ],
+        "group": {
+            "id": 105395,
+            "name": "name",
+            "pid": 100189,
+            "type": 1,
+            "tid": null,
+            "contact": "",
+            "phone": "",
+            "area": "",
+            "icon": ""
+        },
+        "money_data": {
+            "code": "EUR",
+            "unit":"\xe2\x82\xac"
+        },
+        "warn_data": {
+            "s_uoff": true,
+            "s_ustable": false,
+            "s_uid": false,
+            "l3_warn": false,
+            "g_warn": false,
+            "me_warn": false
+        },
+        "bms_capacitor": "0",
+        "inv_mode": 1,
+        "create_by_name": "Code"
+    },
+    "systemNotice": null
+}

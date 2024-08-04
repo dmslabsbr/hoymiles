@@ -1,0 +1,109 @@
+{
+    "status": "0",
+    "message": "success",
+    "data": [
+        {
+            "id": 722990,
+            "sn": "10F882246532",
+            "vc": "",
+            "dtu_sn": "10F882246532",
+            "type": 1,
+            "version": 3,
+            "replace_num": 0,
+            "model_no": "DTU-Pro",
+            "soft_ver": "V00.02.22",
+            "hard_ver": "H09.02.12",
+            "extend_data": {},
+            "warn_data": {
+                "_rw": "",
+                "connect": true,
+                "warn": false
+            },
+            "children": [
+                {
+                    "id": 9913190,
+                    "sn": "114190556486",
+                    "vc": "",
+                    "dtu_sn": "10F882246532",
+                    "type": 3,
+                    "version": 3,
+                    "replace_num": 0,
+                    "model_no": "HM-800",
+                    "soft_ver": "V01.00.16",
+                    "hard_ver": "H00.04.10",
+                    "extend_data": {
+                        "grid_name": "FR_VFR2019",
+                        "port_array": [
+                            1,
+                            2
+                        ],
+                        "grid_id": 14547,
+                        "grid_version": "2.0.0"
+                    },
+                    "warn_data": {
+                        "warn": false,
+                        "connect": true
+                    },
+                    "children": []
+                },
+                {
+                    "id": 3300500,
+                    "sn": "116180400245",
+                    "vc": "",
+                    "dtu_sn": "10F882246532",
+                    "type": 3,
+                    "version": 3,
+                    "replace_num": 0,
+                    "model_no": "HM-1500",
+                    "soft_ver": "V01.00.18",
+                    "hard_ver": "H00.04.10",
+                    "extend_data": {
+                        "grid_name": "FR_VFR2019",
+                        "port_array": [
+                            1,
+                            2,
+                            3,
+                            4
+                        ],
+                        "grid_id": 14547,
+                        "grid_version": "2.0.0"
+                    },
+                    "warn_data": {
+                        "warn": false,
+                        "connect": true
+                    },
+                    "children": []
+                },
+                {
+                    "id": 3300490,
+                    "sn": "116180400231",
+                    "vc": "",
+                    "dtu_sn": "10F882246532",
+                    "type": 3,
+                    "version": 3,
+                    "replace_num": 0,
+                    "model_no": "HM-1500",
+                    "soft_ver": "V01.00.18",
+                    "hard_ver": "H00.04.10",
+                    "extend_data": {
+                        "grid_name": "FR_VFR2019",
+                        "port_array": [
+                            1,
+                            2,
+                            3,
+                            4
+                        ],
+                        "grid_id": 14547,
+                        "grid_version": "2.0.0"
+                    },
+                    "warn_data": {
+                        "warn": false,
+                        "connect": true
+                    },
+                    "children": []
+                }
+            ]
+        }
+    ],
+    "systemNotice": null
+}
