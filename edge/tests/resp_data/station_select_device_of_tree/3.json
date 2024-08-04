@@ -1,0 +1,139 @@
+{
+  "status": "0",
+  "message": "success",
+  "data": [
+    {
+      "id": 1430210,
+      "sn": "10D881824282",
+      "vc": "",
+      "dtu_sn": "10D881824282",
+      "type": 1,
+      "version": 3,
+      "replace_num": 0,
+      "model_no": "DTU-Lite-S",
+      "soft_ver": "V00.03.07",
+      "hard_ver": "H06.02.01",
+      "extend_data": {},
+      "warn_data": { "_rw": "", "connect": true, "warn": false },
+      "children": [
+        {
+          "id": 6554090,
+          "sn": "116483907751",
+          "vc": "",
+          "dtu_sn": "10D881824282",
+          "type": 3,
+          "version": 3,
+          "replace_num": 0,
+          "model_no": "HMS-2000-4T",
+          "soft_ver": "V01.00.18",
+          "hard_ver": "H00.04.00",
+          "extend_data": {
+            "grid_name": "",
+            "port_array": [1, 2, 3, 4],
+            "grid_id": 0,
+            "grid_version": ""
+          },
+          "warn_data": { "warn": false, "connect": true },
+          "children": []
+        },
+        {
+          "id": 6554080,
+          "sn": "116483906889",
+          "vc": "",
+          "dtu_sn": "10D881824282",
+          "type": 3,
+          "version": 3,
+          "replace_num": 0,
+          "model_no": "HMS-2000-4T",
+          "soft_ver": "V01.00.18",
+          "hard_ver": "H00.04.00",
+          "extend_data": {
+            "grid_name": "",
+            "port_array": [1, 2, 3, 4],
+            "grid_id": 0,
+            "grid_version": ""
+          },
+          "warn_data": { "warn": false, "connect": true },
+          "children": []
+        },
+        {
+          "id": 6554110,
+          "sn": "116483905769",
+          "vc": "",
+          "dtu_sn": "10D881824282",
+          "type": 3,
+          "version": 3,
+          "replace_num": 0,
+          "model_no": "HMS-2000-4T",
+          "soft_ver": "V01.00.18",
+          "hard_ver": "H00.04.00",
+          "extend_data": {
+            "grid_name": "",
+            "port_array": [1, 2, 3, 4],
+            "grid_id": 0,
+            "grid_version": ""
+          },
+          "warn_data": { "warn": false, "connect": true },
+          "children": []
+        },
+        {
+          "id": 6554100,
+          "sn": "116483905413",
+          "vc": "",
+          "dtu_sn": "10D881824282",
+          "type": 3,
+          "version": 3,
+          "replace_num": 0,
+          "model_no": "HMS-2000-4T",
+          "soft_ver": "V01.00.18",
+          "hard_ver": "H00.04.00",
+          "extend_data": {
+            "grid_name": "",
+            "port_array": [1, 2, 3, 4],
+            "grid_id": 0,
+            "grid_version": ""
+          },
+          "warn_data": { "warn": false, "connect": true },
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 4796480,
+      "sn": "414195201023",
+      "vc": "",
+      "dtu_sn": "414195201023",
+      "type": 1,
+      "version": 3,
+      "replace_num": 0,
+      "model_no": "",
+      "soft_ver": "V00.01.11",
+      "hard_ver": "H00.01.00",
+      "extend_data": {},
+      "warn_data": { "_rw": "", "connect": true, "warn": false },
+      "children": [
+        {
+          "id": 15430390,
+          "sn": "122295201023",
+          "vc": "",
+          "dtu_sn": "414195201023",
+          "type": 3,
+          "version": 3,
+          "replace_num": 0,
+          "model_no": "HMS-2000DW-4T",
+          "soft_ver": "V01.00.05",
+          "hard_ver": "H00.04.00",
+          "extend_data": {
+            "grid_name": "",
+            "port_array": [1, 2, 3, 4],
+            "grid_id": 0,
+            "grid_version": ""
+          },
+          "warn_data": { "warn": true, "connect": true },
+          "children": []
+        }
+      ]
+    }
+  ],
+  "systemNotice": null
+}
