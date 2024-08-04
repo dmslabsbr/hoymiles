@@ -1,0 +1,67 @@
+{
+    "status": "0",
+    "message": "success",
+    "data": [
+        {
+            "id": 3621750,
+            "sn": "430122480096",
+            "vc": null,
+            "dtu_sn": "430122480096",
+            "type": 1,
+            "version": 3,
+            "replace_num": 0,
+            "model_no": "DTS-WIFI-G1",
+            "soft_ver": "V01.00.01",
+            "hard_ver": "H11.01.01",
+            "extend_data": {},
+            "warn_data": {
+                "_rw": "1",
+                "connect": false,
+                "warn": false
+            },
+            "children": [
+                {
+                    "id": 8160,
+                    "sn": "200322460290",
+                    "vc": "",
+                    "dtu_sn": "430122480096",
+                    "type": 6,
+                    "version": 1,
+                    "replace_num": 0,
+                    "model_no": "HYS-4.6LV-EUG1",
+                    "soft_ver": "V00.02.21",
+                    "hard_ver": "",
+                    "extend_data": {
+                        "status": 0,
+                        "role": 0
+                    },
+                    "warn_data": {
+                        "connect": false,
+                        "warn": false
+                    },
+                    "children": [
+                        {
+                            "id": 100008160,
+                            "sn": "000100008160",
+                            "vc": "",
+                            "dtu_sn": "430122480096",
+                            "type": 10,
+                            "version": 0,
+                            "replace_num": 0,
+                            "model_no": "",
+                            "soft_ver": "",
+                            "hard_ver": "",
+                            "extend_data": {
+                                "bms_type": 0,
+                                "bms_capacitor": "0"
+                            },
+                            "warn_data": {},
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "systemNotice": null
+}

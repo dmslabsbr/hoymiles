@@ -1,0 +1,58 @@
+{
+    "status": "0",
+    "message": "success",
+    "data": {
+        "today_eq": "0",
+        "month_eq": "0",
+        "year_eq": null,
+        "total_eq": "0",
+        "real_power": null,
+        "co2_emission_reduction": "0",
+        "plant_tree": "0",
+        "data_time": "2024-03-26 09:37:30",
+        "last_data_time": "2024-03-26 09:37:30",
+        "capacitor": "4.6",
+        "is_balance": 0,
+        "is_reflux": 1,
+        "reflux_station_data": {
+            "start_date": "2024-03-27",
+            "end_date": "2024-03-27",
+            "pv_power": "0",
+            "grid_power": "0",
+            "load_power": "0",
+            "bms_power": "0",
+            "bms_soc": "0",
+            "inv_num": 1,
+            "meter_location": 2,
+            "pv_to_load_eq": "0",
+            "load_from_pv_eq": "0",
+            "meter_b_in_eq": "0",
+            "meter_b_out_eq": "0",
+            "bms_in_eq": "0",
+            "bms_out_eq": "0",
+            "self_eq": "0",
+            "pv_eq_total": "0",
+            "use_eq_total": "0",
+            "flows": [],
+            "icon_pv": 0,
+            "icon_grid": 0,
+            "icon_load": 0,
+            "icon_bms": 0,
+            "icon_gen": 0,
+            "icon_pvi": 0,
+            "mb_in_eq": {
+                "today_eq": "0",
+                "month_eq": "0",
+                "year_eq": "0",
+                "total_eq": "0"
+            },
+            "mb_out_eq": {
+                "today_eq": "0",
+                "month_eq": "0",
+                "year_eq": "0",
+                "total_eq": "0"
+            }
+        }
+    },
+    "systemNotice": null
+}

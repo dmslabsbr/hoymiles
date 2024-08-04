@@ -1,3 +1,18 @@
+<!-- These are examples of badges you might want to add to your README:
+     please update the URLs accordingly
+
+[![Built Status](https://api.cirrus-ci.com/github/<USER>/hoymiles.svg?branch=main)](https://cirrus-ci.com/github/<USER>/hoymiles)
+[![ReadTheDocs](https://readthedocs.org/projects/hoymiles/badge/?version=latest)](https://hoymiles.readthedocs.io/en/stable/)
+[![Coveralls](https://img.shields.io/coveralls/github/<USER>/hoymiles/main.svg)](https://coveralls.io/r/<USER>/hoymiles)
+[![PyPI-Server](https://img.shields.io/pypi/v/hoymiles.svg)](https://pypi.org/project/hoymiles/)
+[![Conda-Forge](https://img.shields.io/conda/vn/conda-forge/hoymiles.svg)](https://anaconda.org/conda-forge/hoymiles)
+[![Monthly Downloads](https://pepy.tech/badge/hoymiles/month)](https://pepy.tech/project/hoymiles)
+[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Twitter)](https://twitter.com/hoymiles)
+-->
+
+[![Project generated with PyScaffold](https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold)](https://pyscaffold.org/)
+
+
 # HoyMiles Solar Data Gateway Add-on Edge version
 
 # Branch in full full development mode - will be rewritten from scratch
