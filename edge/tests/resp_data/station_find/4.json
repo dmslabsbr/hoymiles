@@ -1,0 +1,130 @@
+{
+  "status": "0",
+  "message": "success",
+  "data": {
+    "id": 1535490,
+    "gid": 108818,
+    "name": "John Snow",
+    "type": 1,
+    "tz_id": 26,
+    "city_code": "BR01001000000000",
+    "status": 40,
+    "create_by": 131430,
+    "create_at": "2023-06-22 10:07:19",
+    "classify": 1,
+    "tz_name": "UTC-03",
+    "pic_path": "",
+    "capacitor": "10",
+    "address": "address",
+    "layout_step": 2,
+    "is_balance": 0,
+    "is_reflux": 0,
+    "remarks": "",
+    "config": {
+      "sun_spec_num": 0,
+      "power_limit": "",
+      "power_limit_pf": "",
+      "power_limit_re": "",
+      "module_max_power": 0,
+      "owner_is_show_layout": 1,
+      "owner_is_modify_dev": 0,
+      "third_party_user": [],
+      "billing_type": 1,
+      "billing_start": "2023-06-07",
+      "billing_every": 1,
+      "client_type": 100,
+      "layout_show": 1,
+      "fcs": 0,
+      "ess_cfg_edit": 0,
+      "grid_type": 0,
+      "diy": 0,
+      "weather": 0,
+      "au": 0,
+      "cr": 0
+    },
+    "is_stars": 0,
+    "money_unit": "BRL",
+    "electricity_price": 0.99,
+    "in_price": 0,
+    "usd": "",
+    "nk_name": null,
+    "int5m": 0,
+    "is_3rd": 0,
+    "dc": 0,
+    "city_id": 1231,
+    "weather_of_cid": 3469058,
+    "timezone": {
+      "id": 26,
+      "dis_name": "(UTC-03:00) Brasilia",
+      "name": "America/Araguaina",
+      "tz_name": "UTC-03",
+      "offset": -10800000
+    },
+    "local_time": "2024-08-04 14:13:06",
+    "parent_city": [
+      {
+        "id": 32,
+        "pid": 0,
+        "code": "BR00000000000000",
+        "weather_of_cid": 0,
+        "city_name": "Brazil",
+        "country_code": "BR",
+        "level": 1
+      },
+      {
+        "id": 741,
+        "pid": 32,
+        "code": "BR01000000000000",
+        "weather_of_cid": 0,
+        "city_name": "Distrito Federal",
+        "country_code": "BR",
+        "level": 2
+      },
+      {
+        "id": 1231,
+        "pid": 741,
+        "code": "BR01001000000000",
+        "weather_of_cid": 3469058,
+        "city_name": "Bras\xc3\xadlia",
+        "country_code": "BR",
+        "level": 3
+      }
+    ],
+    "latitude": "0",
+    "longitude": "0",
+    "meter_location": 0,
+    "owner_list": [
+      {
+        "uid": 292234,
+        "name": "name",
+        "user_name": "user_name"
+      }
+    ],
+    "group": {
+      "id": 108818,
+      "name": "name",
+      "pid": 1093,
+      "type": 4,
+      "contact": "",
+      "phone": "",
+      "area": "",
+      "icon": ""
+    },
+    "money_data": { "code": "BRL", "unit": "R$" },
+    "warn_data": {
+      "s_uoff": false,
+      "s_ustable": false,
+      "s_uid": false,
+      "l3_warn": true,
+      "g_warn": false,
+      "me_warn": false
+    },
+    "bms_capacitor": "0",
+    "inv_mode": 0,
+    "create_by_name": "creator",
+    "lack": 0,
+    "ak": "2JrqMgkrLxzWlEX4ObhbeG",
+    "flag_map": {}
+  },
+  "systemNotice": null
+}
