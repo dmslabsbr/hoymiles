@@ -1,0 +1,20 @@
+{
+  "status": "0",
+  "message": "success",
+  "data": {
+    "today_eq": "36687.0",
+    "month_eq": "153641",
+    "year_eq": "9427291",
+    "total_eq": "18213913",
+    "real_power": "1483.9",
+    "co2_emission_reduction": "18159271.261",
+    "plant_tree": "992",
+    "data_time": "2024-08-04 14:18:12",
+    "last_data_time": "2024-08-04 14:18:12",
+    "capacitor": "10",
+    "is_balance": 0,
+    "is_reflux": 0,
+    "reflux_station_data": null
+  },
+  "systemNotice": null
+}
