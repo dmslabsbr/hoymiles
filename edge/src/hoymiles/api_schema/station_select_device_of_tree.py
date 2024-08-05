@@ -23,7 +23,7 @@ class DevicedDict(BaseModel):
     model_no: str
     soft_ver: str
     hard_ver: str
-    warn_list: Optional[WarnDict] = {}
+    warn_data: Optional[WarnDict | dict] = {}
     children: Optional[List[DevicedDict]] = []
 
 
