@@ -1,0 +1,22 @@
+{
+  "status": "0",
+  "message": "success",
+  "data": {
+    "mi_sn": null,
+    "net_state": 1,
+    "warn_list": [
+      {
+        "err_code": 148,
+        "start_at": "2024-08-04 11:11",
+        "end_at": "-",
+        "wdd1": "\xe7\x94\xb5\xe7\xbd\x91\xe7\x94\xb5\xe5\x8e\x8b",
+        "wd1": "422.4V",
+        "wdd2": "-",
+        "wd2": "-"
+      }
+    ],
+    "dbg": false,
+    "warn_shield_set": []
+  },
+  "systemNotice": null
+}
