@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import ctypes
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
-from typing_extensions import Literal
 
 
 class StationFind(BaseModel):
-    status: str
+    status: int
     message: str
     data: DataDict
     systemNotice: Optional[str] = None
