@@ -4,7 +4,7 @@
 
 ## EDGE goes to full development mode - will be rewritten from scratch
 
-Addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it could not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This mean that it **required rewriting from scratch**. Without support from community it **is not predicted soon**.
+The addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it might not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This means that it **requires rewriting from scratch**. Without support from the community it **is not predicted to be ready soon**.
 
 Br,
 Cosik.
@@ -30,7 +30,7 @@ Donate Cosik ->
 
 <img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/hass.io.png" alt="" width="30" /> [Home Assistant add-on instructions](stable/DOCS.md)
 
-There is three apps versions that you can choice.
+There are three app versions that you can choose from:
 
 1 - The Old Stable Version
 [<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add1.png" alt="Old Stable figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/oldStable)
@@ -48,9 +48,9 @@ My solar panels communicate with the internet using a DTU-W100 gateway.
 But it will probably work with any device that uses the [global.hoymiles.com](https://global.hoymiles.com/) Website. It was tested with DTU-PRO also.
 
 ## Standalone running - short info
-You also could use the application without using the Home Assistant. You just need a machine that runs Python3. It based on mqtt messages, so could be send from any device to MQTT Broker.
+You could also use the application without using Home Assistant. You just need a machine that runs Python3. It's based on mqtt messages, so could be send from any device to MQTT Broker.
 
-Before run you need to install:
+Before run, you need to install:
    https://github.com/eclipse/paho.mqtt.python  ***and***
    https://github.com/psf/requests
 
@@ -67,17 +67,17 @@ pip3 install python-dateutil
 ## Configuration:
 > UI is not working and could show "Bad Gateway" which is normal and expected.
 
-Add-on is desigend to use MQTT messages to send data to Home Assistant instance.
-By default credentials and server name is taken from Home Assistant. If
-you use other broker or using your own one it is required to make `external` and fill server and credentials for connection.
+Add-on is designed to use MQTT messages to send data to the Home Assistant instance.
+By default credentials and server name are taken from Home Assistant. If
+you use another broker or use your own one it is required to make `external` and fill server and credentials for connection.
 
-To get it proper working you have also pass credentials for Hoymiles Cloud access and your plant ID.
+To get it properly working you also have to pass credentials for the Hoymiles Cloud access and your plant ID.
 
-If evrything is set correctly new MQTT entities will be visible on HA.
+If everything is set up correctly new MQTT entities will be visible on HA.
 
 # Supported devies
 
-So far it is confirmed that addon support Hoymiles devices:
+So far it is confirmed that the addon supports these Hoymiles devices:
 - micro inverters
 - standard inverters
 - energy meters
@@ -86,7 +86,7 @@ So far it is confirmed that addon support Hoymiles devices:
 - multiple instalattions - edge version
 
 ## PS:
-I invite everyone to help in the this tool development.
+I invite everyone to help in the development of this tool.
 
 ## Screenshots
 
