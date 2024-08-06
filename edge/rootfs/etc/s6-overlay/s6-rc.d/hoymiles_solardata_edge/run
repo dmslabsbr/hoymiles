@@ -15,15 +15,7 @@ date
 CONFIG_PATH=/data/options.json
 SYSTEM_USER=/data/system_user.json
 
-cd /data || exit
-
-ls -la
-
-mkdir -p /data/templates
-
-mkdir -p /data/jsons
-cp /*.json /data/jsons
-cp /micro_* /data/jsons
+cd /root/hoymiles_solardata_edge || exit
 
 if [ -e "secrets.ini" ]; then
     bashio::log.info "secrets.ini exists!"
@@ -57,4 +49,4 @@ bashio::log.info "${PYTHON_VERION}"
 
 bashio::log.blue "dmslabs - Home Assistant HoyMiles Solar Data Gateway Add-on"
 
-exec python3 /hoymiles.py
+exec python3 hoymiles.py

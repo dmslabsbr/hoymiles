@@ -224,7 +224,7 @@ class Hoymiles(object):
         self.logger.debug(prepped.headers)
         try:
             response = sess.send(prepped)
-            ret = ""
+            ret = {}
             if response.status_code != 200:
                 self.logger.error(f"Access error: {url}")
                 self.logger.error(
@@ -361,9 +361,8 @@ class Hoymiles(object):
         )
 
         solar = self.send_payload(GET_DATA_API, header, payload)
-        if type(solar) is dict:
-            if "status" in solar.keys():
-                return int(solar["status"]), solar["data"]
+        if "status" in solar.keys():
+            return int(solar["status"]), solar["data"]
         return -1, {}
 
     def get_plant_hw(self):
@@ -492,9 +491,8 @@ class Hoymiles(object):
             + "'"
         )
         retv = self.send_payload(STATION_FIND, header, payload)
-        if type(retv) is dict:
-            if "status" in retv.keys() and retv["status"] == "0":
-                return True
+        if "status" in retv.keys() and retv["status"] == "0":
+            return True
 
         return False
 

@@ -100,7 +100,7 @@ COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPnt
 BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
 LOGIN_API = "iam/auth_login"
 USER_ME = "iam/user_me"
-GET_DATA_API = "pvm-data/data_count_station_real_data"
+GET_DATA_API = "pvm-data/data_count_station_real_dat"
 GET_ALL_DEVICE_API = "pvm/station_select_device_of_tree"
 STATION_FIND = "pvm/station_find"
 DATA_FIND_DETAILS = "pvm-data/data_find_details"

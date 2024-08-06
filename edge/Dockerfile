@@ -17,20 +17,20 @@ RUN pip3 install python-dateutil
 # Copy root filesystem
 COPY rootfs /
 
-# Python 3 HTTP Server serves the current working dir
-# So let's set it to our add-on persistent data directory.
-WORKDIR /data
+# # Python 3 HTTP Server serves the current working dir
+# # So let's set it to our add-on persistent data directory.
+# WORKDIR /data
 
-# other copy
-COPY *.json /data/
-COPY *.py /data/
-COPY *.py /
-#COPY *.html /
+# # other copy
+# COPY *.json /data/
+# COPY *.py /data/
+# COPY *.py /
+# #COPY *.html /
 
-COPY templates /
-COPY jsons /
-COPY templates/* /data/templates/
-COPY jsons/* /data/jsons/
+# COPY templates /
+# COPY jsons /
+# COPY templates/* /data/templates/
+# COPY jsons/* /data/jsons/
 
 # # Copy data for add-on
 # COPY run.sh /
