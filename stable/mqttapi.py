@@ -43,7 +43,7 @@ class MqttApi:
         self.status["inHass"] = True
 
         self._client = mqtt.Client(
-            client_id=self.uuid,
+            client_id="",
             clean_session=True,
             userdata=None,
             protocol=MQTT_VERSION,

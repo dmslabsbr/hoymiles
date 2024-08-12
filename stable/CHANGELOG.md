@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.4.1
+
+        - Revert way of generating uuid.
+
+
 ## 1.4
 
         - Release edge
