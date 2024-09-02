@@ -111,6 +111,7 @@ class Hoymiles(object):
     data_dict = {"last_time": "", "load_time": "", "load_cnt": 0}
 
     def __init__(self, plant_id, config, g_envios, tries=5, meter=False) -> None:
+        global BASE_URL
         self.plant_id = plant_id
         self.connection = ConnectionHM()
         self._tries = tries
@@ -126,6 +127,8 @@ class Hoymiles(object):
         self.bms_present = False
         self.meter = meter
         self.uuid = str(uuid.uuid1())
+        if self._config.get("USE_ESTAR"):
+            BASE_URL = "https://monitor.estarpower.com/platform/api/gateway/"
 
         cnt = 0
         while True:

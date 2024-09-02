@@ -3,6 +3,7 @@
 ## 1.4
 
         - Release edge
+        - Add support for ESTAR ENERGY
 
 ## 1.3
 
