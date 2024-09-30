@@ -1,6 +1,6 @@
+from __future__ import annotations
 import uuid
 from .api_schema.station_select_device_of_tree import DevicedDict
-from __future__ import annotations
 from dataclasses import dataclass
 
 """

@@ -193,18 +193,23 @@ class CloudApi(object):
         self.cookies.load(
             "uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5;EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP;Path=/;"
         )
-        self.cookies["Expires"] = f"Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
 
     def upate_cookie(self):
         """Update cookie with token and proper domain"""
         if self._config.get("USE_ESTAR", False):
-            self.cookies["hm_token"] = self.connection.token
-            self.cookies["hm_token_language"] = "en_us"
-            self.cookies["Domain"] = ".monitor.estarpower.com"
+            self.cookies["estar_token"] = self.connection.token
+            self.cookies["estar_token_language"] = "en_us"
+            self.cookies["estar_token"][
+                "Expires"
+            ] = f"Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
+            self.cookies["estar_token"]["Domain"] = ".monitor.estarpower.com"
         else:
             self.cookies["hm_token"] = self.connection.token
             self.cookies["hm_token_language"] = "en_us"
-            self.cookies["Domain"] = ".global.hoymiles.com"
+            self.cookies["hm_token"][
+                "Expires"
+            ] = f"Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
+            self.cookies["hm_token"]["Domain"] = ".global.hoymiles.com"
 
     def get_credentials(self) -> Tuple[str, str]:
         """Get credentials for Hoymiles API from config
