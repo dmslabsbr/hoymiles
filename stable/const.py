@@ -83,7 +83,7 @@ HEADER_LOGIN = {"Content-Type": "application/json;charset=UTF-8", "Cookie": ""}
 HEADER_DATA = {
     "Content-Type": "application/json;charset=UTF-8",
     "Cache-Control": "no-cache",
-    "Host": "global.hoymiles.com",
+    "Host": "previous.hoymiles.com",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
     "Accept-Encoding": "gzip, deflate, br",
