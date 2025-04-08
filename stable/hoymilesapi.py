@@ -111,6 +111,7 @@ class Hoymiles(object):
     data_dict = {"last_time": "", "load_time": "", "load_cnt": 0}
 
     def __init__(self, plant_id, config, g_envios, tries=5, meter=False) -> None:
+        global BASE_URL
         self.plant_id = plant_id
         self.connection = ConnectionHM()
         self._tries = tries
@@ -126,6 +127,8 @@ class Hoymiles(object):
         self.bms_present = False
         self.meter = meter
         self.uuid = str(uuid.uuid1())
+        if self._config.get("USE_ESTAR"):
+            BASE_URL = "https://monitor.estarpower.com/platform/api/gateway/"
 
         cnt = 0
         while True:
@@ -355,7 +358,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -426,7 +429,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -486,7 +489,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -503,7 +506,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -576,7 +579,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
