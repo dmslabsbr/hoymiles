@@ -1,6 +1,6 @@
 <img src="https://github.com/dmslabsbr/hoymiles/raw/master/img/logo.png" alt="" width="200" />
 
-# Important Info
+# Important Info Test PouletZlika
 
 ## EDGE goes to full development mode - will be rewritten from scratch
 
