@@ -83,7 +83,7 @@ HEADER_LOGIN = {"Content-Type": "application/json;charset=UTF-8", "Cookie": ""}
 HEADER_DATA = {
     "Content-Type": "application/json;charset=UTF-8",
     "Cache-Control": "no-cache",
-    "Host": "global.hoymiles.com",
+    "Host": "previous.hoymiles.com",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
     "Accept-Encoding": "gzip, deflate, br",
@@ -97,14 +97,7 @@ SECRETS = "secrets.ini"
 COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
 COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'"  # pylint: disable=line-too-long
 
-BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
-LOGIN_API = "iam/auth_login"
-USER_ME = "iam/user_me"
-GET_DATA_API = "pvm-data/data_count_station_real_data"
-GET_ALL_DEVICE_API = "pvm/station_select_device_of_tree"
-STATION_FIND = "pvm/station_find"
-DATA_FIND_DETAILS = "pvm-data/data_find_details"
-SETTING_BATTERY_CONFIG = "pvm/setting_battery_config"
+
 
 # For MQTT
 MQTT_PUB = "home/solar"
@@ -123,7 +116,7 @@ LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinf
 
 json_hass = {
     "sensor": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
@@ -136,7 +129,7 @@ json_hass = {
   "device": { $device_dict }
 }""",
     "binary_sensor": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
@@ -146,7 +139,7 @@ json_hass = {
   "device": { $device_dict }
 }""",
     "switch": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
@@ -155,7 +148,7 @@ json_hass = {
   "device": { $device_dict }
 }""",
     "number": """
-{ 
+{
   "stat_t": "home/$sid/json_$via_device",
   "name": "$name",
   "uniq_id": "$uniq_id",
