@@ -97,7 +97,7 @@ SECRETS = "secrets.ini"
 COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
 COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'"  # pylint: disable=line-too-long
 
-BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
+BASE_URL = "https://previous.hoymiles.com/platform/api/gateway/"
 LOGIN_API = "iam/auth_login"
 USER_ME = "iam/user_me"
 GET_DATA_API = "pvm-data/data_count_station_real_data"
