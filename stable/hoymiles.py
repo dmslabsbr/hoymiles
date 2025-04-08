@@ -3,7 +3,7 @@ Main module of addon
 """
 
 __author__ = "dmslabs&Cosik"
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 __app_name__ = "Hoymiles Gateway"
 
 import json
@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from string import Template
 
 from const import (
+    DEVICE_DICT,
     EXPIRE_TIME,
     GETDATA_INTERVAL,
     HASS_INTERVAL,
@@ -25,7 +26,6 @@ from const import (
     NODE_ID,
     SHORT_NAME,
     SID,
-    DEVICE_DICT,
     json_hass,
 )
 from hoymilesapi import Hoymiles

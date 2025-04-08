@@ -4,6 +4,16 @@ Module contain consts and templates used in addon.
 
 import datetime
 
+BASE_URL = "https://previous.hoymiles.com/platform/api/gateway/"
+LOGIN_API = "iam/auth_login"
+USER_ME = "iam/user_me"
+GET_DATA_API = "pvm-data/data_count_station_real_data"
+GET_ALL_DEVICE_API = "pvm/station_select_device_of_tree"
+STATION_FIND = "pvm/station_find"
+DATA_FIND_DETAILS = "pvm-data/data_find_details"
+SETTING_BATTERY_CONFIG = "pvm/setting_battery_config"
+
+
 HTTP_STATUS_CODE = {
     100: "Continue",
     200: "OK",
@@ -96,7 +106,6 @@ SECRETS = "secrets.ini"
 
 COOKIE_UID = "'uid=fff9c382-389f-4a47-8dc9-c5486fc3d9f5"
 COOKIE_EGG_SESS = "EGG_SESS=XHfAhiHWwU__OUVeKh0IiITBnmwA-IIXEzTCHgHgww6ZYYddOPntPSwVz4Gx7ISbfU0WrvzOLungThcL-9D2KxavrtyPk8Mr2YXLFzJwvM0usPvhzYdt2Y2S9Akt5sjP'"  # pylint: disable=line-too-long
-
 
 
 # For MQTT
