@@ -355,7 +355,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -426,7 +426,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -486,7 +486,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -503,7 +503,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
@@ -576,7 +576,7 @@ class Hoymiles(object):
             COOKIE_UID
             + "; hm_token="
             + self.connection.token
-            + "; Path=/; Domain=.global.hoymiles.com;"
+            + "; Path=/; Domain=.previous.hoymiles.com;"
             + f"Expires=Sat, 30 Mar {date.today().year + 1} 22:11:48 GMT;"
             + "'"
         )
