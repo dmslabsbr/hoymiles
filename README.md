@@ -58,7 +58,7 @@ Before run, you need to install:
 git clone https://github.com/dmslabsbr/hoymiles.git
 cd hoymiles
 python3 -m venv ./hoymiles/
-source ./bin/activate
+source ./hoymiles/bin/activate
 pip3 install paho-mqtt==1.6.1
 pip3 install requests
 pip3 install python-dateutil
