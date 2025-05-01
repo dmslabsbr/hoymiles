@@ -1,6 +1,6 @@
 {
   "name": "HoyMiles Solar Gateway stable Addon",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "slug": "hoymiles_solardata_stable",
   "description": "Read Hoymiles Gateway Solar Data stable Version.",
   "arch": [
@@ -42,7 +42,8 @@
     "LOG_LEVEL": "INFO",
     "LOG_TO_FILE": false,
     "FILE_PATH": "hoymiles.log",
-    "USE_ESTAR": false
+    "USE_ESTAR": false,
+    "POOLING_TIME": "480"
   },
   "schema": {
     "HOYMILES_USER": "str",
@@ -59,6 +60,7 @@
     "LOG_LEVEL": "list(DEBUG|INFO|WARNING|ERROR|CRITICAL)?",
     "LOG_TO_FILE": "bool",
     "FILE_PATH": "str?",
-    "USE_ESTAR": "bool"
+    "USE_ESTAR": "bool",
+    "POOLING_TIME": "int?"
   }
 }
