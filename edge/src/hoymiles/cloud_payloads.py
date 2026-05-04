@@ -12,7 +12,8 @@ Here is example how to use it:
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
+
+from dataclasses import dataclass, field
 
 
 @dataclass(repr=True)
@@ -29,7 +30,7 @@ class LoadBody:
 class Payload:
     body: Body
     ERROR_BACK: bool = True
-    LOAD: LoadBody = LoadBody()
+    LOAD: LoadBody = field(default_factory=LoadBody)
     WAITING_PROMISE: bool = True
 
 
