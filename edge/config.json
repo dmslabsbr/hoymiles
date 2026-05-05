@@ -37,7 +37,7 @@
     "API_VERSIONED_BASE_URL": "",
     "API_COOKIE_DOMAIN": "",
     "DEBUG_FORCE_API_VERSION": false,
-    "DEBUG_API_VERSION": "",
+    "DEBUG_API_VERSION": null,
     "External_MQTT_Server": false,
     "MQTT_Host": "Internal - Change here if you use another server",
     "MQTT_User": "Automatically obtained from Home Assistant - Change here if you use another server",
