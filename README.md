@@ -2,9 +2,9 @@
 
 # Important Info
 
-## EDGE goes to full development mode - will be rewritten from scratch
+## EDGE is again alive
 
-The addon is in maintenance mode. This is FOSS (Free Open Source Software) and based on reverse engineering so it might not work always as expected. What is more due to techical dept present implementation loose possibility to add new features. This means that it **requires rewriting from scratch**. Without support from the community it **is not predicted to be ready soon**.
+Developement in edge is done and could be now used to introduce new features.
 
 Br,
 Cosik.
@@ -37,6 +37,8 @@ There are three app versions that you can choose from:
 
 2 - The Edge Version
 [<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add2.png" alt="Edge figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/edge)
+
+👉 **[Edge Setup Guide](edge/README.md)** - detailed installation, configuration options, and troubleshooting for Home Assistant users
 
 3 - The Stable Version
 [<img align="center" src="https://github.com/dmslabsbr/hoymiles/raw/master/img/add3.png" alt="New Stable figure" width="300" />](https://github.com/dmslabsbr/hoymiles/tree/master/stable)

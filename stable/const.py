@@ -5,13 +5,13 @@ Module contain consts and templates used in addon.
 import datetime
 
 BASE_URL = "https://neapi.hoymiles.com"
-LOGIN_API = "/iam/pub/3/auth/login"
-USER_ME = "/iam/pub/3/user/user_me"
-GET_DATA_API = "/pvm-data/api/3/station/data/count_station_real_data"
-GET_ALL_DEVICE_API = "/pvm/api/3/station/select_device_of_tree"
-STATION_FIND = "/pvm/api/3/station/find"
-DATA_FIND_DETAILS = "/pvm/api/3/dev/micro/find"
-SETTING_BATTERY_CONFIG = "/pvm-ctl/api/3/dev/setting/write"
+LOGIN_API = "/iam/pub/0/auth/login"
+USER_ME = "/iam/pub/0/user/user_me"
+GET_DATA_API = "/pvm-data/api/0/station/data/count_station_real_data"
+GET_ALL_DEVICE_API = "/pvm/api/0/station/select_device_of_tree"
+STATION_FIND = "/pvm/api/0/station/find"
+DATA_FIND_DETAILS = "/pvm/api/0/dev/micro/find"
+SETTING_BATTERY_CONFIG = "/pvm-ctl/api/0/dev/setting/write"
 
 
 HTTP_STATUS_CODE = {
