@@ -31,16 +31,21 @@ if bashio::config.true 'External_MQTT_Server'; then
     export MQTT_USER="$(bashio::config 'MQTT_User')"
     export MQTT_PASS="$(bashio::config 'MQTT_Pass')"
 else
-    export MQTT_HOST="$(bashio::services mqtt 'host')"
-    export MQTT_USER="$(bashio::services mqtt 'username')"
-    export MQTT_PASS="$(bashio::services mqtt 'password')"
+    if ! mqtt_host="$(bashio::services mqtt 'host' 2>/dev/null)"; then
+        bashio::log.error "Internal MQTT service is not enabled. Enable the Home Assistant MQTT service/add-on or set External_MQTT_Server to true and provide external broker settings."
+        exit 1
+    fi
+
+    export MQTT_HOST="${mqtt_host}"
+    export MQTT_USER="$(bashio::services mqtt 'username' 2>/dev/null)"
+    export MQTT_PASS="$(bashio::services mqtt 'password' 2>/dev/null)"
 fi
 
 export MQTT_TLS="$(bashio::config 'MQTT_TLS')"
 export MQTT_TLS_PORT="$(bashio::config 'MQTT_TLS_PORT')"
 
-# Ensure both package-style and local imports resolve for current module layout.
-export PYTHONPATH="/app/src:/app/src/hoymiles:${PYTHONPATH:-}"
+# Run as a package module so relative imports resolve consistently.
+export PYTHONPATH="/app/src:${PYTHONPATH:-}"
 
-cd /app/src/hoymiles
-exec python3 application.py
+cd /app/src
+exec python3 -m hoymiles.application

@@ -12,7 +12,7 @@ Key improvements:
 - Better testability
 
 Usage:
-    python application.py
+    python -m hoymiles.application
 
 Configuration:
     Set environment variables or create config.json with:
@@ -33,18 +33,19 @@ from pathlib import Path
 from typing import Any
 
 import paho.mqtt.client as mqtt
-from cloud_api import CloudApi
-from config_manager import ConfigManager, load_config
-from data_pipeline import (
+
+from .cloud_api import CloudApi
+from .config_manager import ConfigManager, load_config
+from .data_pipeline import (
     CalculatedFieldTransformer,
     DataPipeline,
     FilterNullTransformer,
     RoundTransformer,
     TypeCastTransformer,
 )
-from devices import BMS, Dtu, Micros
-from mqtt_publisher import HAMQTTPublisher
-from sensor_registry import SensorRegistry
+from .devices import BMS, Dtu, Micros
+from .mqtt_publisher import HAMQTTPublisher
+from .sensor_registry import SensorRegistry
 
 # Configure logging
 logging.basicConfig(
