@@ -1,0 +1,70 @@
+configuration:
+  HOYMILES_USER:
+    name: "Hoymiles Username"
+    description: "The email address or username used to log into the Hoymiles S-Miles Cloud."
+  HOYMILES_PASSWORD:
+    name: "Hoymiles Password"
+    description: "The password for your Hoymiles account."
+  HOYMILES_PLANT_ID:
+    name: "Hoymiles Plant ID"
+    description: "Your specific Plant ID found in the URL of the S-Miles Cloud dashboard."
+  USE_ESTAR:
+    name: "Use Estar"
+    description: "Enable this if your account is on the older Estar platform instead of S-Miles."
+  EXPERIMENTAL_CUSTOM_API_URLS:
+    name: "Experimental Custom API URLs"
+    description: "Toggle this to manually override the default Hoymiles API endpoints."
+  API_GATEWAY_BASE_URL:
+    name: "API Gateway Base URL"
+    description: "Optional: Custom gateway URL (only used if Experimental Mode is enabled)."
+  API_VERSIONED_BASE_URL:
+    name: "API Versioned Base URL"
+    description: "Optional: Custom versioned API URL (only used if Experimental Mode is enabled)."
+  API_COOKIE_DOMAIN:
+    name: "API Cookie Domain"
+    description: "Optional: Custom domain for API cookies."
+  DEBUG_FORCE_API_VERSION:
+    name: "Debug Force API Version"
+    description: "Developer setting to force a specific API version for testing."
+  External_MQTT_Server:
+    name: "Use External MQTT Server"
+    description: "Enable this if you want to use a broker other than the built-in Home Assistant MQTT add-on."
+  MQTT_Host:
+    name: "MQTT Host"
+    description: "The IP address or hostname of your MQTT broker. Set to 'Internal' for the default HA broker."
+  MQTT_User:
+    name: "MQTT Username"
+    description: "The username for your MQTT broker. Leave blank to use the internal Home Assistant credentials."
+  MQTT_Pass:
+    name: "MQTT Password"
+    description: "The password for your MQTT broker. Leave blank to use the internal Home Assistant credentials."
+  MQTT_TLS:
+    name: "Use MQTT TLS"
+    description: "Enable encrypted communication (TLS/SSL) for your MQTT connection."
+  MQTT_TLS_PORT:
+    name: "MQTT TLS Port"
+    description: "The port used for secure MQTT connections (default is 8883)."
+  MQTT_DISCOVERY_PREFIX:
+    name: "MQTT Discovery Prefix"
+    description: "The prefix for Home Assistant MQTT discovery (default is 'homeassistant')."
+  MQTT_NODE_ID:
+    name: "MQTT Node ID"
+    description: "The unique identifier for this add-on's entities in MQTT."
+  HA_EXPIRE_TIME:
+    name: "Home Assistant Expire Time"
+    description: "Time (in seconds) after which sensors will show as 'unavailable' if no data is received."
+  GET_DATA_INTERVAL:
+    name: "API Fetch Interval"
+    description: "How often (in seconds) to pull new data from the Hoymiles Cloud."
+  HASS_INTERVAL:
+    name: "HA Update Interval"
+    description: "How often (in seconds) to push data updates to Home Assistant via MQTT."
+  Auto_update_token:
+    name: "Auto Update Token"
+    description: "Automatically refresh the cloud login token when it expires."
+  DEVELOPERS_MODE:
+    name: "Developer Mode"
+    description: "Enable extended logging and debugging features for development purposes."
+  LOG_LEVEL:
+    name: "Log Level"
+    description: "The verbosity of the add-on logs. Choose from info, warning, error, or debug."
