@@ -32,7 +32,8 @@ from datetime import datetime
 from typing import Any
 
 import paho.mqtt.client as mqtt
-from sensor_registry import ComponentType, SensorDefinition
+
+from .sensor_registry import ComponentType, SensorDefinition
 
 
 class HAMQTTPublisher:

@@ -48,7 +48,7 @@ try:
 except ImportError:
     HASS_AVAILABLE = False
 
-from sensor_registry import ComponentType, SensorDefinition
+from .sensor_registry import ComponentType, SensorDefinition
 
 
 @dataclass
