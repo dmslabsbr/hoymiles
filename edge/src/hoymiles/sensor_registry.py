@@ -75,7 +75,7 @@ class SensorDefinition:
     name: str
     component_type: ComponentType
     unit_of_measurement: str = ""
-    device_class: DeviceClass = DeviceClass.NONE
+    device_class: DeviceClass | None = None
     state_class: StateClass | None = None
     icon: str = ""
     value_template: str | None = None
