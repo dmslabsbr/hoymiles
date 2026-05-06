@@ -218,99 +218,97 @@ class HoymilesApplication:
         """Publish Home Assistant discovery messages."""
         self.logger.info("Publishing Home Assistant discovery messages")
 
-        plant_id = self.config.get_str("HOYMILES_PLANT_ID")
+        for plant_id in self.config.get_list("HOYMILES_PLANT_ID"):
+            try:
+                # Get device hardware tree from API.
+                devices_data = self.cloud_api.get_plant_hw(plant_id)
 
-        try:
-            # Get device hardware tree from API.
-            devices_data = self.cloud_api.get_plant_hw(plant_id)
+                if not devices_data:
+                    self.logger.warning("No device data received")
+                    return
 
-            if not devices_data:
-                self.logger.warning("No device data received")
-                return
+                # Publish plant discovery
+                self.mqtt_publisher.publish_discovery(
+                    device_type="plant",
+                    device_id=plant_id,
+                    device_name="Solar Plant",
+                    sensors=self.sensor_registry.get_sensors("plant"),
+                    device_info={"firmware_version": "1.0"},
+                )
 
-            # Publish plant discovery
-            self.mqtt_publisher.publish_discovery(
-                device_type="plant",
-                device_id=plant_id,
-                device_name="Solar Plant",
-                sensors=self.sensor_registry.get_sensors("plant"),
-                device_info={"firmware_version": "1.0"},
-            )
-
-            # Parse and publish DTU/Micro/BMS discovery
-            for device in devices_data:
-                if device.get("type") == 1:  # DTU
-                    dtu = Dtu(DevicedDict.model_validate(device))
-                    self.mqtt_publisher.publish_discovery(
-                        device_type="dtu",
-                        device_id=dtu.id,
-                        device_name=f"DTU {dtu.id}",
-                        sensors=self.sensor_registry.get_sensors("dtu"),
-                        device_info={
-                            "model_no": dtu.model_no,
-                            "firmware_version": dtu.soft_ver,
-                        },
-                    )
-
-                for child in device.get("children", []):
-                    if child.get("type") in (3, 6):  # Micro/Hybrid inverter
-                        micro = Micros(DevicedDict.model_validate(child))
+                # Parse and publish DTU/Micro/BMS discovery
+                for device in devices_data:
+                    if device.get("type") == 1:  # DTU
+                        dtu = Dtu(DevicedDict.model_validate(device))
                         self.mqtt_publisher.publish_discovery(
-                            device_type="micro",
-                            device_id=micro.id,
-                            device_name=f"Inverter {micro.id}",
-                            sensors=self.sensor_registry.get_sensors("micro"),
+                            device_type="dtu",
+                            device_id=dtu.id,
+                            device_name=f"DTU {dtu.id}",
+                            sensors=self.sensor_registry.get_sensors("dtu"),
                             device_info={
-                                "model_no": micro.init_hard_no,
-                                "firmware_version": micro.soft_ver,
+                                "model_no": dtu.model_no,
+                                "firmware_version": dtu.soft_ver,
                             },
                         )
 
-                    for bms_child in child.get("children", []):
-                        if bms_child.get("type") == 10:  # BMS
-                            bms = BMS(DevicedDict.model_validate(bms_child))
+                    for child in device.get("children", []):
+                        if child.get("type") in (3, 6):  # Micro/Hybrid inverter
+                            micro = Micros(DevicedDict.model_validate(child))
                             self.mqtt_publisher.publish_discovery(
-                                device_type="bms",
-                                device_id=bms.id,
-                                device_name=f"Battery {bms.id}",
-                                sensors=self.sensor_registry.get_sensors("bms"),
+                                device_type="micro",
+                                device_id=micro.id,
+                                device_name=f"Inverter {micro.id}",
+                                sensors=self.sensor_registry.get_sensors("micro"),
                                 device_info={
-                                    "model": bms.model,
-                                    "firmware_version": bms.soft_ver,
+                                    "model_no": micro.init_hard_no,
+                                    "firmware_version": micro.soft_ver,
                                 },
                             )
 
-        except Exception:
-            self.logger.exception("Error publishing discovery:")
+                        for bms_child in child.get("children", []):
+                            if bms_child.get("type") == 10:  # BMS
+                                bms = BMS(DevicedDict.model_validate(bms_child))
+                                self.mqtt_publisher.publish_discovery(
+                                    device_type="bms",
+                                    device_id=bms.id,
+                                    device_name=f"Battery {bms.id}",
+                                    sensors=self.sensor_registry.get_sensors("bms"),
+                                    device_info={
+                                        "model": bms.model,
+                                        "firmware_version": bms.soft_ver,
+                                    },
+                                )
+
+            except Exception:
+                self.logger.exception("Error publishing discovery:")
 
     def _fetch_and_publish_data(self) -> None:
         """Fetch data from Hoymiles API and publish to MQTT."""
         self.logger.info("Fetching and publishing data")
 
-        plant_id = self.config.get_str("HOYMILES_PLANT_ID")
+        for plant_id in self.config.get_list("HOYMILES_PLANT_ID"):
+            try:
+                # Get solar data
+                solar_data = self.cloud_api.get_solar_data(plant_id)
 
-        try:
-            # Get solar data
-            solar_data = self.cloud_api.get_solar_data(plant_id)
+                if not solar_data:
+                    self.logger.warning("No solar data received")
+                    continue
 
-            if not solar_data:
-                self.logger.warning("No solar data received")
-                return
+                # Transform data through pipeline
+                transformed_data = self.plant_pipeline.execute(solar_data)
 
-            # Transform data through pipeline
-            transformed_data = self.plant_pipeline.execute(solar_data)
+                # Publish plant data
+                self.mqtt_publisher.publish_data(
+                    device_id=plant_id,
+                    data=transformed_data,
+                    include_timestamp=True,
+                )
 
-            # Publish plant data
-            self.mqtt_publisher.publish_data(
-                device_id=plant_id,
-                data=transformed_data,
-                include_timestamp=True,
-            )
+                self.logger.debug(f"Published plant data: {transformed_data}")
 
-            self.logger.debug(f"Published plant data: {transformed_data}")
-
-        except Exception:
-            self.logger.exception("Error fetching/publishing data")
+            except Exception:
+                self.logger.exception("Error fetching/publishing data")
 
     def add_custom_sensor(
         self, device_type: str, sensor_key: str, sensor_def: Any

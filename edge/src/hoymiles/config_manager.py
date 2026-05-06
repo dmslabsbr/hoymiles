@@ -201,6 +201,15 @@ class ConfigManager:
         value = self.get(key, default)
         return str(value) if value is not None else default
 
+    def get_list(self, key: str, default: list[Any] | None = None) -> list[Any]:
+        """Get configuration as list."""
+        value = self.get(key, default)
+        if isinstance(value, str):
+            import re
+
+            return [item.strip() for item in re.split(r"[,:]", value) if item.strip()]
+        return list(value) if value is not None else (default or [])
+
     def get_all(self) -> dict[str, Any]:
         """Get all configuration."""
         return dict(self.config)
