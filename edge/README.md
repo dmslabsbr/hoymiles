@@ -3,12 +3,14 @@
 This add-on connects your Hoymiles cloud plant to Home Assistant through MQTT.
 
 Important notes:
+
 - Edge is a development branch and may be less stable than the stable version.
 - The integration uses an unofficial API and can break when cloud behavior changes.
 
 ## Who This Is For
 
 This README is for Home Assistant end users who want to:
+
 - install the add-on,
 - configure login, plant, and MQTT settings,
 - understand what each option does and when to use it.
@@ -20,7 +22,7 @@ Developer and project-internal documents were moved to the doc directory.
 1. Open Home Assistant.
 2. Go to Settings -> Add-ons -> Add-on Store.
 3. Add this repository URL:
-   https://github.com/dmslabsbr/hoymiles
+   [https://github.com/dmslabsbr/hoymiles]
 4. Install Hoymiles Solar Data Gateway Edge.
 5. Configure options (see full option guide below).
 6. Start the add-on.
@@ -29,11 +31,13 @@ Developer and project-internal documents were moved to the doc directory.
 ## Quick Start Configuration
 
 Fill at least these fields first:
+
 - HOYMILES_USER
 - HOYMILES_PASSWORD
 - HOYMILES_PLANT_ID
 
 Then choose MQTT mode:
+
 - Internal Home Assistant MQTT: keep External_MQTT_Server as false.
 - External MQTT broker: set External_MQTT_Server to true and fill MQTT_Host, MQTT_User, MQTT_Pass (and TLS settings if needed).
 

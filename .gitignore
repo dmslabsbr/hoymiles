@@ -145,3 +145,5 @@ comm.json
 my.json
 
 .vscode/*
+edge/local_run.sh
+*.xml

@@ -1,14 +1,7 @@
-"""
-Home Assistant Library Integration Guide
+# Using Dedicated Home Assistant Libraries
 
 This document explains the options for MQTT publishing to Home Assistant
 and recommends using the dedicated ha-mqtt-discoverable library.
-"""
-
-import textwrap
-
-GUIDE = """
-# Using Dedicated Home Assistant Libraries
 
 ## Overview
 
@@ -30,28 +23,31 @@ There are several approaches to integrate with Home Assistant:
    - Too heavy for edge devices
    - Overkill for simple MQTT sensor publishing
 
-
 ## Recommendation: Use ha-mqtt-discoverable ⭐
 
 ### Why This Library?
 
 ✅ **Well-Tested**
+
 - Used by many Home Assistant integrations
 - Active maintenance and updates
 - Follows official HA MQTT discovery protocol
 
 ✅ **Full Features**
+
 - Automatic discovery message generation
 - Availability management with LWT (Last Will & Testament)
 - Prevents duplicate state publications
 - Handles state updates correctly
 
 ✅ **Easy Integration**
+
 - Works seamlessly with our SensorRegistry
 - Same interface as custom implementation
 - Can switch between implementations easily
 
 ✅ **Reliable**
+
 - Handles edge cases properly
 - Good error handling
 - Active community support
@@ -63,12 +59,12 @@ pip install ha-mqtt-discoverable paho-mqtt
 ```
 
 Or update requirements.txt:
-```
+
+```text
 ha-mqtt-discoverable>=0.24.0
 paho-mqtt>=1.6.1
 requests>=2.28.0
 ```
-
 
 ## Comparison: Custom vs Library
 
@@ -82,12 +78,14 @@ publisher.publish_data(...)
 ```
 
 **Pros:**
+
 - No external dependencies (except paho-mqtt)
 - Lightweight
 - Easy to understand
 - Full control
 
 **Cons:**
+
 - Manual implementation
 - Possible HA protocol compliance issues
 - More code to maintain
@@ -103,6 +101,7 @@ publisher.publish_data(...)
 ```
 
 **Pros:**
+
 - Tested, maintained
 - Full HA protocol compliance
 - Automatic availability management
@@ -110,34 +109,36 @@ publisher.publish_data(...)
 - Better state management
 
 **Cons:**
+
 - Additional dependency
 - Slightly heavier
 - Less control (good for most cases)
 
-
 ## Feature Comparison
 
-| Feature | Custom | Library |
-|---------|--------|---------|
-| Discovery Messages | Manual JSON | Automatic |
-| Availability | Manual | Automatic with LWT |
-| State Deduplication | No | Yes |
-| Device Grouping | Basic | Full support |
-| Supported Entities | 4 types | 13 types |
-| Error Handling | Basic | Comprehensive |
-| Maintenance | Yours | Community |
-| Documentation | Minimal | Extensive |
-| Test Coverage | None | Comprehensive |
-| Production Ready | Maybe | Yes |
+| Feature             | Custom      | Library            |
+|---------------------|-------------|--------------------|
+| Discovery Messages  | Manual JSON | Automatic          |
+| Availability        | Manual      | Automatic with LWT |
+| State Deduplication | No          | Yes                |
+| Device Grouping     | Basic       | Full support       |
+| Supported Entities  | 4 types     | 13 types           |
+| Error Handling      | Basic       | Comprehensive      |
+| Maintenance         | Yours       | Community          |
+| Documentation       | Minimal     | Extensive          |
+| Test Coverage       | None        | Comprehensive      |
+| Production Ready    | Maybe       | Yes                |
 
 ## Migration Path
 
 ### Step 1: Install Library
+
 ```bash
 pip install ha-mqtt-discoverable
 ```
 
 ### Step 2: Update Requirements
+
 ```bash
 # requirements.txt
 ha-mqtt-discoverable>=0.24.0
@@ -147,18 +148,21 @@ paho-mqtt>=1.6.1
 ### Step 3: Choose Publisher
 
 **Option A: Keep Custom (No Changes)**
+
 ```python
 from mqtt_publisher import HAMQTTPublisher
 # Code remains unchanged
 ```
 
 **Option B: Use Library (Recommended)**
+
 ```python
 from mqtt_publisher_hass import HAMQTTPublisher
 # Same interface, better implementation
 ```
 
 **Option C: Hybrid (Best of Both)**
+
 ```python
 # Try library, fallback to custom
 try:
@@ -170,6 +174,7 @@ publisher = HAMQTTPublisher(config)
 ```
 
 ### Step 4: Update Application
+
 ```python
 # Before
 from mqtt_publisher import HAMQTTPublisher
@@ -303,28 +308,28 @@ The ha-mqtt-discoverable library supports:
 
 Our current SensorRegistry supports the first 4, which covers most use cases.
 
-
 ## Performance Comparison
 
-| Metric | Custom | Library |
-|--------|--------|---------|
-| Discovery Message Size | ~2KB | ~2KB |
-| Startup Time | ~100ms | ~150ms |
-| Memory Usage | ~1MB | ~3MB |
-| State Update Latency | ~10ms | ~20ms |
-| CPU Usage (idle) | <0.1% | <0.2% |
+| Metric                 | Custom | Library |
+|------------------------|--------|---------|
+| Discovery Message Size | ~2KB   | ~2KB    |
+| Startup Time           | ~100ms | ~150ms  |
+| Memory Usage           | ~1MB   | ~3MB    |
+| State Update Latency   | ~10ms  | ~20ms   |
+| CPU Usage (idle)       | <0.1%  | <0.2%   |
 
 The small differences are negligible for edge applications.
-
 
 ## Troubleshooting
 
 ### Library Not Found
+
 ```bash
 pip install ha-mqtt-discoverable
 ```
 
 ### MQTT Connection Issues
+
 ```python
 # Check config
 print(config.get("MQTT_HOST"))
@@ -336,6 +341,7 @@ logging.basicConfig(level=logging.DEBUG)
 ```
 
 ### Entities Not Appearing in HA
+
 1. Check MQTT integration is enabled in HA
 2. Check discovery prefix (default: homeassistant)
 3. Check unique_id is present
@@ -343,10 +349,10 @@ logging.basicConfig(level=logging.DEBUG)
 5. Restart HA if entities were created before fix
 
 ### Availability Not Working
+
 - Requires manual_availability=True in library config
 - LWT must be configured in MQTT broker
 - Entity must call set_availability()
-
 
 ## Recommendation for Your Project
 
@@ -362,13 +368,13 @@ Use `mqtt_publisher_hass.py` with `ha-mqtt-discoverable` library because:
 
 ## Summary
 
-| Use Case | Recommendation |
-|----------|-----------------|
-| **Lightweight edge device** | Library (0.3% CPU overhead) |
-| **Quick prototype** | Library (faster to implement) |
-| **Production system** | Library (better tested) |
-| **Educational project** | Custom (learn the protocol) |
-| **Air-gapped system** | Custom (fewer dependencies) |
+| Use Case                    | Recommendation                |
+|-----------------------------|-------------------------------|
+| **Lightweight edge device** | Library (0.3% CPU overhead)   |
+| **Quick prototype**         | Library (faster to implement) |
+| **Production system**       | Library (better tested)       |
+| **Educational project**     | Custom (learn the protocol)   |
+| **Air-gapped system**       | Custom (fewer dependencies)   |
 
 For the Hoymiles Edge application, **use the library**. ⭐
 
@@ -376,6 +382,7 @@ For the Hoymiles Edge application, **use the library**. ⭐
 ## Next Steps
 
 1. Install ha-mqtt-discoverable:
+
    ```bash
    pip install ha-mqtt-discoverable
    ```
@@ -383,6 +390,7 @@ For the Hoymiles Edge application, **use the library**. ⭐
 2. Update requirements.txt
 
 3. Choose mqtt_publisher_hass.py in your code:
+
    ```python
    from mqtt_publisher_hass import HAMQTTPublisher
    ```
@@ -392,9 +400,7 @@ For the Hoymiles Edge application, **use the library**. ⭐
 ---
 
 **Questions?** See the examples in this directory or check:
+
 - [ha-mqtt-discoverable docs](https://github.com/unixorn/ha-mqtt-discoverable)
 - [REFACTORING_GUIDE.md](REFACTORING_GUIDE.md)
-"""
 
-if __name__ == "__main__":
-    print(GUIDE)

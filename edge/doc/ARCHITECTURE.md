@@ -7,6 +7,7 @@ This is a comprehensive refactoring of the Hoymiles Edge application to make it 
 ## What Was Refactored
 
 ### Before
+
 - 🔴 Tightly coupled code with mixed concerns
 - 🔴 Sensor definitions scattered across JSON files and hardcoded templates
 - 🔴 Data transformations mixed with MQTT publishing logic
@@ -15,6 +16,7 @@ This is a comprehensive refactoring of the Hoymiles Edge application to make it 
 - 🔴 Configuration from multiple inconsistent sources
 
 ### After
+
 - ✅ Clean separation of concerns
 - ✅ Centralized, composable sensor definitions
 - ✅ Reusable data transformation pipeline
@@ -25,7 +27,7 @@ This is a comprehensive refactoring of the Hoymiles Edge application to make it 
 
 ## New Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Application Layer                         │
 │                   (application.py)                           │
@@ -51,6 +53,7 @@ This is a comprehensive refactoring of the Hoymiles Edge application to make it 
 ## Core Modules
 
 ### 1. **sensor_registry.py** - Sensor Definitions
+
 Centralized, declarative sensor configuration system.
 
 ```python
@@ -74,12 +77,14 @@ registry.register_sensor("plant", SensorDefinition(
 ```
 
 **Benefits:**
+
 - Single source of truth for sensor metadata
 - Easy to add/modify sensors without code changes
 - Type-safe definitions with enums
 - Supports Home Assistant device classes and state classes
 
 ### 2. **config_manager.py** - Configuration Management
+
 Unified configuration from multiple sources.
 
 ```python
@@ -98,12 +103,14 @@ mqtt_tls = config.get_bool("MQTT_TLS")
 ```
 
 **Benefits:**
+
 - Configuration from environment, files, or code
 - Type-safe getters (str, int, bool)
 - Validation with clear error messages
 - Centralized defaults
 
 ### 3. **data_pipeline.py** - Data Transformation
+
 Composable, chainable data transformation pipeline.
 
 ```python
@@ -124,6 +131,7 @@ result = pipeline.execute({"power": 5234})
 ```
 
 **Built-in Transformers:**
+
 - `FilterKeysTransformer` - Keep only specific keys
 - `RenameKeysTransformer` - Rename keys
 - `TypeCastTransformer` - Convert types
@@ -134,12 +142,14 @@ result = pipeline.execute({"power": 5234})
 - `ConditionalTransformer` - Apply conditionally
 
 **Benefits:**
+
 - Reusable, testable transformations
 - Easy to create custom transformers
 - Chainable for complex transformations
 - Error handling built-in
 
 ### 4. **mqtt_publisher.py** - MQTT Publisher
+
 Generic Home Assistant MQTT Discovery publisher.
 
 ```python
@@ -175,15 +185,18 @@ publisher.publish_data(
 ```
 
 **Benefits:**
+
 - Automatic Home Assistant discovery
 - Support for sensor, binary_sensor, switch, number
 - Clean, JSON-based discovery payloads
 - Availability management
 
 ### 5. **application.py** - Main Application
+
 Example complete application using all components.
 
 Demonstrates:
+
 - Loading configuration
 - Initializing MQTT connection
 - Publishing discovery
@@ -193,12 +206,15 @@ Demonstrates:
 ## Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 pip install paho-mqtt requests
 ```
 
 ### 2. Create Configuration
+
 Create `config.json`:
+
 ```json
 {
   "HOYMILES_USER": "your_email@example.com",
@@ -215,6 +231,7 @@ Create `config.json`:
 ```
 
 Or use environment variables:
+
 ```bash
 export HOYMILES_USER="your_email@example.com"
 export HOYMILES_PASSWORD="your_password"
@@ -225,12 +242,14 @@ export MQTT_PASS="mqtt_password"
 ```
 
 ### 3. Run Examples
+
 ```bash
 cd edge/src/hoymiles
 python examples.py
 ```
 
 ### 4. Use in Your Application
+
 ```python
 from config_manager import ConfigManager
 from sensor_registry import SensorRegistry
@@ -250,6 +269,7 @@ app.start()
 ## Practical Examples
 
 ### Add a Custom Sensor
+
 ```python
 from sensor_registry import SensorDefinition, ComponentType, DeviceClass
 
@@ -265,6 +285,7 @@ registry.register_sensor("plant", SensorDefinition(
 ```
 
 ### Create Custom Data Transformer
+
 ```python
 from data_pipeline import DataTransformer, DataPipeline
 
@@ -278,6 +299,7 @@ pipeline.add_transformer(MyTransformer())
 ```
 
 ### Multi-Stage Pipeline
+
 ```python
 pipeline = DataPipeline()
 pipeline.add_transformer(Stage1_RawDataValidation())
@@ -290,7 +312,7 @@ result = pipeline.execute(raw_api_response)
 
 ## File Structure
 
-```
+```text
 edge/
 ├── src/hoymiles/
 │   ├── __init__.py
@@ -316,6 +338,7 @@ edge/
 ## Migration from Old Code
 
 ### Old Way
+
 ```python
 # Scattered configuration
 mqtt_host = os.environ.get("MQTT_HOST")
@@ -329,6 +352,7 @@ solar_data = adjust_solar_data(solar_data)
 ```
 
 ### New Way
+
 ```python
 # Centralized configuration
 config = ConfigManager()
@@ -348,6 +372,7 @@ transformed = pipeline.execute(solar_data)
 ## Testing
 
 Example unit test:
+
 ```python
 import unittest
 from sensor_registry import SensorRegistry
@@ -363,6 +388,7 @@ if __name__ == "__main__":
 ```
 
 Run tests:
+
 ```bash
 cd edge
 python -m pytest tests/test_refactoring.py -v
@@ -370,16 +396,16 @@ python -m pytest tests/test_refactoring.py -v
 
 ## Benefits Summary
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Configuration** | Multiple sources, inconsistent | Unified, type-safe |
-| **Sensors** | Scattered, hardcoded | Centralized, declarative |
-| **MQTT Publishing** | Mixed with business logic | Separate, generic |
-| **Data Transform** | Hardcoded functions | Composable pipeline |
-| **Testability** | Difficult, coupled | Easy, isolated |
-| **Extensibility** | Requires code modification | Configuration-driven |
-| **Maintainability** | Complex, error-prone | Clear, organized |
-| **Reusability** | Limited | High, modular |
+| Aspect              | Before                         | After                    |
+|---------------------|--------------------------------|--------------------------|
+| **Configuration**   | Multiple sources, inconsistent | Unified, type-safe       |
+| **Sensors**         | Scattered, hardcoded           | Centralized, declarative |
+| **MQTT Publishing** | Mixed with business logic      | Separate, generic        |
+| **Data Transform**  | Hardcoded functions            | Composable pipeline      |
+| **Testability**     | Difficult, coupled             | Easy, isolated           |
+| **Extensibility**   | Requires code modification     | Configuration-driven     |
+| **Maintainability** | Complex, error-prone           | Clear, organized         |
+| **Reusability**     | Limited                        | High, modular            |
 
 ## Getting Help
 
@@ -411,7 +437,6 @@ To extend the architecture:
 - [ ] Home Assistant WebSocket API support
 - [ ] Prometheus metrics export
 - [ ] Advanced filtering/aggregation pipeline stages
-- [ ] Database storage backend
 
 ## License
 
