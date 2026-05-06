@@ -29,6 +29,7 @@ Example:
 
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 try:
@@ -391,6 +392,7 @@ class HASSMQTTPublisher:
         device_id: str,
         data: dict[str, Any],
         sensor_key_map: dict[str, str] | None = None,
+        include_timestamp: bool = False,
     ) -> int:
         """
         Publish sensor data to Home Assistant.
@@ -404,6 +406,10 @@ class HASSMQTTPublisher:
             Number of successfully published values
         """
         published = 0
+
+        if include_timestamp:
+            data = dict(data)
+            data["publish_time"] = datetime.now().isoformat()
 
         for key, value in data.items():
             if value is None:
@@ -436,6 +442,11 @@ class HASSMQTTPublisher:
                 self.logger.debug(f"Entity {entity_id} not found, skipping")
 
         return published
+
+    def publish_availability(self, status: str = "online") -> int:
+        """Backward-compatible availability API used by the application."""
+        self.set_availability(status == "online")
+        return 1
 
     def set_availability(self, available: bool = True) -> None:
         """
@@ -477,3 +488,13 @@ class HAMQTTPublisher(HASSMQTTPublisher):
         from mqtt_publisher_hass import HAMQTTPublisher
         publisher = HAMQTTPublisher(config)
     """
+
+    def __init__(self, mqtt_client_or_config, config=None, logger=None):
+        """Accept both old and new constructor styles.
+
+        Supported forms:
+        - HAMQTTPublisher(config, logger=logger)
+        - HAMQTTPublisher(mqtt_client, config, logger)
+        """
+        actual_config = mqtt_client_or_config if config is None else config
+        super().__init__(actual_config, logger=logger)

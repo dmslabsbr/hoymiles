@@ -32,8 +32,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import paho.mqtt.client as mqtt
-
+from .api_schema.station_select_device_of_tree import DevicedDict
 from .cloud_api import CloudApi
 from .config_manager import ConfigManager, load_config
 from .data_pipeline import (
@@ -44,7 +43,7 @@ from .data_pipeline import (
     TypeCastTransformer,
 )
 from .devices import BMS, Dtu, Micros
-from .mqtt_publisher import HAMQTTPublisher
+from .mqtt_publisher_hass import HAMQTTPublisher
 from .sensor_registry import SensorRegistry
 
 # Configure logging
@@ -53,6 +52,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger("HoymilesApp")
+root_logger = logging.getLogger()
 
 
 class HoymilesApplication:
@@ -70,15 +70,19 @@ class HoymilesApplication:
         self.config = config
         self.logger = logging.getLogger("HoymilesApp.main")
 
-        # Set log level
+        # Set log level for all loggers (root and application)
         log_level = config.get_str("LOG_LEVEL", "INFO")
-        logger.setLevel(getattr(logging, log_level))
+        log_level_value = getattr(logging, log_level)
+        print(f"Log level set to {log_level}")
+        root_logger.setLevel(
+            log_level_value
+        )  # Set root logger so all modules inherit it
+        logger.setLevel(log_level_value)
 
         # Initialize components
         self.sensor_registry = SensorRegistry()
         self.cloud_api = CloudApi(config)
-        self.mqtt_client = self._init_mqtt_client()
-        self.mqtt_publisher = HAMQTTPublisher(self.mqtt_client, config, logger)
+        self.mqtt_publisher = HAMQTTPublisher(config, logger=logger)
 
         # State tracking
         self.is_running = False
@@ -89,44 +93,6 @@ class HoymilesApplication:
         # Data pipelines
         self.plant_pipeline = self._create_plant_pipeline()
 
-    def _init_mqtt_client(self) -> mqtt.Client:
-        """Initialize and configure MQTT client."""
-        client = mqtt.Client(
-            client_id=f"hoymiles_{self.config.get_str('MQTT_NODE_ID')}",
-            clean_session=True,
-            protocol=mqtt.MQTTv311,
-        )
-
-        # Set credentials
-        user = self.config.get_str("MQTT_USER")
-        password = self.config.get_str("MQTT_PASS")
-        if user and password:
-            client.username_pw_set(user, password)
-
-        # Set callbacks
-        client.on_connect = self._on_mqtt_connect
-        client.on_disconnect = self._on_mqtt_disconnect
-        client.on_message = self._on_mqtt_message
-
-        return client
-
-    def _on_mqtt_connect(self, client, userdata, flags, rc):
-        """MQTT connection callback."""
-        if rc == 0:
-            self.logger.info("MQTT connected")
-            self.mqtt_publisher.publish_availability("online")
-        else:
-            self.logger.error(f"MQTT connection failed with code {rc}")
-
-    def _on_mqtt_disconnect(self, client, userdata, rc):
-        """MQTT disconnection callback."""
-        self.logger.warning(f"MQTT disconnected with code {rc}")
-        self.mqtt_publisher.publish_availability("offline")
-
-    def _on_mqtt_message(self, client, userdata, msg):
-        """Handle incoming MQTT messages (for switches, numbers, etc.)."""
-        self.logger.debug(f"MQTT message received: {msg.topic} = {msg.payload}")
-
     def _create_plant_pipeline(self) -> DataPipeline:
         """Create data transformation pipeline for plant data."""
         pipeline = DataPipeline(logger=self.logger)
@@ -135,8 +101,8 @@ class HoymilesApplication:
         pipeline.add_transformer(
             CalculatedFieldTransformer(
                 {
-                    "real_power_kw": lambda d: d.get("real_power", 0) / 1000,
-                    "array_size_kW": lambda d: d.get("array_size", 0) / 1000,
+                    "real_power_kw": lambda d: int(d.get("real_power", 0)) / 1000,
+                    "array_size_kW": lambda d: int(d.get("array_size", 0)) / 1000,
                 }
             )
         )
@@ -184,16 +150,6 @@ class HoymilesApplication:
         else:
             self.last_token_refresh = datetime.now()
 
-        # Connect to MQTT
-        try:
-            host = self.config.get_str("MQTT_HOST")
-            port = self.config.get_int("MQTT_PORT", 1883)
-            self.mqtt_client.connect(host, port, keepalive=60)
-            self.mqtt_client.loop_start()
-        except Exception as err:
-            self.logger.error(f"Failed to connect to MQTT: {err}")
-            raise
-
         # Start main loop in a thread
         loop_thread = threading.Thread(target=self._main_loop, daemon=True)
         loop_thread.start()
@@ -212,8 +168,7 @@ class HoymilesApplication:
         """Stop the application."""
         self.is_running = False
         self.mqtt_publisher.publish_availability("offline")
-        self.mqtt_client.loop_stop()
-        self.mqtt_client.disconnect()
+        self.mqtt_publisher.disconnect()
         self.logger.info("Application stopped")
 
     def _main_loop(self) -> None:
@@ -266,15 +221,12 @@ class HoymilesApplication:
         plant_id = self.config.get_str("HOYMILES_PLANT_ID")
 
         try:
-            # Get device data from API
-            devices_data = self.cloud_api.request_solar_data(plant_id)
+            # Get device hardware tree from API.
+            devices_data = self.cloud_api.get_plant_hw(plant_id)
 
             if not devices_data:
                 self.logger.warning("No device data received")
                 return
-
-            # Parse devices
-            devices = devices_data.get("devices", [])
 
             # Publish plant discovery
             self.mqtt_publisher.publish_discovery(
@@ -285,10 +237,10 @@ class HoymilesApplication:
                 device_info={"firmware_version": "1.0"},
             )
 
-            # Parse and publish DTU discovery
-            for device in devices:
+            # Parse and publish DTU/Micro/BMS discovery
+            for device in devices_data:
                 if device.get("type") == 1:  # DTU
-                    dtu = Dtu(device)
+                    dtu = Dtu(DevicedDict.model_validate(device))
                     self.mqtt_publisher.publish_discovery(
                         device_type="dtu",
                         device_id=dtu.id,
@@ -300,34 +252,36 @@ class HoymilesApplication:
                         },
                     )
 
-                elif device.get("type") == 3:  # Microinverter
-                    micro = Micros(device)
-                    self.mqtt_publisher.publish_discovery(
-                        device_type="micro",
-                        device_id=micro.id,
-                        device_name=f"Inverter {micro.id}",
-                        sensors=self.sensor_registry.get_sensors("micro"),
-                        device_info={
-                            "model": micro.init_hard_no,
-                            "firmware_version": micro.soft_ver,
-                        },
-                    )
+                for child in device.get("children", []):
+                    if child.get("type") in (3, 6):  # Micro/Hybrid inverter
+                        micro = Micros(DevicedDict.model_validate(child))
+                        self.mqtt_publisher.publish_discovery(
+                            device_type="micro",
+                            device_id=micro.id,
+                            device_name=f"Inverter {micro.id}",
+                            sensors=self.sensor_registry.get_sensors("micro"),
+                            device_info={
+                                "model": micro.init_hard_no,
+                                "firmware_version": micro.soft_ver,
+                            },
+                        )
 
-                elif device.get("type") == 10:  # BMS
-                    bms = BMS(device)
-                    self.mqtt_publisher.publish_discovery(
-                        device_type="bms",
-                        device_id=bms.id,
-                        device_name=f"Battery {bms.id}",
-                        sensors=self.sensor_registry.get_sensors("bms"),
-                        device_info={
-                            "model": bms.model,
-                            "firmware_version": bms.soft_ver,
-                        },
-                    )
+                    for bms_child in child.get("children", []):
+                        if bms_child.get("type") == 10:  # BMS
+                            bms = BMS(DevicedDict.model_validate(bms_child))
+                            self.mqtt_publisher.publish_discovery(
+                                device_type="bms",
+                                device_id=bms.id,
+                                device_name=f"Battery {bms.id}",
+                                sensors=self.sensor_registry.get_sensors("bms"),
+                                device_info={
+                                    "model": bms.model,
+                                    "firmware_version": bms.soft_ver,
+                                },
+                            )
 
-        except Exception as err:
-            self.logger.error(f"Error publishing discovery: {err}", exc_info=True)
+        except Exception:
+            self.logger.exception("Error publishing discovery:")
 
     def _fetch_and_publish_data(self) -> None:
         """Fetch data from Hoymiles API and publish to MQTT."""

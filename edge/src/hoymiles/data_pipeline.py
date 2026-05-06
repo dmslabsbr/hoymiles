@@ -292,6 +292,7 @@ class CalculatedFieldTransformer(DataTransformer):
 
     def transform(self, data: dict[str, Any]) -> dict[str, Any]:
         """Add calculated fields."""
+        print(f"Calculating data: {data}")
         result = dict(data)
         for key, calc_func in self.calculations.items():
             try:

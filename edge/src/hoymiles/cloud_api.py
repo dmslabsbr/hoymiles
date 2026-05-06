@@ -1,12 +1,13 @@
 import hashlib
 import json
 import logging
+from dataclasses import asdict, is_dataclass
 from datetime import date
 from http.cookies import SimpleCookie
 from urllib.parse import urlparse
 
 import requests
-from hoymiles.cloud_payloads import Payload, SidBody, TokenBody
+from hoymiles.cloud_payloads import Payload, TokenBody
 
 try:
     from argon2.low_level import Type, hash_secret_raw
@@ -39,31 +40,28 @@ HTTP_STATUS_CODE = {
 }
 
 HEADER_DATA = {
-    "Content-Type": "application/json;charset=UTF-8",
-    "Cache-Control": "no-cache",
-    "Host": "global.hoymiles.com",
-    "Connection": "keep-alive",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Encoding": "gzip, deflate, br",
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",  # pylint: disable=line-too-long
-    "Accept-Language": "pt-BR,pt;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,en-US;q=0.4,en;q=0.3",  # pylint: disable=line-too-long
+    "Content-Type": "application/json",
+    "Accept": "application/json",
 }
 
-BASE_URL = "https://global.hoymiles.com/platform/api/gateway/"
-VERSIONED_BASE_URL = "https://neapi.hoymiles.com"
+# Minimal header for token/login requests (must match stable for compatibility)
+HEADER_LOGIN = {"Content-Type": "application/json"}
+
+BASE_URL = "https://neapi.hoymiles.com/"
+VERSIONED_BASE_URL = "https://neapi.hoymiles.com/"
 ESTAR_BASE_URL = "https://monitor.estarpower.com/platform/api/gateway/"
 
 # Legacy gateway endpoints (used by fallback/older flows).
-LEGACY_LOGIN_API = "/iam/pub/0/auth/login"
-LEGACY_GET_DATA_API = "/pvm-data/api/0/station/data/count_station_real_data"
+LEGACY_LOGIN_API = "iam/pub/0/auth/login"
+LEGACY_GET_DATA_API = "pvm-data/api/0/station/data/count_station_real_data"
 
 # Versioned API endpoints (aligned with stable/const.py semantics).
-USER_ME_API_V = "/iam/pub/{version}/user/user_me"
-GET_DATA_API_V = "/pvm-data/api/{version}/station/data/count_station_real_data"
-GET_ALL_DEVICE_API_V = "/pvm/api/{version}/station/select_device_of_tree"
-STATION_FIND_API_V = "/pvm/api/{version}/station/find"
-DATA_FIND_DETAILS_API_V = "/pvm/api/{version}/dev/micro/find"
-SETTING_BATTERY_CONFIG_API_V = "/pvm-ctl/api/{version}/dev/setting/write"
+USER_ME_API_V = "iam/pub/{version}/user/user_me"
+GET_DATA_API_V = "pvm-data/api/{version}/station/data/count_station_real_data"
+GET_ALL_DEVICE_API_V = "pvm/api/{version}/station/select_device_of_tree"
+STATION_FIND_API_V = "pvm/api/{version}/station/find"
+DATA_FIND_DETAILS_API_V = "pvm/api/{version}/dev/micro/find"
+SETTING_BATTERY_CONFIG_API_V = "pvm-ctl/api/{version}/dev/setting/write"
 
 ARGON_PRE_INSP_API = "iam/pub/3/auth/pre-insp"
 ARGON_LOGIN_API = "iam/pub/3/auth/login"
@@ -116,7 +114,12 @@ class CloudApi:
         #         break
 
     def send_post_request(
-        self, url: str, header: dict, payload: dict
+        self,
+        url: str,
+        header: dict,
+        payload: dict,
+        include_auth: bool = True,
+        include_cookies: bool = False,
     ) -> requests.Response:
         """Send POST request to Hoymiles API
 
@@ -129,10 +132,22 @@ class CloudApi:
         :return: Response from API otherwise None
         :rtype: requests.Response
         """
-        return self._send_request(url, header, payload, rtype="POST")
+        return self._send_request(
+            url,
+            header,
+            payload,
+            rtype="POST",
+            include_auth=include_auth,
+            include_cookies=include_cookies,
+        )
 
     def send_options_request(
-        self, url: str, header: dict, payload: dict
+        self,
+        url: str,
+        header: dict,
+        payload: dict,
+        include_auth: bool = True,
+        include_cookies: bool = False,
     ) -> requests.Response:
         """Send OPTIONS request to Hoymiles API
 
@@ -145,10 +160,23 @@ class CloudApi:
         :return: Response from API otherwise None
         :rtype: requests.Response
         """
-        return self._send_request(url, header, payload, rtype="OPTIONS")
+        return self._send_request(
+            url,
+            header,
+            payload,
+            rtype="OPTIONS",
+            include_auth=include_auth,
+            include_cookies=include_cookies,
+        )
 
     def _send_request(
-        self, url: str, header: dict, payload: dict, rtype: str
+        self,
+        url: str,
+        header: dict,
+        payload: dict,
+        rtype: str,
+        include_auth: bool = True,
+        include_cookies: bool = False,
     ) -> requests.Response:
         """Send API request
 
@@ -164,19 +192,33 @@ class CloudApi:
         :rtype: requests.Response
         """
         self.logger.info(f"Loading: {url}")
-        self.logger.debug(f"payload: {payload}")
+        # Always send JSON body for Hoymiles API calls.
+        if is_dataclass(payload):
+            payload = asdict(payload.body)
+
+        if isinstance(payload, dict) or not isinstance(
+            payload, (str, bytes, bytearray)
+        ):
+            payload = json.dumps(payload)
 
         header = dict(header)
-        parsed = urlparse(url)
-        if parsed.hostname:
-            header["Host"] = parsed.hostname
+        if include_auth and self.connection.token and "Authorization" not in header:
+            header["Authorization"] = self.connection.token
+
+        cookies_dict = {}
+        if include_cookies and self.cookies:
+            cookies_dict = {key: morsel.value for key, morsel in self.cookies.items()}
 
         sess = requests.Session()
         req = requests.Request(
-            rtype, url, headers=header, data=payload, cookies=self.cookies
+            rtype, url, headers=header, data=payload, cookies=cookies_dict
         )
         prepped = req.prepare()
         self.logger.debug(prepped.headers)
+        self.logger.debug(
+            f"request body: {prepped.body}, header: {prepped.headers}, url: {prepped.url}, method: {prepped.method}, cookies: {prepped._cookies}"
+        )
+
         try:
             response = sess.send(prepped)
             self.logger.debug(f"content: {response.content}")
@@ -257,8 +299,9 @@ class CloudApi:
         pre_insp_payload = json.dumps({"u": user})
         pre_insp_resp = self.send_post_request(
             self.gateway_base_url + ARGON_PRE_INSP_API,
-            dict(HEADER_DATA),
+            dict(HEADER_LOGIN),
             pre_insp_payload,
+            include_auth=False,
         )
         if not pre_insp_resp:
             return False, ""
@@ -286,8 +329,9 @@ class CloudApi:
         login_payload = json.dumps({"u": user, "ch": challenge, "n": nonce})
         login_resp = self.send_post_request(
             self.gateway_base_url + ARGON_LOGIN_API,
-            dict(HEADER_DATA),
+            dict(HEADER_LOGIN),
             login_payload,
+            include_auth=False,
         )
         if not login_resp:
             return False, ""
@@ -310,8 +354,9 @@ class CloudApi:
 
         resp = self.send_post_request(
             self.gateway_base_url + LEGACY_LOGIN_API,
-            HEADER_DATA,
+            HEADER_LOGIN,
             payload,
+            include_auth=False,
         )
         if not resp:
             return False, ""
@@ -334,6 +379,22 @@ class CloudApi:
         return (
             f"{self.versioned_base_url}{path_template.format(version=self.api_version)}"
         )
+
+    def _post_with_auth_retry(self, url: str, payload: dict) -> requests.Response:
+        """POST with auth token and one retry on token-expired status."""
+        resp = self.send_post_request(url, HEADER_DATA, payload)
+        if not resp:
+            return resp
+
+        try:
+            data = resp.json()
+        except Exception:
+            return resp
+
+        if isinstance(data, dict) and data.get("status") == "100" and self.get_token():
+            return self.send_post_request(url, HEADER_DATA, payload)
+
+        return resp
 
     def _apply_debug_forced_api_version(self) -> None:
         """Override auto-selected API version when debug forcing is enabled."""
@@ -396,7 +457,6 @@ class CloudApi:
         )
 
         self.connection.token = token
-        self.upate_cookie()
         return True
 
     def init_cookies(self):
@@ -448,22 +508,100 @@ class CloudApi:
         :rtype: requests.Response
         """
 
-        body = SidBody(plant_id)
-        payload = Payload(body)
+        payload = {"sid": plant_id}
 
         if self.estar_mode and not self._cfg_get("EXPERIMENTAL_CUSTOM_API_URLS", False):
             # Keep old endpoint for ESTAR compatibility.
-            return self.send_post_request(
+            return self._post_with_auth_retry(
                 self.gateway_base_url + LEGACY_GET_DATA_API,
-                HEADER_DATA,
                 payload,
             )
 
-        return self.send_post_request(
+        return self._post_with_auth_retry(
             self._versioned_api_url(GET_DATA_API_V),
-            HEADER_DATA,
             payload,
         )
+
+    def request_plant_hw(self, plant_id: str) -> requests.Response:
+        """Request hardware/device tree for a plant."""
+        payload = {"id": plant_id}
+        return self._post_with_auth_retry(
+            self._versioned_api_url(GET_ALL_DEVICE_API_V),
+            payload,
+        )
+
+    def get_plant_hw(self, plant_id: str) -> list[dict]:
+        """Get parsed hardware/device tree list for a plant."""
+        if not self.connection.token and not self.get_token():
+            self.logger.error("Unable to fetch token before hardware request")
+            return []
+
+        resp = self.request_plant_hw(plant_id)
+        if not resp:
+            return []
+
+        try:
+            data = resp.json()
+        except Exception:
+            return []
+
+        if data.get("status") != "0":
+            return []
+
+        return data.get("data", [])
+
+    def verify_plant(self, plant_id: str) -> bool:
+        """Verify that current user has access to plant id."""
+        if not self.connection.token and not self.get_token():
+            self.logger.error("Unable to fetch token before plant verification")
+            return False
+
+        resp = self._post_with_auth_retry(
+            self._versioned_api_url(STATION_FIND_API_V),
+            {"id": plant_id},
+        )
+        if not resp:
+            return False
+
+        try:
+            data = resp.json()
+        except Exception:
+            return False
+
+        return data.get("status") == "0"
+
+    def request_micro_details(self, micro_id: str | int) -> requests.Response:
+        """Request micro-inverter details/alarm info."""
+        return self._post_with_auth_retry(
+            self._versioned_api_url(DATA_FIND_DETAILS_API_V),
+            {"id": micro_id},
+        )
+
+    def set_bms_mode(
+        self, plant_id: str, mode: int, reserve_soc: int, max_power: int = 0
+    ) -> bool:
+        """Set battery mode configuration."""
+        payload = {
+            "mode": mode,
+            "data": {"reserve_soc": reserve_soc},
+            "sid": plant_id,
+        }
+        if max_power:
+            payload["data"]["max_power"] = max_power
+
+        resp = self._post_with_auth_retry(
+            self._versioned_api_url(SETTING_BATTERY_CONFIG_API_V),
+            payload,
+        )
+        if not resp:
+            return False
+
+        try:
+            data = resp.json()
+        except Exception:
+            return False
+
+        return data.get("status") == "0"
 
     def get_solar_data(self, plant_id: str) -> dict:
         """Get solar data from Hoymiles API

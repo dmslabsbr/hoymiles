@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, date
-from logging import warn
-from typing import Optional, List
-
 from pydantic import BaseModel
 
 
 class DeviceTree(BaseModel):
     status: int
     message: str
-    data: Optional[List[DevicedDict]] = []
-    systemNotice: Optional[str] = None
+    data: list[DevicedDict] | None = []
+    systemNotice: str | None = None
 
 
 class DevicedDict(BaseModel):
@@ -23,8 +19,8 @@ class DevicedDict(BaseModel):
     model_no: str
     soft_ver: str
     hard_ver: str
-    warn_data: Optional[WarnDict | dict] = {}
-    children: Optional[List[DevicedDict]] = []
+    warn_data: WarnDict | dict | None = {}
+    children: list[DevicedDict] | None = []
 
 
 class WarnDict(BaseModel):
