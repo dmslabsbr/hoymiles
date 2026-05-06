@@ -141,8 +141,8 @@ class DataPipeline:
                 for handler in self.error_handlers:
                     try:
                         handler(err, current_data)
-                    except Exception as handler_err:
-                        self.logger.error(f"Error in error handler: {handler_err}")
+                    except Exception:
+                        self.logger.exception("Error in error handler")
                 if not skip_on_error:
                     raise
 

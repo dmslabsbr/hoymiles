@@ -29,7 +29,7 @@ Example:
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 try:
@@ -115,6 +115,7 @@ class HASSMQTTPublisher:
             "username": self.config.get("MQTT_USER", ""),
             "password": self.config.get("MQTT_PASS", ""),
             "keepalive": 60,
+            "state_prefix": "hoymiles",
         }
 
         # Add TLS if enabled
@@ -152,6 +153,9 @@ class HASSMQTTPublisher:
         published = 0
 
         # Create device info for HA
+        self.logger.debug(
+            f"Creating device info for {device_id} with type {device_type}, device_name {device_name}, and additional info {device_info}"
+        )
         device = DeviceInfo(
             name=device_name,
             identifiers=f"hoymiles_{device_id}",
@@ -351,8 +355,8 @@ class HASSMQTTPublisher:
             )
 
             return Switch(settings)
-        except Exception as err:
-            self.logger.error(f"Error creating switch entity: {err}")
+        except Exception:
+            self.logger.exception("Error creating switch entity")
             return None
 
     def _create_number_entity(
@@ -409,7 +413,7 @@ class HASSMQTTPublisher:
 
         if include_timestamp:
             data = dict(data)
-            data["publish_time"] = datetime.now().isoformat()
+            data["publish_time"] = datetime.now(tz=timezone.utc).isoformat()
 
         for key, value in data.items():
             if value is None:
@@ -435,8 +439,8 @@ class HASSMQTTPublisher:
                         entity.update_state(value)
 
                     published += 1
-                except Exception as err:
-                    self.logger.error(f"Error publishing {entity_id}: {err}")
+                except Exception:
+                    self.logger.exception(f"Error publishing {entity_id}")
             else:
                 # Entity not created, publish directly
                 self.logger.debug(f"Entity {entity_id} not found, skipping")
@@ -459,8 +463,8 @@ class HASSMQTTPublisher:
             try:
                 if hasattr(entity, "set_availability"):
                     entity.set_availability(available)
-            except Exception as err:
-                self.logger.error(f"Error setting availability: {err}")
+            except Exception:
+                self.logger.exception("Error setting availability")
 
     def disconnect(self) -> None:
         """Disconnect and clean up."""
@@ -469,8 +473,8 @@ class HASSMQTTPublisher:
                 if hasattr(entity, "disconnect"):
                     entity.disconnect()
             self.logger.info("MQTT publisher disconnected")
-        except Exception as err:
-            self.logger.error(f"Error disconnecting: {err}")
+        except Exception:
+            self.logger.exception("Error disconnecting")
 
 
 # Backward compatibility wrapper

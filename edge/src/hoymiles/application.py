@@ -28,7 +28,7 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -148,7 +148,7 @@ class HoymilesApplication:
         if not self.cloud_api.get_token():
             self.logger.warning("Initial token fetch failed; will retry in main loop")
         else:
-            self.last_token_refresh = datetime.now()
+            self.last_token_refresh = datetime.now(tz=timezone.utc)
 
         # Start main loop in a thread
         loop_thread = threading.Thread(target=self._main_loop, daemon=True)
@@ -180,7 +180,7 @@ class HoymilesApplication:
 
         while self.is_running:
             try:
-                now = datetime.now()
+                now = datetime.now(tz=timezone.utc)
 
                 # Publish Home Assistant discovery periodically
                 if (
@@ -211,8 +211,8 @@ class HoymilesApplication:
 
                 time.sleep(10)  # Check every 10 seconds
 
-            except Exception as err:
-                self.logger.error(f"Error in main loop: {err}", exc_info=True)
+            except Exception:
+                self.logger.exception("Error in main loop")
 
     def _publish_discovery(self) -> None:
         """Publish Home Assistant discovery messages."""
@@ -247,7 +247,7 @@ class HoymilesApplication:
                         device_name=f"DTU {dtu.id}",
                         sensors=self.sensor_registry.get_sensors("dtu"),
                         device_info={
-                            "model": dtu.model_no,
+                            "model_no": dtu.model_no,
                             "firmware_version": dtu.soft_ver,
                         },
                     )
@@ -261,7 +261,7 @@ class HoymilesApplication:
                             device_name=f"Inverter {micro.id}",
                             sensors=self.sensor_registry.get_sensors("micro"),
                             device_info={
-                                "model": micro.init_hard_no,
+                                "model_no": micro.init_hard_no,
                                 "firmware_version": micro.soft_ver,
                             },
                         )
@@ -309,8 +309,8 @@ class HoymilesApplication:
 
             self.logger.debug(f"Published plant data: {transformed_data}")
 
-        except Exception as err:
-            self.logger.error(f"Error fetching/publishing data: {err}", exc_info=True)
+        except Exception:
+            self.logger.exception("Error fetching/publishing data")
 
     def add_custom_sensor(
         self, device_type: str, sensor_key: str, sensor_def: Any

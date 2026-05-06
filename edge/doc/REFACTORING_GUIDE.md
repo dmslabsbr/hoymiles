@@ -1,5 +1,4 @@
-"""
-REFACTORING GUIDE - Hoymiles Edge Application Architecture
+# REFACTORING GUIDE - Hoymiles Edge Application Architecture
 
 This document explains the new modular architecture and how to use it.
 
@@ -13,10 +12,10 @@ The refactored architecture separates concerns into independent, composable modu
 4. **mqtt_publisher.py** - MQTT Home Assistant discovery publisher
 5. **application.py** - Example application using new architecture
 
-
 ## Architecture Principles
 
 ### 1. Separation of Concerns
+
 - **API Layer** (cloud_api.py) - Only handles API communication
 - **Data Layer** (data_pipeline.py) - Transforms raw data
 - **MQTT Layer** (mqtt_publisher.py) - Only publishes to MQTT
@@ -24,6 +23,7 @@ The refactored architecture separates concerns into independent, composable modu
 - **Sensor Layer** (sensor_registry.py) - Sensor definitions
 
 ### 2. Composability
+
 Each component can be used independently or combined:
 
 ```python
@@ -43,6 +43,7 @@ transformed = pipeline.execute(raw_data)
 ```
 
 ### 3. Extensibility
+
 Add new sensors without modifying existing code:
 
 ```python
@@ -61,8 +62,8 @@ registry.register_sensor("plant", SensorDefinition(
 ```
 
 ### 4. Testability
-Each module can be tested in isolation with mock objects.
 
+Each module can be tested in isolation with mock objects.
 
 ## Module Reference
 
@@ -71,12 +72,14 @@ Each module can be tested in isolation with mock objects.
 Centralized definition of all sensors for each device type.
 
 **Key Methods:**
+
 - `register_sensor(device_type, sensor_def)` - Register a sensor
 - `get_sensors(device_type)` - Get all sensors for a device type
 - `get_sensors_by_component(device_type, component_type)` - Filter by component
 - `get_sensor(device_type, sensor_key)` - Get a specific sensor
 
 **Example:**
+
 ```python
 from sensor_registry import SensorRegistry, ComponentType
 
@@ -94,12 +97,12 @@ real_power = registry.get_sensor("plant", "real_power")
 print(f"{real_power.name}: {real_power.unit_of_measurement}")
 ```
 
-
 ### ConfigManager (config_manager.py)
 
 Centralized configuration management with validation.
 
 **Key Methods:**
+
 - `load_from_env(prefix)` - Load from environment variables
 - `load_from_file(path)` - Load from JSON file
 - `load_from_dict(dict)` - Load from dictionary
@@ -107,6 +110,7 @@ Centralized configuration management with validation.
 - `validate()` - Validate required keys exist
 
 **Example:**
+
 ```python
 from config_manager import ConfigManager, load_config
 
@@ -128,12 +132,12 @@ use_tls = config.get_bool("MQTT_TLS", default=False)
 all_config = config.get_all()
 ```
 
-
 ### DataPipeline (data_pipeline.py)
 
 Composable data transformation pipeline.
 
 **Built-in Transformers:**
+
 - `FilterKeysTransformer` - Keep only specific keys
 - `RenameKeysTransformer` - Rename dictionary keys
 - `TypeCastTransformer` - Cast values to types
@@ -144,6 +148,7 @@ Composable data transformation pipeline.
 - `ConditionalTransformer` - Apply transformations conditionally
 
 **Example:**
+
 ```python
 from data_pipeline import (
     DataPipeline,
@@ -177,6 +182,7 @@ result = pipeline.execute({
 ```
 
 **Custom Transformer:**
+
 ```python
 from data_pipeline import DataTransformer
 
@@ -193,17 +199,18 @@ class MyCustomTransformer(DataTransformer):
 pipeline.add_transformer(MyCustomTransformer())
 ```
 
-
 ### HAMQTTPublisher (mqtt_publisher.py)
 
 Publishes Home Assistant Discovery messages and sensor data.
 
 **Key Methods:**
+
 - `publish_discovery()` - Publish device discovery
 - `publish_data()` - Publish sensor data
 - `publish_availability()` - Publish online/offline status
 
 **Example:**
+
 ```python
 from mqtt_publisher import HAMQTTPublisher
 from sensor_registry import SensorRegistry
@@ -244,12 +251,12 @@ publisher.publish_data(
 publisher.publish_availability("online")
 ```
 
-
 ## Migration Guide
 
 ### From Old Code to New Architecture
 
 **Before (Old):**
+
 ```python
 # Scattered configuration
 mqtt_host = os.environ.get("MQTT_HOST")
@@ -269,6 +276,7 @@ mqtt_h.public(topic, json_hass["sensor"])
 ```
 
 **After (New):**
+
 ```python
 from config_manager import ConfigManager
 from sensor_registry import SensorRegistry
@@ -295,7 +303,6 @@ publisher.publish_discovery(
 transformed_data = plant_pipeline.execute(solar_data)
 publisher.publish_data(device_id="plant_1", data=transformed_data)
 ```
-
 
 ## Advanced Usage
 
@@ -359,10 +366,10 @@ pipeline.add_transformer(ConditionalTransformer(
 ))
 ```
 
-
 ## Configuration File Examples
 
 ### config.json
+
 ```json
 {
   "HOYMILES_USER": "user@example.com",
@@ -380,7 +387,6 @@ pipeline.add_transformer(ConditionalTransformer(
 }
 ```
 
-### Environment Variables
 ```bash
 export HOYMILES_USER="user@example.com"
 export HOYMILES_PASSWORD="password"
@@ -389,7 +395,6 @@ export MQTT_HOST="192.168.1.100"
 export MQTT_USER="mqtt_user"
 export MQTT_PASS="mqtt_password"
 ```
-
 
 ## Testing
 
@@ -433,7 +438,6 @@ class TestMQTTPublisher(unittest.TestCase):
 6. **Flexibility**: Configuration from multiple sources
 7. **Scalability**: Easy to add multiple plants, devices, sensors
 8. **Documentation**: Self-documenting through type hints and docstrings
-
 
 ## Summary
 
