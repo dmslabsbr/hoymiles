@@ -49,7 +49,7 @@ class DeviceClass(Enum):
     HUMIDITY = "humidity"
     CONNECTIVITY = "connectivity"
     TIMESTAMP = "timestamp"
-    NONE = ""
+    NONE = None
 
 
 @dataclass

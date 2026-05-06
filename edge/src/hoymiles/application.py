@@ -89,6 +89,7 @@ class HoymilesApplication:
         self.last_data_fetch = None
         self.last_hass_discovery = None
         self.last_token_refresh = None
+        self.micro_ids_by_plant: dict[str, set[str]] = {}
 
         # Data pipelines
         self.plant_pipeline = self._create_plant_pipeline()
@@ -222,10 +223,11 @@ class HoymilesApplication:
             try:
                 # Get device hardware tree from API.
                 devices_data = self.cloud_api.get_plant_hw(plant_id)
+                discovered_micro_ids: set[str] = set()
 
                 if not devices_data:
                     self.logger.warning("No device data received")
-                    return
+                    continue
 
                 # Publish plant discovery
                 self.mqtt_publisher.publish_discovery(
@@ -254,6 +256,7 @@ class HoymilesApplication:
                     for child in device.get("children", []):
                         if child.get("type") in (3, 6):  # Micro/Hybrid inverter
                             micro = Micros(DevicedDict.model_validate(child))
+                            discovered_micro_ids.add(str(micro.id))
                             self.mqtt_publisher.publish_discovery(
                                 device_type="micro",
                                 device_id=micro.id,
@@ -279,8 +282,59 @@ class HoymilesApplication:
                                     },
                                 )
 
+                self.micro_ids_by_plant[str(plant_id)] = discovered_micro_ids
+
             except Exception:
                 self.logger.exception("Error publishing discovery:")
+
+    def _get_micro_ids_for_plant(self, plant_id: str) -> list[str]:
+        """Get cached micro IDs and refresh from API if cache is empty."""
+        cached = self.micro_ids_by_plant.get(str(plant_id), set())
+        if cached:
+            return sorted(cached)
+
+        devices_data = self.cloud_api.get_plant_hw(plant_id)
+        if not devices_data:
+            return []
+
+        discovered_micro_ids: set[str] = set()
+        for device in devices_data:
+            for child in device.get("children", []):
+                if child.get("type") in (3, 6) and child.get("id") is not None:
+                    discovered_micro_ids.add(str(child.get("id")))
+
+        self.micro_ids_by_plant[str(plant_id)] = discovered_micro_ids
+        return sorted(discovered_micro_ids)
+
+    def _extract_micro_alarm_payload(self, details: dict[str, Any]) -> dict[str, Any]:
+        """Convert micro details response into MQTT payload for micro sensors."""
+        data = details.get("data", {}) if isinstance(details, dict) else {}
+        warn_list = data.get("warn_list", [])
+
+        alarm_code = 0
+        alarm_string = ""
+        if warn_list:
+            first_warn = warn_list[0]
+            try:
+                alarm_code = int(first_warn.get("err_code", 0) or 0)
+            except (TypeError, ValueError):
+                alarm_code = 0
+
+            alarm_parts = [
+                str(first_warn.get("wd1", "") or "").strip(),
+                str(first_warn.get("wdd1", "") or "").strip(),
+                str(first_warn.get("wdd2", "") or "").strip(),
+                str(first_warn.get("wd2", "") or "").strip(),
+            ]
+            alarm_string = " ".join(
+                [part for part in alarm_parts if part and part != "-"]
+            )
+
+        return {
+            "connect": bool(data.get("net_state", 0)),
+            "alarm_code": alarm_code,
+            "alarm_string": alarm_string,
+        }
 
     def _fetch_and_publish_data(self) -> None:
         """Fetch data from Hoymiles API and publish to MQTT."""
@@ -304,6 +358,34 @@ class HoymilesApplication:
                     data=transformed_data,
                     include_timestamp=True,
                 )
+
+                # Publish per-inverter alarm/connectivity data.
+                for micro_id in self._get_micro_ids_for_plant(plant_id):
+                    micro_resp = self.cloud_api.request_micro_details(micro_id)
+                    if not micro_resp:
+                        continue
+
+                    try:
+                        micro_details = micro_resp.json()
+                    except ValueError:
+                        self.logger.debug(
+                            "Invalid JSON in micro details response for %s", micro_id
+                        )
+                        continue
+
+                    if micro_details.get("status") != "0":
+                        self.logger.debug(
+                            "Micro details status is not success for %s: %s",
+                            micro_id,
+                            micro_details.get("status"),
+                        )
+                        continue
+
+                    alarm_payload = self._extract_micro_alarm_payload(micro_details)
+                    self.mqtt_publisher.publish_data(
+                        device_id=str(micro_id),
+                        data=alarm_payload,
+                    )
 
                 self.logger.debug(f"Published plant data: {transformed_data}")
 
