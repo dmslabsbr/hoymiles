@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .api_schema.data_find import DataFind
 from .api_schema.station_select_device_of_tree import DevicedDict
 from .cloud_api import CloudApi
 from .config_manager import ConfigManager, load_config
@@ -90,6 +91,7 @@ class HoymilesApplication:
         self.last_hass_discovery = None
         self.last_token_refresh = None
         self.micro_ids_by_plant: dict[str, set[str]] = {}
+        self.bms_ids_by_plant: dict[str, set[str]] = {}
 
         # Data pipelines
         self.plant_pipeline = self._create_plant_pipeline()
@@ -224,6 +226,7 @@ class HoymilesApplication:
                 # Get device hardware tree from API.
                 devices_data = self.cloud_api.get_plant_hw(plant_id)
                 discovered_micro_ids: set[str] = set()
+                discovered_bms_ids: set[str] = set()
 
                 if not devices_data:
                     self.logger.warning("No device data received")
@@ -271,6 +274,7 @@ class HoymilesApplication:
                         for bms_child in child.get("children", []):
                             if bms_child.get("type") == 10:  # BMS
                                 bms = BMS(DevicedDict.model_validate(bms_child))
+                                discovered_bms_ids.add(str(bms.id))
                                 self.mqtt_publisher.publish_discovery(
                                     device_type="bms",
                                     device_id=bms.id,
@@ -283,6 +287,7 @@ class HoymilesApplication:
                                 )
 
                 self.micro_ids_by_plant[str(plant_id)] = discovered_micro_ids
+                self.bms_ids_by_plant[str(plant_id)] = discovered_bms_ids
 
             except Exception:
                 self.logger.exception("Error publishing discovery:")
@@ -306,34 +311,67 @@ class HoymilesApplication:
         self.micro_ids_by_plant[str(plant_id)] = discovered_micro_ids
         return sorted(discovered_micro_ids)
 
-    def _extract_micro_alarm_payload(self, details: dict[str, Any]) -> dict[str, Any]:
-        """Convert micro details response into MQTT payload for micro sensors."""
-        data = details.get("data", {}) if isinstance(details, dict) else {}
-        warn_list = data.get("warn_list", [])
+    def _extract_micro_alarm_payload(
+        self, micro_details: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Convert micro details response into MQTT payload for micro sensors.
+
+        Uses DataFind schema for type-safe parsing per api_schema/data_find.py.
+        """
+        try:
+            # Parse response using DataFind schema for type safety
+            details = DataFind.model_validate(micro_details)
+            data = details.data
+        except (ValueError, TypeError):
+            # Fall back to dict parsing if validation fails
+            data_dict = (
+                micro_details.get("data", {}) if isinstance(micro_details, dict) else {}
+            )
+            return {
+                "connect": bool(data_dict.get("net_state", 0)),
+                "alarm_code": 0,
+                "alarm_string": "",
+            }
 
         alarm_code = 0
         alarm_string = ""
-        if warn_list:
-            first_warn = warn_list[0]
-            try:
-                alarm_code = int(first_warn.get("err_code", 0) or 0)
-            except (TypeError, ValueError):
-                alarm_code = 0
-
+        if data.warn_list and len(data.warn_list) > 0:
+            first_warn = data.warn_list[0]
+            alarm_code = first_warn.err_code
             alarm_parts = [
-                str(first_warn.get("wd1", "") or "").strip(),
-                str(first_warn.get("wdd1", "") or "").strip(),
-                str(first_warn.get("wdd2", "") or "").strip(),
-                str(first_warn.get("wd2", "") or "").strip(),
+                (first_warn.wd1 or "").strip(),
+                (first_warn.wdd1 or "").strip(),
+                (first_warn.wdd2 or "").strip(),
+                (first_warn.wd2 or "").strip(),
             ]
             alarm_string = " ".join(
                 [part for part in alarm_parts if part and part != "-"]
             )
 
         return {
-            "connect": bool(data.get("net_state", 0)),
+            "connect": bool(data.net_state),
             "alarm_code": alarm_code,
             "alarm_string": alarm_string,
+        }
+
+    def _extract_bms_payload_from_solar_data(
+        self, solar_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Extract BMS data from plant solar response for each BMS device.
+
+        BMS data is embedded in reflux_station_data of the solar data response.
+        Returns dict with keys: reserve_soc, max_power (as percentages).
+        """
+        reflux_data = solar_data.get("reflux_station_data", {})
+        if not reflux_data:
+            return {}
+
+        return {
+            "reserve_soc": int(reflux_data.get("bms_soc", 0))
+            if reflux_data.get("bms_soc")
+            else 0,
+            "max_power": 80,  # Default from devices.py
+            "connect": bool(reflux_data.get("bms_power", 0)),
         }
 
     def _fetch_and_publish_data(self) -> None:
@@ -386,6 +424,18 @@ class HoymilesApplication:
                         device_id=str(micro_id),
                         data=alarm_payload,
                     )
+
+                # Publish per-BMS data if READ_METER_DATA is enabled.
+                if self.config.get_bool("READ_METER_DATA", True):
+                    for bms_id in self.bms_ids_by_plant.get(str(plant_id), set()):
+                        bms_payload = self._extract_bms_payload_from_solar_data(
+                            solar_data
+                        )
+                        if bms_payload:
+                            self.mqtt_publisher.publish_data(
+                                device_id=str(bms_id),
+                                data=bms_payload,
+                            )
 
                 self.logger.debug(f"Published plant data: {transformed_data}")
 

@@ -63,6 +63,7 @@ class ConfigManager:
         # Data fetching
         "GET_DATA_INTERVAL": 480,  # seconds
         "HASS_INTERVAL": 300,  # seconds
+        "READ_METER_DATA": True,  # Publish BMS/meter data if available
         # Token refresh
         "AUTO_UPDATE_TOKEN": False,
         "TOKEN_REFRESH_INTERVAL": 72000,  # 20h

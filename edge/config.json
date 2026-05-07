@@ -42,6 +42,7 @@
     "HA_EXPIRE_TIME": 600,
     "GET_DATA_INTERVAL": 480,
     "HASS_INTERVAL": 300,
+    "READ_METER_DATA": false,
     "Auto_update_token": false,
     "DEVELOPERS_MODE": false,
     "LOG_LEVEL": "INFO"
@@ -68,6 +69,7 @@
     "HA_EXPIRE_TIME": "int?",
     "GET_DATA_INTERVAL": "int?",
     "HASS_INTERVAL": "int?",
+    "READ_METER_DATA": "bool?",
     "Auto_update_token": "bool",
     "DEVELOPERS_MODE": "bool",
     "LOG_LEVEL": "list(DEBUG|INFO|WARNING|ERROR|CRITICAL)?"

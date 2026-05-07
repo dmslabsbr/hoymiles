@@ -7,6 +7,7 @@ from http.cookies import SimpleCookie
 from urllib.parse import urlparse
 
 import requests
+from hoymiles.api_schema.data_count_station_real_data import DataCountStation
 from hoymiles.cloud_payloads import Payload, TokenBody
 
 try:
@@ -634,4 +635,12 @@ class CloudApi:
             )
             return {}
 
-        return data.get("data", {})
+        # Validate response against schema for type safety
+        try:
+            response = DataCountStation.model_validate(data)
+            return response.data.model_dump()
+        except (ValueError, TypeError) as err:
+            self.logger.warning(
+                f"Solar data schema validation failed: {err}; returning raw data"
+            )
+            return data.get("data", {})
